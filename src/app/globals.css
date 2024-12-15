@@ -1,0 +1,224 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.cdnfonts.com/css/sf-pro-display');
+
+/* ===== Scrollbar CSS ===== */
+/* Firefox */
+* {
+    scrollbar-width: auto;
+    scrollbar-color: #ffc86b #34353a00;
+}
+
+/* Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+    width: 25px;
+}
+
+*::-webkit-scrollbar-track {
+    background-color: #34353a00;
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: #ffc86b;
+    border-radius: 12px;
+    border: 3px solid #e00000;
+}
+
+:root {
+    --foreground-rgb: 0, 0, 0;
+    --background-start-rgb: 214, 219, 220;
+    --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --foreground-rgb: 255, 255, 255;
+        --background-start-rgb: 0, 0, 0;
+        --background-end-rgb: 0, 0, 0;
+    }
+}
+
+body {
+    color: rgb(var(--foreground-rgb));
+    background-color: #34353A;
+    /* background: #34353A linear-gradient(-45deg, #FFC86B55, #34353A 90%) !important; */
+    background: #34353A !important;
+    overflow-x: hidden;
+    font-family: sf pro display;
+}
+
+h1 {
+    letter-spacing: -1.6px;
+    font-weight: 600;
+}
+
+h2 {
+    letter-spacing: 0.6px;
+    font-family: sf pro display;
+    font-weight: 500;
+}
+
+p,
+span {
+    letter-spacing: 1.0px;
+}
+
+.bg-real-transparent {
+    background: #34353A;
+    /* background: #34353A linear-gradient(-45deg, #FFC86B55, #34353A 90%); */
+    background-size: 100vw 100vh;
+    background-attachment: fixed;
+}
+
+
+.text-linear-color {
+    background: linear-gradient(45deg, #FFC86B, #00ff95) !important;
+
+    background-clip: text !important;
+    background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+}
+
+.border-gold {
+    border-color: #FFC86B !important;
+}
+
+.bg-gold {
+    background-color: #FFC86B;
+}
+
+.bg-semi-dark-linear {
+    background: linear-gradient(#5e5e5a, #41413d);
+}
+
+.text-gold {
+    color: #FFC86B;
+}
+
+.bg-gold-tw {
+    background-color: rgb(255 201 107 / var(--tw-bg-opacity));
+}
+
+.bg-dark {
+    background-color: #34353A !important;
+}
+
+.text-dark {
+    color: #34353A !important;
+}
+
+/* * {
+    border: 1px red solid;
+} */
+
+.special {
+    border: 4px blue solid;
+
+    * {
+        border: 1px green solid;
+    }
+}
+
+.typewriter {
+    overflow: hidden;
+    /* Ensures the content is not revealed until the animation */
+    /* The typwriter cursor */
+    white-space: nowrap;
+    /* Adjust as needed */
+    animation:
+        typing 3.5s steps(40, end);
+}
+
+/* The typing effect */
+@keyframes typing {
+    from {
+        opacity: 0
+    }
+
+    to {
+        opacity: 100%
+    }
+}
+
+@keyframes fade-out {
+    0% {
+        opacity: 1;
+    }
+
+    10% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 0;
+    }
+}
+
+.landing-section {
+    animation: fade-out linear;
+    animation-timeline: scroll(nearest block);
+}
+
+.marquee .rfm-initial-child-container {
+    align-items: stretch !important;
+}
+
+.floating-1 {
+    animation: floating-1 7s infinite;
+    animation-delay: 0.3s;
+}
+
+
+.floating-2 {
+    animation: floating-2 3s infinite;
+    animation-delay: 0.6s;
+
+}
+
+.floating-3 {
+    animation: floating-3 8s infinite;
+}
+
+@keyframes floating-1 {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(60px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+@keyframes floating-2 {
+    0% {
+        transform: translateY(0px) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateY(30px) rotate(7deg);
+    }
+
+    100% {
+        transform: translateY(0px) rotate(-2deg);
+    }
+}
+
+@keyframes floating-3 {
+    0% {
+        transform: translateY(0px) scale(1);
+    }
+
+    50% {
+        transform: translateY(100px) scale(1.05);
+    }
+
+    100% {
+        transform: translateY(0px) scale(1);
+    }
+}
