@@ -1,8 +1,8 @@
 'use client';
 
 import { HTMLAttributes, useLayoutEffect, useRef, useState } from 'react';
-import { TransparentButton } from './TransparentButton';
 import { FaArrowUp } from 'react-icons/fa';
+import { Button } from './ui/button';
 
 export default function GoToTopButtonContainer({ children, ...props }: HTMLAttributes<HTMLElement>) {
 
@@ -17,14 +17,13 @@ export default function GoToTopButtonContainer({ children, ...props }: HTMLAttri
     return (
         <div {...props} ref={mainRef}>
             {children}
-            <TransparentButton
+            <Button
                 onClick={() => onGoToTop()}
-                className='fixed m-10 bottom-0 end-0 !shadow-lg shadow-black z-20' style={{
-                    opacity: scrollTop === 0 || scrollTop === null ? 0 : 1,
-                    backgroundColor: 'rgb(62 63 68)'
+                className='fixed m-10 px-3 bottom-0 end-0 animate-pulse !shadow-lg shadow-black z-20' style={{
+                    opacity: scrollTop === 0 || scrollTop === null ? 0 : 1
                 }}>
                 <FaArrowUp />
-            </TransparentButton>
+            </Button>
         </div>
     );
 }
@@ -38,7 +37,7 @@ function debounce(func: () => void, timeout = 100) {
     };
 }
 
-function useScrollTop(ref: React.RefObject<HTMLDivElement>) {
+function useScrollTop(ref: React.RefObject<HTMLDivElement | null>) {
     const [scrollTop, setScrollTop] = useState<number | null>(null);
 
     useLayoutEffect(() => {

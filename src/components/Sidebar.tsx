@@ -1,6 +1,7 @@
 'use client';
 
 import { Button, Drawer } from '@mantine/core';
+import Link from 'next/link';
 import React, { createContext, useContext, useState } from 'react';
 import { MdMenu } from 'react-icons/md';
 
@@ -31,12 +32,12 @@ export default function Sidebar() {
                     </Drawer.Header>
                     <Drawer.Body>
                         <ul className='flex flex-col p-5 overflow-clip text-lg gap-5 items-center justify-center grow [&_a]:text-white [&_a]:no-underline'>
-                            <li className=''><a onClick={closeSidebar} href="/#achievements">Achievements</a></li>
-                            <li className=''><a onClick={closeSidebar} href="/#about">About</a></li>
-                            <li><a onClick={closeSidebar} href="/#skills">Skills</a></li>
-                            <li><a onClick={closeSidebar} href="/#projects">Projects</a></li>
-                            <li><a onClick={closeSidebar} href="/#testimonials">Testimonials</a></li>
-                            <li><a onClick={closeSidebar} className='text-nowrap' href="/#reach-me">Reach me</a></li>
+                            <li className=''><Link onClick={closeSidebar} href="/#achievements">Achievements</Link></li>
+                            <li className=''><Link onClick={closeSidebar} href="/#about">About</Link></li>
+                            <li><Link onClick={closeSidebar} href="/#skills">Skills</Link></li>
+                            <li><Link onClick={closeSidebar} href="/#projects">Projects</Link></li>
+                            <li><Link onClick={closeSidebar} href="/#testimonials">Testimonials</Link></li>
+                            <li><Link onClick={closeSidebar} className='text-nowrap' href="/#reach-me">Reach me</Link></li>
                         </ul>
                     </Drawer.Body>
                 </Drawer.Content>

@@ -1,10 +1,5 @@
-import { BiLogoPostgresql } from "react-icons/bi";
-import { FaReact, FaFigma } from "react-icons/fa";
-import { RiNodejsLine, RiNextjsFill, RiTailwindCssFill } from "react-icons/ri";
-import { SiCsharp, SiPhp, SiRefine } from "react-icons/si";
-import { TbBrandMysql, TbBrandCpp } from "react-icons/tb";
-import { gold } from "../helpers/constants";
 import { Tooltip } from "@mantine/core";
+import Image from "next/image";
 
 
 const names = {
@@ -24,7 +19,7 @@ const names = {
 export function StackIcon({ name }: { name: string; }) {
     return <Tooltip label={(names as any)[name]}>
         <span className="rounded-lg flex w-[40px] h-[40px]">
-            <img width={30} height={30} className="m-1 block" src={'/stack/' + (name === "c#" ? 'csharp' : name) + '.svg'} />
+            <Image alt={name} width={30} height={30} className="m-1 block" src={'/stack/' + (name === "c#" ? 'csharp' : name) + '.svg'} />
         </span>
     </Tooltip>;
 }
