@@ -122,6 +122,10 @@ span {
 }
 
 .bg-gold-tw {
+    background-color: rgb(142 90 0 / var(--tw-bg-opacity));
+}
+
+.dark .bg-gold-tw {
     background-color: rgb(255 201 107 / var(--tw-bg-opacity));
 }
 
@@ -149,6 +153,7 @@ span {
 .dark .bg-path {
     fill: #0005 !important;
 }
+
 .bg-path {
     fill: #fff5 !important;
 }
@@ -258,7 +263,7 @@ span {
 
 
 @layer base {
-  :root {
+    :root {
         --background: 0 0% 100%;
         --foreground: 0 0% 3.9%;
         --card: 0 0% 100%;
@@ -285,7 +290,8 @@ span {
         --chart-5: 27 87% 67%;
         --radius: 0.5rem;
     }
-  .dark {
+
+    .dark {
         --background: 0 0% 3.9%;
         --foreground: 0 0% 98%;
         --card: 0 0% 3.9%;
@@ -316,10 +322,19 @@ span {
 
 
 @layer base {
-  * {
-    @apply border-border;
+    * {
+        @apply border-border;
     }
-  body {
-    @apply bg-background text-foreground;
+
+    body {
+        @apply bg-background text-foreground;
     }
+}
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden !important;
+    margin: 0;
+    padding: 0;
 }
