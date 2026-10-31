@@ -51,3 +51,4 @@ export interface RoomState {
   toggleContact: () => void;
   toggleNightMode: () => void;
 }
+

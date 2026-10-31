@@ -87,3 +87,4 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
     </group>
   );
 }
+

@@ -9,12 +9,12 @@ export function ForegroundLounge() {
   const chairX = -0.35;
   const chairZ = 2.3;
 
-  // Armchair bounce spring state
-  const [bounce, setBounce] = useState(0);
+  // Armchair bounce spring ref (no state re-renders in useFrame)
+  const bounceRef = useRef(0);
   const chairGroup = useRef<THREE.Group>(null);
 
-  // Cactus wobble state
-  const [cactusWobble, setCactusWobble] = useState(0);
+  // Cactus wobble ref
+  const cactusWobbleRef = useRef(0);
   const cactusRef = useRef<THREE.Group>(null);
 
   useEffect(() => {
@@ -25,31 +25,31 @@ export function ForegroundLounge() {
 
   useFrame((_, delta) => {
     // Cushion bounce decaying spring
-    if (bounce > 0) {
-      setBounce((prev) => Math.max(0, prev - delta * 4));
+    if (bounceRef.current > 0) {
+      bounceRef.current = Math.max(0, bounceRef.current - delta * 4);
       if (chairGroup.current) {
-        const squash = Math.sin(bounce * 25) * 0.06 * bounce;
+        const squash = Math.sin(bounceRef.current * 25) * 0.06 * bounceRef.current;
         chairGroup.current.scale.set(1 + squash * 0.5, 1 - squash, 1 + squash * 0.5);
       }
     }
 
     // Cactus wobble decaying spring
-    if (cactusWobble > 0) {
-      setCactusWobble((prev) => Math.max(0, prev - delta * 4.5));
+    if (cactusWobbleRef.current > 0) {
+      cactusWobbleRef.current = Math.max(0, cactusWobbleRef.current - delta * 4.5);
       if (cactusRef.current) {
-        cactusRef.current.rotation.z = Math.sin(cactusWobble * 30) * 0.12 * cactusWobble;
+        cactusRef.current.rotation.z = Math.sin(cactusWobbleRef.current * 30) * 0.12 * cactusWobbleRef.current;
       }
     }
   });
 
   const handleChairClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
-    setBounce(1);
+    bounceRef.current = 1;
   };
 
   const handleCactusClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
-    setCactusWobble(1);
+    cactusWobbleRef.current = 1;
   };
 
   return (
@@ -210,3 +210,4 @@ export function ForegroundLounge() {
     </group>
   );
 }
+

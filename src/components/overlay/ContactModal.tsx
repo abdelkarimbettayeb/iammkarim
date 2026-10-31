@@ -38,8 +38,14 @@ export function ContactModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#0F172A] border border-slate-700/80 shadow-2xl rounded-3xl p-6 sm:p-7 text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
+      onClick={toggleContact}
+    >
+      <div
+        className="relative w-full max-w-lg bg-[#0F172A] border border-slate-700/80 shadow-2xl rounded-3xl p-6 sm:p-7 text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex items-start justify-between">
           <div>
@@ -185,3 +191,4 @@ export function ContactModal() {
     </div>
   );
 }
+

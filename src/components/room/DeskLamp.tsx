@@ -125,3 +125,4 @@ export function DeskLamp({ position }: DeskLampProps) {
     </group>
   );
 }
+

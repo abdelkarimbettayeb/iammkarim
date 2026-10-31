@@ -182,3 +182,4 @@ export function playSound(effect: SoundEffect): void {
     console.warn('Audio playback error:', err);
   }
 }
+

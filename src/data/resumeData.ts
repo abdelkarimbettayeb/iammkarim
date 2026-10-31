@@ -165,3 +165,4 @@ export const cartridgeProjects: Record<'alnurayn' | 'freelance' | 'tastytracks',
     image: '/projects/tasty-tracks.jpeg',
   },
 };
+

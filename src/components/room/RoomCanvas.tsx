@@ -72,3 +72,4 @@ export function RoomCanvas({ children }: RoomCanvasProps) {
     </div>
   );
 }
+

@@ -1,9 +1,7 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
+import React, { useRef, useState, useEffect } from 'react';
 import { Text, Html } from '@react-three/drei';
-import * as THREE from 'three';
 import { playSound } from '@/lib/audioEngine';
 
 interface Dart {
@@ -20,6 +18,15 @@ export function WallDecor() {
   ]);
   const [showHitBadge, setShowHitBadge] = useState(false);
   const badgeTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (badgeTimerRef.current) clearTimeout(badgeTimerRef.current);
+      if (typeof document !== 'undefined') {
+        document.body.style.cursor = 'auto';
+      }
+    };
+  }, []);
 
   const handleDartboardClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
@@ -207,3 +214,4 @@ export function WallDecor() {
     </group>
   );
 }
+

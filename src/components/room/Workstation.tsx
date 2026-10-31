@@ -17,6 +17,12 @@ export function Workstation() {
 
   const activeProject = activeCartridge ? cartridgeProjects[activeCartridge] : null;
 
+  React.useEffect(() => {
+    return () => {
+      if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+    };
+  }, []);
+
   const handleMonitorClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     setActiveZone('workstation');
@@ -243,3 +249,4 @@ export function Workstation() {
     </group>
   );
 }
+

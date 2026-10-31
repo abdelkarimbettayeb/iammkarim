@@ -35,11 +35,11 @@ export function VintageMailbox({ position = [-3.4, 0, 0.6] }: VintageMailboxProp
       );
     }
 
-    // Smooth flag raise rotation
+    // Smooth flag raise rotation (pivoting on screw axis X)
     if (flagRef.current) {
-      const targetFlagRot = isContactOpen ? Math.PI / 2 : 0;
-      flagRef.current.rotation.z = THREE.MathUtils.lerp(
-        flagRef.current.rotation.z,
+      const targetFlagRot = isContactOpen ? -Math.PI / 2 : 0;
+      flagRef.current.rotation.x = THREE.MathUtils.lerp(
+        flagRef.current.rotation.x,
         targetFlagRot,
         Math.min(delta * 10, 1)
       );
@@ -173,3 +173,4 @@ export function VintageMailbox({ position = [-3.4, 0, 0.6] }: VintageMailboxProp
     </group>
   );
 }
+

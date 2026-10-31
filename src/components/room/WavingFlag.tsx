@@ -111,6 +111,12 @@ export function WavingFlag({ flag, position }: WavingFlagProps) {
 
   const texture = useMemo(() => createFlagTexture(flag.countryCode), [flag.countryCode]);
 
+  React.useEffect(() => {
+    return () => {
+      texture.dispose();
+    };
+  }, [texture]);
+
   // Clone initial vertex positions for harmonic wave formula
   const initialPositions = useMemo(() => {
     const geom = new THREE.PlaneGeometry(0.38, 0.24, 16, 8);
