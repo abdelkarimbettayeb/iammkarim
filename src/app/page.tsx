@@ -29,11 +29,11 @@ const RoomCanvas = dynamic(
   }
 );
 
-const TopShelf = dynamic(() => import('@/components/room/TopShelf').then((mod) => mod.TopShelf), { ssr: false });
-const WallDecor = dynamic(() => import('@/components/room/WallDecor').then((mod) => mod.WallDecor), { ssr: false });
-const Bookcase = dynamic(() => import('@/components/room/Bookcase').then((mod) => mod.Bookcase), { ssr: false });
-const Workstation = dynamic(() => import('@/components/room/Workstation').then((mod) => mod.Workstation), { ssr: false });
-const ForegroundLounge = dynamic(() => import('@/components/room/ForegroundLounge').then((mod) => mod.ForegroundLounge), { ssr: false });
+import { TopShelf } from '@/components/room/TopShelf';
+import { WallDecor } from '@/components/room/WallDecor';
+import { Bookcase } from '@/components/room/Bookcase';
+import { Workstation } from '@/components/room/Workstation';
+import { ForegroundLounge } from '@/components/room/ForegroundLounge';
 
 export default function Home() {
   return (

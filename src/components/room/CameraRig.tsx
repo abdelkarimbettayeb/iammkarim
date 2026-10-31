@@ -43,28 +43,53 @@ export function CameraRig() {
 
   const desiredPos = useRef(ZONE_PRESETS.overview.position.clone());
   const desiredTarget = useRef(ZONE_PRESETS.overview.target.clone());
+  const isTransitioning = useRef(false);
 
   // Update target coordinates when active zone changes
   useEffect(() => {
     const preset = ZONE_PRESETS[activeZone] || ZONE_PRESETS.overview;
     desiredPos.current.copy(preset.position);
     desiredTarget.current.copy(preset.target);
+    isTransitioning.current = true;
   }, [activeZone]);
+
+  // If user manually drags or zooms, hand off full control to OrbitControls
+  useEffect(() => {
+    const controls = controlsRef.current;
+    if (!controls) return;
+
+    const onStart = () => {
+      isTransitioning.current = false;
+    };
+
+    controls.addEventListener('start', onStart);
+    return () => {
+      controls.removeEventListener('start', onStart);
+    };
+  }, []);
 
   useFrame(({ pointer }, delta) => {
     if (!controlsRef.current) return;
 
-    // Smooth camera position interpolation
-    const lerpFactor = Math.min(delta * 3.5, 1);
-    camera.position.lerp(desiredPos.current, lerpFactor);
-    controlsRef.current.target.lerp(desiredTarget.current, lerpFactor);
+    // Smooth camera transition to zone presets
+    if (isTransitioning.current) {
+      const lerpFactor = Math.min(delta * 4.0, 1);
+      camera.position.lerp(desiredPos.current, lerpFactor);
+      controlsRef.current.target.lerp(desiredTarget.current, lerpFactor);
 
-    // Subtle organic mouse parallax (active in overview mode)
-    if (activeZone === 'overview') {
-      const parallaxX = pointer.x * 0.45;
-      const parallaxY = pointer.y * 0.35;
-      camera.position.x += (desiredPos.current.x + parallaxX - camera.position.x) * 0.04;
-      camera.position.y += (desiredPos.current.y + parallaxY - camera.position.y) * 0.04;
+      // Transition completes when close enough
+      if (
+        camera.position.distanceTo(desiredPos.current) < 0.04 &&
+        controlsRef.current.target.distanceTo(desiredTarget.current) < 0.04
+      ) {
+        isTransitioning.current = false;
+      }
+    } else if (activeZone === 'overview') {
+      // Subtle organic mouse parallax when resting in overview
+      const parallaxX = pointer.x * 0.35;
+      const parallaxY = pointer.y * 0.25;
+      camera.position.x += (desiredPos.current.x + parallaxX - camera.position.x) * 0.03;
+      camera.position.y += (desiredPos.current.y + parallaxY - camera.position.y) * 0.03;
     }
 
     controlsRef.current.update();
@@ -85,3 +110,4 @@ export function CameraRig() {
     />
   );
 }
+

@@ -12,14 +12,14 @@ export function Bookcase() {
   const caseX = 2.2;
   const caseZ = -4.2;
 
-  // Guitar wobble animation state
+  // Guitar wobble animation ref (zero state re-renders in useFrame)
   const guitarRef = useRef<THREE.Group>(null);
-  const [guitarWobble, setGuitarWobble] = useState(0);
+  const guitarWobbleRef = useRef(0);
 
   const handleGuitarClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     playSound('guitar');
-    setGuitarWobble(1);
+    guitarWobbleRef.current = 1;
   };
 
   React.useEffect(() => {
@@ -29,10 +29,10 @@ export function Bookcase() {
   }, []);
 
   useFrame((_, delta) => {
-    if (guitarWobble > 0) {
-      setGuitarWobble((prev) => Math.max(0, prev - delta * 3));
+    if (guitarWobbleRef.current > 0) {
+      guitarWobbleRef.current = Math.max(0, guitarWobbleRef.current - delta * 3);
       if (guitarRef.current) {
-        guitarRef.current.rotation.z = -0.18 + Math.sin(guitarWobble * 35) * 0.05 * guitarWobble;
+        guitarRef.current.rotation.z = -0.18 + Math.sin(guitarWobbleRef.current * 35) * 0.05 * guitarWobbleRef.current;
       }
     }
   });

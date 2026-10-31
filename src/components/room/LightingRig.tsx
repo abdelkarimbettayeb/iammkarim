@@ -48,9 +48,6 @@ export function LightingRig() {
         color="#F59E0B"
         distance={9}
         decay={2}
-        castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
       />
 
       {/* 5. Cyberpunk Rim Light in Night Mode */}
@@ -73,3 +70,4 @@ export function LightingRig() {
     </group>
   );
 }
+
