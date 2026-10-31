@@ -1,96 +1,95 @@
 'use client';
 
 import React from 'react';
-import * as THREE from 'three';
 
 export function RoomStructure() {
-  const floorSize = 10;
-  const wallHeight = 8;
-  const wallThickness = 0.4;
+  const floorSize = 8.0;
+  const wallHeight = 6.6;
+  const wallThickness = 0.35;
   const halfSize = floorSize / 2;
 
   // Venetian blind slats
-  const blindSlats = Array.from({ length: 18 }, (_, i) => i);
+  const blindSlats = Array.from({ length: 16 }, (_, i) => i);
 
   return (
     <group name="room-structure">
-      {/* 1. Base Plinth & Foundation */}
-      <mesh position={[0, -0.35, 0]} receiveShadow>
-        <boxGeometry args={[floorSize + 0.6, 0.3, floorSize + 0.6]} />
-        <meshStandardMaterial color="#121316" roughness={0.8} />
+      {/* 1. Base Plinth & Foundation (Clean dark contrast base) */}
+      <mesh position={[0, -0.28, 0]} receiveShadow>
+        <boxGeometry args={[floorSize + 0.5, 0.25, floorSize + 0.5]} />
+        <meshStandardMaterial color="#141619" roughness={0.85} />
       </mesh>
 
-      {/* 2. Main Floor (Oatmeal Carpet) */}
-      <mesh position={[0, -0.1, 0]} receiveShadow>
-        <boxGeometry args={[floorSize, 0.2, floorSize]} />
+      {/* 2. Main Floor (Warm Oatmeal Carpet matching reference) */}
+      <mesh position={[0, -0.08, 0]} receiveShadow>
+        <boxGeometry args={[floorSize, 0.16, floorSize]} />
         <meshStandardMaterial
-          color="#F3EFE6"
+          color="#EAE5DC"
           roughness={0.92}
-          metalness={0.05}
+          metalness={0.02}
         />
       </mesh>
 
-      {/* 3. Left Wall (Charcoal Accent Wall) */}
+      {/* 3. Left Wall (Deep Charcoal Accent Wall) */}
       <mesh
-        position={[-halfSize - wallThickness / 2, wallHeight / 2 - 0.2, 0]}
+        position={[-halfSize - wallThickness / 2, wallHeight / 2 - 0.08, 0]}
         receiveShadow
       >
         <boxGeometry args={[wallThickness, wallHeight, floorSize]} />
         <meshStandardMaterial
-          color="#181A1B"
-          roughness={0.85}
-          metalness={0.1}
+          color="#1D1F23"
+          roughness={0.88}
+          metalness={0.08}
         />
       </mesh>
 
-      {/* 4. Right Wall (Clean Plaster Wall with Window) */}
+      {/* 4. Right Wall (Light Warm Plaster) */}
       <mesh
-        position={[0, wallHeight / 2 - 0.2, -halfSize - wallThickness / 2]}
+        position={[0, wallHeight / 2 - 0.08, -halfSize - wallThickness / 2]}
         receiveShadow
       >
         <boxGeometry args={[floorSize, wallHeight, wallThickness]} />
         <meshStandardMaterial
-          color="#F8F9FA"
-          roughness={0.75}
-          metalness={0.05}
+          color="#F4F4F6"
+          roughness={0.8}
+          metalness={0.04}
         />
       </mesh>
 
-      {/* 5. Wooden Skirting Boards (Baseboards) */}
-      {/* Left Wall Baseboard */}
-      <mesh position={[-halfSize + 0.05, 0.15, 0]}>
-        <boxGeometry args={[0.1, 0.3, floorSize]} />
-        <meshStandardMaterial color="#D96B27" roughness={0.6} />
+      {/* 5. Minimal Sleek Skirting Boards (Off-white / cream trim, NOT orange beams) */}
+      {/* Left Wall Skirting */}
+      <mesh position={[-halfSize + 0.03, 0.08, 0]}>
+        <boxGeometry args={[0.05, 0.16, floorSize]} />
+        <meshStandardMaterial color="#E2E8F0" roughness={0.6} />
       </mesh>
-      {/* Right Wall Baseboard */}
-      <mesh position={[0, 0.15, -halfSize + 0.05]}>
-        <boxGeometry args={[floorSize, 0.3, 0.1]} />
-        <meshStandardMaterial color="#D96B27" roughness={0.6} />
+      {/* Right Wall Skirting */}
+      <mesh position={[0, 0.08, -halfSize + 0.03]}>
+        <boxGeometry args={[floorSize, 0.16, 0.05]} />
+        <meshStandardMaterial color="#E2E8F0" roughness={0.6} />
       </mesh>
 
-      {/* 6. Window Frame & Venetian Blinds (Right Wall) */}
-      <group position={[1.8, 4.4, -halfSize + 0.08]}>
+      {/* 6. Window Frame & Venetian Blinds (Right Wall, to the right of the bookcase) */}
+      <group position={[2.4, 3.7, -halfSize + 0.06]}>
         {/* Outer Window Frame */}
         <mesh>
-          <boxGeometry args={[3.2, 4.8, 0.12]} />
-          <meshStandardMaterial color="#2B2D33" roughness={0.5} />
+          <boxGeometry args={[2.2, 3.8, 0.1]} />
+          <meshStandardMaterial color="#222429" roughness={0.4} />
         </mesh>
 
         {/* Window Glass Pane (Backing) */}
         <mesh position={[0, 0, -0.02]}>
-          <planeGeometry args={[2.8, 4.4]} />
+          <planeGeometry args={[1.9, 3.5]} />
           <meshStandardMaterial
-            color="#A7C7E7"
-            roughness={0.1}
-            metalness={0.9}
+            color="#8DB4D8"
+            roughness={0.15}
+            metalness={0.7}
             transparent
-            opacity={0.35}
+            opacity={0.3}
           />
         </mesh>
 
-        {/* Venetian Blind Headrail & Valance */}
-        <mesh position={[0, 2.15, 0.08]}>
-          <boxGeometry args={[2.9, 0.25, 0.18]} />
+        {/* Venetian Blind Headrail & Valance Box */}
+        <mesh position={[0, 1.72, 0.07]}>
+          <boxGeometry args={[2.0, 0.22, 0.14]} />
           <meshStandardMaterial color="#1E2024" roughness={0.4} />
         </mesh>
 
@@ -98,15 +97,14 @@ export function RoomStructure() {
         {blindSlats.map((i) => (
           <mesh
             key={i}
-            position={[0, 1.9 - i * 0.22, 0.07]}
-            rotation={[-0.35, 0, 0]}
+            position={[0, 1.5 - i * 0.2, 0.06]}
+            rotation={[-0.32, 0, 0]}
           >
-            <boxGeometry args={[2.75, 0.12, 0.02]} />
-            <meshStandardMaterial color="#282B30" roughness={0.6} />
+            <boxGeometry args={[1.92, 0.11, 0.018]} />
+            <meshStandardMaterial color="#282A2F" roughness={0.6} />
           </mesh>
         ))}
       </group>
     </group>
   );
 }
-

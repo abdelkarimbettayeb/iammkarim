@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { cartridgeProjects, techSkills } from '@/data/resumeData';
@@ -9,8 +9,9 @@ import { TechEmblem } from './TechEmblem';
 import { playSound } from '@/lib/audioEngine';
 
 export function Bookcase() {
-  const caseX = 2.2;
-  const caseZ = -4.2;
+  // Positioned along the right wall (Z = -4.0), to the left of the window (X = 2.4)
+  const caseX = 0.5;
+  const caseZ = -3.58;
 
   // Guitar wobble animation ref (zero state re-renders in useFrame)
   const guitarRef = useRef<THREE.Group>(null);
@@ -30,9 +31,9 @@ export function Bookcase() {
 
   useFrame((_, delta) => {
     if (guitarWobbleRef.current > 0) {
-      guitarWobbleRef.current = Math.max(0, guitarWobbleRef.current - delta * 3);
+      guitarWobbleRef.current = Math.max(0, guitarWobbleRef.current - delta * 3.5);
       if (guitarRef.current) {
-        guitarRef.current.rotation.z = -0.18 + Math.sin(guitarWobbleRef.current * 35) * 0.05 * guitarWobbleRef.current;
+        guitarRef.current.rotation.z = -0.16 + Math.sin(guitarWobbleRef.current * 32) * 0.06 * guitarWobbleRef.current;
       }
     }
   });
@@ -40,82 +41,97 @@ export function Bookcase() {
   return (
     <group name="bookcase">
       {/* =========================================
-          1. Main Teak Cube Shelf Frame
+          1. Main Teak Cube Shelf Frame (2 columns x 4 rows)
          ========================================= */}
-      <group position={[caseX, 2.7, caseZ]}>
-        {/* Outer Frame (Top, Bottom, Sides) */}
-        {/* Left Side */}
-        <mesh position={[-1.25, 0, 0]} castShadow receiveShadow>
-          <boxGeometry args={[0.08, 4.8, 0.75]} />
-          <meshStandardMaterial color="#D96B27" roughness={0.55} />
+      <group position={[caseX, 2.4, caseZ]}>
+        {/* Warm Teak Wood Material */}
+        {/* Left Side Panel */}
+        <mesh position={[-1.12, 0, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.08, 4.3, 0.68]} />
+          <meshStandardMaterial color="#CF6B2C" roughness={0.52} />
         </mesh>
-        {/* Right Side */}
-        <mesh position={[1.25, 0, 0]} castShadow receiveShadow>
-          <boxGeometry args={[0.08, 4.8, 0.75]} />
-          <meshStandardMaterial color="#D96B27" roughness={0.55} />
+        {/* Right Side Panel */}
+        <mesh position={[1.12, 0, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.08, 4.3, 0.68]} />
+          <meshStandardMaterial color="#CF6B2C" roughness={0.52} />
         </mesh>
         {/* Center Vertical Divider */}
         <mesh position={[0, 0, 0]} castShadow receiveShadow>
-          <boxGeometry args={[0.08, 4.8, 0.75]} />
-          <meshStandardMaterial color="#D96B27" roughness={0.55} />
+          <boxGeometry args={[0.08, 4.3, 0.68]} />
+          <meshStandardMaterial color="#CF6B2C" roughness={0.52} />
         </mesh>
         {/* Top Board */}
-        <mesh position={[0, 2.4, 0]} castShadow receiveShadow>
-          <boxGeometry args={[2.58, 0.08, 0.78]} />
-          <meshStandardMaterial color="#D96B27" roughness={0.55} />
+        <mesh position={[0, 2.15, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2.32, 0.08, 0.7]} />
+          <meshStandardMaterial color="#CF6B2C" roughness={0.52} />
         </mesh>
         {/* Bottom Board */}
-        <mesh position={[0, -2.4, 0]} castShadow receiveShadow>
-          <boxGeometry args={[2.58, 0.08, 0.78]} />
-          <meshStandardMaterial color="#D96B27" roughness={0.55} />
+        <mesh position={[0, -2.15, 0]} castShadow receiveShadow>
+          <boxGeometry args={[2.32, 0.08, 0.7]} />
+          <meshStandardMaterial color="#CF6B2C" roughness={0.52} />
         </mesh>
 
-        {/* Horizontal Shelves (3 dividers creating 4 rows) */}
-        {[-1.2, 0, 1.2].map((yPos, i) => (
+        {/* 3 Horizontal Shelves (creating 4 equal height compartments) */}
+        {[-1.075, 0, 1.075].map((yPos, i) => (
           <mesh key={i} position={[0, yPos, 0]} castShadow receiveShadow>
-            <boxGeometry args={[2.5, 0.07, 0.75]} />
-            <meshStandardMaterial color="#D96B27" roughness={0.55} />
+            <boxGeometry args={[2.24, 0.07, 0.66]} />
+            <meshStandardMaterial color="#CF6B2C" roughness={0.52} />
           </mesh>
         ))}
 
         {/* Back Panel */}
-        <mesh position={[0, 0, -0.36]} receiveShadow>
-          <boxGeometry args={[2.5, 4.7, 0.04]} />
-          <meshStandardMaterial color="#C85A17" roughness={0.65} />
+        <mesh position={[0, 0, -0.32]} receiveShadow>
+          <boxGeometry args={[2.24, 4.22, 0.03]} />
+          <meshStandardMaterial color="#B8591E" roughness={0.65} />
         </mesh>
       </group>
 
       {/* =========================================
-          2. Top of Bookcase: Blue Poster Frame
+          2. Top of Bookcase: Cyan Blue Art Print (Tilted against wall)
          ========================================= */}
-      <group position={[caseX - 0.4, 5.85, caseZ - 0.1]} rotation={[0.08, 0, 0]}>
+      <group position={[caseX - 0.25, 5.25, caseZ - 0.05]} rotation={[0.16, 0, 0]}>
+        {/* Blue Art Canvas */}
         <mesh castShadow>
-          <boxGeometry args={[1.3, 1.8, 0.06]} />
-          <meshStandardMaterial color="#0284C7" roughness={0.3} metalness={0.2} />
+          <boxGeometry args={[1.2, 1.6, 0.04]} />
+          <meshStandardMaterial color="#0284C7" roughness={0.3} metalness={0.1} />
         </mesh>
-        <mesh position={[0, 0, 0.032]}>
-          <planeGeometry args={[1.15, 1.6]} />
-          <meshStandardMaterial color="#0284C7" emissive="#0369A1" emissiveIntensity={0.2} />
+        {/* Minimalist White Bench / Graphic Silhouette */}
+        <mesh position={[0, -0.15, 0.022]}>
+          <boxGeometry args={[0.55, 0.05, 0.01]} />
+          <meshStandardMaterial color="#FFFFFF" roughness={0.3} />
+        </mesh>
+        <mesh position={[-0.18, -0.28, 0.022]}>
+          <boxGeometry args={[0.04, 0.22, 0.01]} />
+          <meshStandardMaterial color="#FFFFFF" roughness={0.3} />
+        </mesh>
+        <mesh position={[0.18, -0.28, 0.022]}>
+          <boxGeometry args={[0.04, 0.22, 0.01]} />
+          <meshStandardMaterial color="#FFFFFF" roughness={0.3} />
+        </mesh>
+        {/* Text Accent Line */}
+        <mesh position={[0, -0.5, 0.022]}>
+          <boxGeometry args={[0.4, 0.025, 0.01]} />
+          <meshStandardMaterial color="#BAE6FD" roughness={0.4} />
         </mesh>
       </group>
 
       {/* =========================================
           3. Top Compartment: Retro Cartridges & Books
          ========================================= */}
-      {/* Left Cube: Retro Game Cartridges */}
-      <group position={[caseX - 0.62, 4.15, caseZ + 0.1]}>
-        <RetroCartridge project={cartridgeProjects.alnurayn} position={[-0.32, 0, 0]} />
+      {/* Left Cube: Interactive Retro Game Cartridges */}
+      <group position={[caseX - 0.56, 3.75, caseZ + 0.08]}>
+        <RetroCartridge project={cartridgeProjects.alnurayn} position={[-0.28, 0, 0]} />
         <RetroCartridge project={cartridgeProjects.freelance} position={[0, 0, 0]} />
-        <RetroCartridge project={cartridgeProjects.tastytracks} position={[0.32, 0, 0]} />
+        <RetroCartridge project={cartridgeProjects.tastytracks} position={[0.28, 0, 0]} />
       </group>
 
-      {/* Right Cube: Office Binders & Tech Books */}
-      <group position={[caseX + 0.62, 4.1, caseZ + 0.05]}>
-        {[-0.4, -0.28, -0.16, -0.04, 0.08, 0.2, 0.32].map((xOffset, i) => (
+      {/* Right Cube: Vertical Books (Red, White, Blue Spines matching reference) */}
+      <group position={[caseX + 0.56, 3.72, caseZ + 0.05]}>
+        {[-0.38, -0.28, -0.18, -0.08, 0.02, 0.12, 0.22, 0.32].map((xOffset, i) => (
           <mesh key={i} position={[xOffset, 0, 0]} castShadow>
-            <boxGeometry args={[0.09, 0.65, 0.5]} />
+            <boxGeometry args={[0.08, 0.62, 0.44]} />
             <meshStandardMaterial
-              color={i % 3 === 0 ? '#DC2626' : i % 3 === 1 ? '#F8FAFC' : '#1D4ED8'}
+              color={i % 3 === 0 ? '#DC2626' : i % 3 === 1 ? '#F8FAFC' : '#2563EB'}
               roughness={0.5}
             />
           </mesh>
@@ -125,61 +141,75 @@ export function Bookcase() {
       {/* =========================================
           4. Second Compartment: 3D Tech Emblems
          ========================================= */}
-      <group position={[caseX, 2.9, caseZ + 0.05]}>
+      <group position={[caseX, 2.65, caseZ + 0.05]}>
         {/* Left Cube Emblems */}
-        <TechEmblem skill={techSkills[0]} position={[-0.9, 0, 0]} />
-        <TechEmblem skill={techSkills[1]} position={[-0.55, 0, 0]} />
+        <TechEmblem skill={techSkills[0]} position={[-0.8, 0, 0]} />
+        <TechEmblem skill={techSkills[1]} position={[-0.5, 0, 0]} />
         <TechEmblem skill={techSkills[2]} position={[-0.2, 0, 0]} />
 
         {/* Right Cube Emblems */}
         <TechEmblem skill={techSkills[3]} position={[0.2, 0, 0]} />
-        <TechEmblem skill={techSkills[4]} position={[0.55, 0, 0]} />
-        <TechEmblem skill={techSkills[5]} position={[0.9, 0, 0]} />
+        <TechEmblem skill={techSkills[4]} position={[0.5, 0, 0]} />
+        <TechEmblem skill={techSkills[5]} position={[0.8, 0, 0]} />
       </group>
 
       {/* =========================================
-          5. Third Compartment: Folders & Decorative Bins
+          5. Third Compartment: Office Binders & Folders
          ========================================= */}
-      <group position={[caseX, 1.7, caseZ + 0.05]}>
+      <group position={[caseX, 1.55, caseZ + 0.05]}>
         {/* Blue Dossier Folders on Left */}
-        {[-0.9, -0.75, -0.6, -0.45, -0.3].map((xOffset, i) => (
+        {[-0.8, -0.66, -0.52, -0.38, -0.24].map((xOffset, i) => (
           <mesh key={i} position={[xOffset, 0, 0]} castShadow>
-            <boxGeometry args={[0.11, 0.72, 0.52]} />
+            <boxGeometry args={[0.1, 0.68, 0.48]} />
             <meshStandardMaterial color="#1E3A8A" roughness={0.4} />
           </mesh>
         ))}
         {/* Blue Dossier Folders on Right */}
-        {[0.3, 0.45, 0.6, 0.75, 0.9].map((xOffset, i) => (
+        {[0.24, 0.38, 0.52, 0.66, 0.8].map((xOffset, i) => (
           <mesh key={i} position={[xOffset, 0, 0]} castShadow>
-            <boxGeometry args={[0.11, 0.72, 0.52]} />
+            <boxGeometry args={[0.1, 0.68, 0.48]} />
             <meshStandardMaterial color="#1E3A8A" roughness={0.4} />
           </mesh>
         ))}
       </group>
 
       {/* =========================================
-          6. Bottom Compartment: Storage Bins
+          6. Bottom Compartment: Dark Storage Boxes with Pull Holes
          ========================================= */}
-      <group position={[caseX, 0.55, caseZ + 0.05]}>
+      <group position={[caseX, 0.5, caseZ + 0.05]}>
         {/* Left Storage Box */}
-        <mesh position={[-0.6, 0, 0]} castShadow>
-          <boxGeometry args={[0.95, 0.75, 0.6]} />
-          <meshStandardMaterial color="#1E293B" roughness={0.7} />
-        </mesh>
+        <group position={[-0.55, 0, 0]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.86, 0.68, 0.55]} />
+            <meshStandardMaterial color="#1E293B" roughness={0.7} />
+          </mesh>
+          {/* Finger Pull Hole */}
+          <mesh position={[0, 0.12, 0.28]}>
+            <circleGeometry args={[0.04, 16]} />
+            <meshStandardMaterial color="#0F172A" roughness={0.9} />
+          </mesh>
+        </group>
         {/* Right Storage Box */}
-        <mesh position={[0.6, 0, 0]} castShadow>
-          <boxGeometry args={[0.95, 0.75, 0.6]} />
-          <meshStandardMaterial color="#1E293B" roughness={0.7} />
-        </mesh>
+        <group position={[0.55, 0, 0]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.86, 0.68, 0.55]} />
+            <meshStandardMaterial color="#1E293B" roughness={0.7} />
+          </mesh>
+          {/* Finger Pull Hole */}
+          <mesh position={[0, 0.12, 0.28]}>
+            <circleGeometry args={[0.04, 16]} />
+            <meshStandardMaterial color="#0F172A" roughness={0.9} />
+          </mesh>
+        </group>
       </group>
 
       {/* =========================================
-          7. Acoustic Guitar (Leaning on Right Side)
+          7. Acoustic Guitar (Proper Dreadnought Shape & Spruce/Mahogany Finish)
          ========================================= */}
       <group
         ref={guitarRef}
-        position={[caseX + 1.6, 1.35, caseZ + 0.3]}
-        rotation={[0.12, -0.15, -0.18]}
+        position={[caseX + 1.42, 1.25, caseZ + 0.32]}
+        rotation={[0.12, -0.2, -0.16]}
         onClick={handleGuitarClick}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -189,91 +219,142 @@ export function Bookcase() {
           document.body.style.cursor = 'auto';
         }}
       >
-        {/* Lower Bout Body */}
-        <mesh position={[0, -0.4, 0]} castShadow>
-          <cylinderGeometry args={[0.42, 0.44, 0.22, 24]} />
-          <meshStandardMaterial color="#FDE047" roughness={0.4} />
-        </mesh>
-        {/* Upper Bout Body */}
-        <mesh position={[0, 0.05, 0]} castShadow>
-          <cylinderGeometry args={[0.32, 0.35, 0.22, 24]} />
-          <meshStandardMaterial color="#FDE047" roughness={0.4} />
-        </mesh>
-        {/* Soundhole */}
-        <mesh position={[0, -0.05, 0.112]} rotation={[Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.12, 24]} />
-          <meshStandardMaterial color="#1E1E1E" roughness={0.9} />
-        </mesh>
-        {/* Wooden Bridge */}
-        <mesh position={[0, -0.45, 0.115]}>
-          <boxGeometry args={[0.22, 0.05, 0.02]} />
-          <meshStandardMaterial color="#451A03" roughness={0.6} />
-        </mesh>
-        {/* Guitar Neck */}
-        <mesh position={[0, 0.7, 0.05]} castShadow>
-          <boxGeometry args={[0.09, 1.0, 0.05]} />
-          <meshStandardMaterial color="#78350F" roughness={0.5} />
-        </mesh>
-        {/* Headstock & Tuning Pegs */}
-        <mesh position={[0, 1.32, 0.04]} castShadow>
-          <boxGeometry args={[0.13, 0.28, 0.04]} />
-          <meshStandardMaterial color="#451A03" roughness={0.5} />
-        </mesh>
+        {/* Mahogany Body Shell (Back & Sides) */}
+        <group position={[0, 0, 0]}>
+          {/* Lower Bout (Wide round hips) */}
+          <mesh position={[0, -0.32, 0]} castShadow>
+            <cylinderGeometry args={[0.34, 0.36, 0.16, 24]} />
+            <meshStandardMaterial color="#7C2D12" roughness={0.4} />
+          </mesh>
+          {/* Waist (Narrower middle curve) */}
+          <mesh position={[0, -0.05, 0]} castShadow>
+            <cylinderGeometry args={[0.26, 0.28, 0.16, 24]} />
+            <meshStandardMaterial color="#7C2D12" roughness={0.4} />
+          </mesh>
+          {/* Upper Bout (Chest shoulders) */}
+          <mesh position={[0, 0.18, 0]} castShadow>
+            <cylinderGeometry args={[0.27, 0.25, 0.16, 24]} />
+            <meshStandardMaterial color="#7C2D12" roughness={0.4} />
+          </mesh>
+
+          {/* Blonde Natural Spruce Soundboard (Front Face) */}
+          <mesh position={[0, -0.32, 0.082]}>
+            <circleGeometry args={[0.34, 24]} />
+            <meshStandardMaterial color="#F5E5C9" roughness={0.35} />
+          </mesh>
+          <mesh position={[0, -0.05, 0.082]}>
+            <circleGeometry args={[0.26, 24]} />
+            <meshStandardMaterial color="#F5E5C9" roughness={0.35} />
+          </mesh>
+          <mesh position={[0, 0.18, 0.082]}>
+            <circleGeometry args={[0.26, 24]} />
+            <meshStandardMaterial color="#F5E5C9" roughness={0.35} />
+          </mesh>
+
+          {/* Dark Soundhole & Ivory Rosette Ring */}
+          <mesh position={[0, 0.04, 0.085]}>
+            <ringGeometry args={[0.075, 0.09, 24]} />
+            <meshStandardMaterial color="#FAF5EE" roughness={0.4} />
+          </mesh>
+          <mesh position={[0, 0.04, 0.084]}>
+            <circleGeometry args={[0.075, 24]} />
+            <meshStandardMaterial color="#1A1817" roughness={0.9} />
+          </mesh>
+
+          {/* Rosewood Bridge & Bone Saddle */}
+          <mesh position={[0, -0.35, 0.09]}>
+            <boxGeometry args={[0.2, 0.05, 0.018]} />
+            <meshStandardMaterial color="#3E1A0A" roughness={0.5} />
+          </mesh>
+          <mesh position={[0, -0.34, 0.098]}>
+            <boxGeometry args={[0.15, 0.01, 0.008]} />
+            <meshStandardMaterial color="#F8FAFC" roughness={0.2} />
+          </mesh>
+
+          {/* Neck with Dark Fretboard */}
+          <mesh position={[0, 0.76, 0.02]} castShadow>
+            <boxGeometry args={[0.075, 0.85, 0.045]} />
+            <meshStandardMaterial color="#5C2508" roughness={0.45} />
+          </mesh>
+          <mesh position={[0, 0.76, 0.045]}>
+            <boxGeometry args={[0.072, 0.85, 0.008]} />
+            <meshStandardMaterial color="#2E1408" roughness={0.6} />
+          </mesh>
+
+          {/* Headstock & 6 Silver Tuning Pegs */}
+          <mesh position={[0, 1.28, 0.015]} castShadow>
+            <boxGeometry args={[0.11, 0.24, 0.035]} />
+            <meshStandardMaterial color="#451A03" roughness={0.5} />
+          </mesh>
+          {[-0.07, 0.07].map((xPeg, px) =>
+            [1.2, 1.27, 1.34].map((yPeg, py) => (
+              <mesh key={`${px}-${py}`} position={[xPeg, yPeg, 0.015]}>
+                <sphereGeometry args={[0.016, 8, 8]} />
+                <meshStandardMaterial color="#E2E8F0" metalness={0.9} roughness={0.2} />
+              </mesh>
+            ))
+          )}
+        </group>
       </group>
 
       {/* =========================================
-          8. Tennis Racket & Ball
+          8. Tennis Racket & Neon Ball (Under the Window)
          ========================================= */}
-      <group position={[caseX + 2.4, 0.9, caseZ + 0.6]} rotation={[0.2, 0.1, 0.15]}>
-        {/* Oval Racket Head */}
+      <group position={[caseX + 2.1, 0.75, caseZ + 0.4]} rotation={[0.2, 0.1, 0.14]}>
+        {/* Oval White Racket Head */}
         <mesh castShadow>
-          <torusGeometry args={[0.3, 0.025, 12, 24]} />
+          <torusGeometry args={[0.24, 0.02, 12, 24]} />
           <meshStandardMaterial color="#F8FAFC" roughness={0.3} />
         </mesh>
-        {/* Racket Strings */}
+        {/* Translucent Nylon String Mesh */}
         <mesh>
-          <circleGeometry args={[0.28, 16]} />
+          <circleGeometry args={[0.22, 16]} />
           <meshStandardMaterial
             color="#E2E8F0"
             transparent
-            opacity={0.3}
-            roughness={0.1}
+            opacity={0.35}
+            roughness={0.2}
           />
         </mesh>
-        {/* Handle Shaft */}
-        <mesh position={[0, -0.65, 0]}>
-          <cylinderGeometry args={[0.022, 0.022, 0.7, 12]} />
+        {/* Racket Shaft & Grip */}
+        <mesh position={[0, -0.52, 0]}>
+          <cylinderGeometry args={[0.018, 0.018, 0.58, 12]} />
           <meshStandardMaterial color="#1E293B" roughness={0.6} />
         </mesh>
-        {/* Neon Tennis Ball */}
-        <mesh position={[0.25, -0.9, 0.1]} castShadow>
-          <sphereGeometry args={[0.07, 16, 16]} />
+        {/* Neon Yellow Tennis Ball */}
+        <mesh position={[0.2, -0.72, 0.08]} castShadow>
+          <sphereGeometry args={[0.06, 16, 16]} />
           <meshStandardMaterial color="#A3E635" roughness={0.8} />
         </mesh>
       </group>
 
       {/* =========================================
-          9. "Welcome!" Doormat & Sneakers
+          9. "Welcome!" Doormat & White Sneakers
          ========================================= */}
-      <group position={[caseX + 0.8, 0.01, caseZ + 2.2]}>
-        {/* Rounded Mat */}
+      <group position={[1.4, 0.01, 1.8]}>
+        {/* Rounded Welcome Rug */}
         <mesh receiveShadow>
-          <boxGeometry args={[1.6, 0.02, 0.75]} />
-          <meshStandardMaterial color="#E2E8F0" roughness={0.9} />
+          <boxGeometry args={[1.35, 0.02, 0.68]} />
+          <meshStandardMaterial color="#D1D5DB" roughness={0.95} />
         </mesh>
 
-        {/* Pair of Sneakers */}
-        {[-0.18, 0.18].map((xPos, idx) => (
-          <group key={idx} position={[xPos, 0.08, 0]}>
-            {/* Sneaker Sole */}
+        {/* Pair of Sleek White Classic Sneakers */}
+        {[-0.14, 0.14].map((xPos, idx) => (
+          <group key={idx} position={[xPos, 0.06, 0]}>
+            {/* White Rubber Outsole */}
             <mesh castShadow>
-              <boxGeometry args={[0.16, 0.06, 0.36]} />
-              <meshStandardMaterial color="#FFFFFF" roughness={0.3} />
+              <boxGeometry args={[0.13, 0.035, 0.32]} />
+              <meshStandardMaterial color="#FFFFFF" roughness={0.4} />
             </mesh>
-            {/* Upper Fabric */}
-            <mesh position={[0, 0.06, -0.02]} castShadow>
-              <boxGeometry args={[0.15, 0.08, 0.32]} />
-              <meshStandardMaterial color="#38BDF8" roughness={0.6} />
+            {/* White Leather Shoe Body */}
+            <mesh position={[0, 0.045, -0.01]} castShadow>
+              <boxGeometry args={[0.12, 0.065, 0.28]} />
+              <meshStandardMaterial color="#F8FAFC" roughness={0.5} />
+            </mesh>
+            {/* Blue Heel Accent Tab (matching reference) */}
+            <mesh position={[0, 0.06, -0.14]}>
+              <boxGeometry args={[0.08, 0.03, 0.02]} />
+              <meshStandardMaterial color="#0284C7" roughness={0.3} />
             </mesh>
           </group>
         ))}

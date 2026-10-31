@@ -15,24 +15,24 @@ interface CameraPreset {
 
 const ZONE_PRESETS: Record<RoomZone, CameraPreset> = {
   overview: {
-    position: new THREE.Vector3(12, 10, 12),
-    target: new THREE.Vector3(0, 1.8, 0),
+    position: new THREE.Vector3(8.5, 7.2, 8.5),
+    target: new THREE.Vector3(0, 1.5, 0),
   },
   skills: {
-    position: new THREE.Vector3(6.8, 5.2, 0.2),
-    target: new THREE.Vector3(2.8, 3.2, -3.2),
+    position: new THREE.Vector3(3.8, 4.2, 0.4),
+    target: new THREE.Vector3(0.5, 2.6, -3.4),
   },
   experience: {
-    position: new THREE.Vector3(6.5, 6.2, 0.2),
-    target: new THREE.Vector3(2.8, 4.8, -3.2),
+    position: new THREE.Vector3(3.4, 4.8, 0.2),
+    target: new THREE.Vector3(0.3, 3.8, -3.4),
   },
   workstation: {
-    position: new THREE.Vector3(3.2, 4.4, 3.4),
-    target: new THREE.Vector3(-1.4, 2.6, -2),
+    position: new THREE.Vector3(0.6, 3.2, 1.4),
+    target: new THREE.Vector3(-2.1, 2.1, -1.1),
   },
   contact: {
-    position: new THREE.Vector3(4, 4.5, 7.5),
-    target: new THREE.Vector3(-3.2, 1.4, 2),
+    position: new THREE.Vector3(1.0, 3.0, 4.2),
+    target: new THREE.Vector3(-2.2, 1.1, 1.2),
   },
 };
 
@@ -73,23 +73,23 @@ export function CameraRig() {
 
     // Smooth camera transition to zone presets
     if (isTransitioning.current) {
-      const lerpFactor = Math.min(delta * 4.0, 1);
+      const lerpFactor = Math.min(delta * 4.2, 1);
       camera.position.lerp(desiredPos.current, lerpFactor);
       controlsRef.current.target.lerp(desiredTarget.current, lerpFactor);
 
       // Transition completes when close enough
       if (
-        camera.position.distanceTo(desiredPos.current) < 0.04 &&
-        controlsRef.current.target.distanceTo(desiredTarget.current) < 0.04
+        camera.position.distanceTo(desiredPos.current) < 0.03 &&
+        controlsRef.current.target.distanceTo(desiredTarget.current) < 0.03
       ) {
         isTransitioning.current = false;
       }
     } else if (activeZone === 'overview') {
       // Subtle organic mouse parallax when resting in overview
-      const parallaxX = pointer.x * 0.35;
-      const parallaxY = pointer.y * 0.25;
-      camera.position.x += (desiredPos.current.x + parallaxX - camera.position.x) * 0.03;
-      camera.position.y += (desiredPos.current.y + parallaxY - camera.position.y) * 0.03;
+      const parallaxX = pointer.x * 0.28;
+      const parallaxY = pointer.y * 0.2;
+      camera.position.x += (desiredPos.current.x + parallaxX - camera.position.x) * 0.04;
+      camera.position.y += (desiredPos.current.y + parallaxY - camera.position.y) * 0.04;
     }
 
     controlsRef.current.update();
@@ -101,8 +101,8 @@ export function CameraRig() {
       makeDefault
       enableDamping
       dampingFactor={0.06}
-      minDistance={6}
-      maxDistance={22}
+      minDistance={4.5}
+      maxDistance={16}
       minPolarAngle={Math.PI / 6}
       maxPolarAngle={Math.PI / 2.3}
       minAzimuthAngle={-Math.PI / 4.5}
@@ -110,4 +110,3 @@ export function CameraRig() {
     />
   );
 }
-
