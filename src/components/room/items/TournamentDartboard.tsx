@@ -4,6 +4,7 @@ import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { playSound } from '@/lib/audioEngine';
+import { useRoomStore } from '@/store/useRoomStore';
 
 interface Dart {
   id: number;
@@ -167,6 +168,23 @@ export function TournamentDartboard({
   ]);
   const [showHitBadge, setShowHitBadge] = useState(false);
   const badgeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const boardGroupRef = useRef<THREE.Group>(null);
+  const activeStation = useRoomStore((state) => state.activeStation);
+  const setActiveStation = useRoomStore((state) => state.setActiveStation);
+  const dartsLeft = useRoomStore((state) => state.dartsLeft);
+  const decrementDarts = useRoomStore((state) => state.decrementDarts);
+  const resetDarts = useRoomStore((state) => state.resetDarts);
+
+  useEffect(() => {
+    if (dartsLeft === 0) {
+      // Darts run out -> character collects them from board and resets
+      const timer = setTimeout(() => {
+        setDarts([]);
+        resetDarts();
+      }, 3200);
+      return () => clearTimeout(timer);
+    }
+  }, [dartsLeft, resetDarts]);
 
   const dartboardTexture = useMemo(() => createDartboardTexture(), []);
 
@@ -179,18 +197,32 @@ export function TournamentDartboard({
     };
   }, []);
 
-  const handleDartboardClick = (e: { stopPropagation: () => void }) => {
+    const handleDartboardClick = (e: any) => {
     e.stopPropagation();
+    setActiveStation('dartboard');
     playSound('dart');
+
+    let hitX = (Math.random() - 0.5) * 0.05;
+    let hitY = (Math.random() - 0.5) * 0.05;
+
+    if (e.point && boardGroupRef.current) {
+      const local = boardGroupRef.current.worldToLocal(e.point.clone());
+      const dist = Math.hypot(local.x, local.y);
+      if (dist < 0.45) {
+        hitX = local.x;
+        hitY = local.y;
+      }
+    }
 
     const newDart: Dart = {
       id: Date.now(),
-      offsetY: (Math.random() - 0.5) * 0.14,
-      offsetZ: (Math.random() - 0.5) * 0.14,
-      rotationZ: (Math.random() - 0.5) * 0.4,
+      offsetY: hitY,
+      offsetZ: hitX,
+      rotationZ: (Math.random() - 0.5) * 0.35,
     };
 
-    setDarts((prev) => [...prev.slice(-3), newDart]);
+    setDarts((prev) => [...prev.slice(-4), newDart]);
+    decrementDarts();
     setShowHitBadge(true);
 
     if (badgeTimerRef.current) clearTimeout(badgeTimerRef.current);
