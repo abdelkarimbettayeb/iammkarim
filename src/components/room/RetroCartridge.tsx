@@ -33,7 +33,7 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
     if (!meshGroup.current) return;
 
     // Smooth lift on hover or selection
-    const targetY = position[1] + (hovered || isSelected ? 0.16 : 0);
+    const targetY = position[1] + (hovered || isSelected ? 0.12 : 0);
     meshGroup.current.position.y = THREE.MathUtils.lerp(
       meshGroup.current.position.y,
       targetY,
@@ -65,7 +65,7 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
     >
       {/* 1. Main Cartridge Plastic Body */}
       <mesh castShadow receiveShadow>
-        <boxGeometry args={[0.34, 0.44, 0.08]} />
+        <boxGeometry args={[0.26, 0.36, 0.055]} />
         <meshStandardMaterial
           color={project.color}
           roughness={0.4}
@@ -76,28 +76,28 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
       </mesh>
 
       {/* 2. Top Grip Ridges */}
-      {[-0.04, 0, 0.04].map((yOffset, i) => (
-        <mesh key={i} position={[0, 0.15 + yOffset, 0.042]}>
-          <boxGeometry args={[0.26, 0.015, 0.01]} />
+      {[-0.03, 0, 0.03].map((yOffset, i) => (
+        <mesh key={i} position={[0, 0.11 + yOffset, 0.029]}>
+          <boxGeometry args={[0.20, 0.012, 0.008]} />
           <meshStandardMaterial color="#1E293B" roughness={0.6} />
         </mesh>
       ))}
 
       {/* 3. Front Sticker Label */}
-      <mesh position={[0, -0.05, 0.042]}>
-        <planeGeometry args={[0.28, 0.22]} />
+      <mesh position={[0, -0.04, 0.029]}>
+        <planeGeometry args={[0.21, 0.17]} />
         <meshStandardMaterial color="#0F172A" roughness={0.5} />
       </mesh>
 
       {/* 4. Mini Color Accent Bar on Sticker */}
-      <mesh position={[0, 0.04, 0.044]}>
-        <planeGeometry args={[0.24, 0.03]} />
+      <mesh position={[0, 0.025, 0.030]}>
+        <planeGeometry args={[0.18, 0.022]} />
         <meshStandardMaterial color={project.color} />
       </mesh>
 
       {/* 5. Tooltip Preview on Hover */}
       {(hovered || isSelected) && (
-        <Html position={[0, 0.42, 0.06]} center distanceFactor={7} pointerEvents="none">
+        <Html position={[0, 0.32, 0.06]} center distanceFactor={7} pointerEvents="none">
           <div className="bg-[#0F172A]/95 backdrop-blur-md border border-sky-400/50 shadow-2xl px-3 py-2 rounded-lg text-left whitespace-nowrap min-w-[190px]">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold text-white tracking-wide">

@@ -15,9 +15,9 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
   return (
     <group position={position}>
       <Float
-        speed={hovered ? 4 : 2}
-        rotationIntensity={hovered ? 0.6 : 0.25}
-        floatIntensity={0.3}
+        speed={hovered ? 3 : 1.5}
+        rotationIntensity={0}
+        floatIntensity={hovered ? 0.15 : 0.05}
       >
         <group
           onPointerOver={(e) => {
@@ -28,7 +28,7 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
         >
           {/* 1. Outer Hexagonal Badge Body */}
           <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.2, 0.22, 0.06, 6]} />
+            <cylinderGeometry args={[0.13, 0.14, 0.045, 6]} />
             <meshStandardMaterial
               color="#0F172A"
               roughness={0.4}
@@ -37,8 +37,8 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
           </mesh>
 
           {/* 2. Glowing Front Emblem Inset */}
-          <mesh position={[0, 0, 0.035]} rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.16, 0.16, 0.015, 6]} />
+          <mesh position={[0, 0, 0.024]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.105, 0.105, 0.010, 6]} />
             <meshStandardMaterial
               color={skill.color}
               emissive={skill.color}
@@ -49,8 +49,8 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
           </mesh>
 
           {/* 3. Center Metallic Core */}
-          <mesh position={[0, 0, 0.045]}>
-            <sphereGeometry args={[0.045, 12, 12]} />
+          <mesh position={[0, 0, 0.032]}>
+            <sphereGeometry args={[0.032, 12, 12]} />
             <meshStandardMaterial
               color="#FFFFFF"
               emissive="#FFFFFF"
@@ -61,7 +61,7 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
 
           {/* 4. Hover Tooltip Badge */}
           {hovered && (
-            <Html position={[0, 0.38, 0.06]} center distanceFactor={7} pointerEvents="none">
+            <Html position={[0, 0.26, 0.06]} center distanceFactor={7} pointerEvents="none">
               <div className="bg-[#0B0F19]/95 backdrop-blur-md border border-slate-700 shadow-xl px-3 py-1.5 rounded-lg text-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center gap-2 justify-center">
                   <span className="font-bold text-xs text-white tracking-wide">
@@ -87,4 +87,3 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
     </group>
   );
 }
-

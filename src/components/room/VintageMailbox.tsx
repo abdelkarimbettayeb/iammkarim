@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
@@ -8,34 +8,9 @@ import { useRoomStore } from '@/store/useRoomStore';
 
 interface VintageMailboxProps {
   position?: [number, number, number];
-  rotation?: [number, number, number];
 }
 
-/**
- * Creates the continuous extruded American tunnel mailbox shape
- */
-function createMailboxShape(width: number, wallHeight: number, domeRadius: number): THREE.Shape {
-  const shape = new THREE.Shape();
-  const halfW = width / 2;
-
-  // Start bottom left
-  shape.moveTo(-halfW, 0);
-  // Bottom edge
-  shape.lineTo(halfW, 0);
-  // Right vertical wall
-  shape.lineTo(halfW, wallHeight);
-  // Semicircular dome top
-  shape.absarc(0, wallHeight, domeRadius, 0, Math.PI, false);
-  // Left vertical wall
-  shape.lineTo(-halfW, 0);
-
-  return shape;
-}
-
-export function VintageMailbox({
-  position = [-2.7, 0, 1.2],
-  rotation = [0, 0, 0],
-}: VintageMailboxProps) {
+export function VintageMailbox({ position = [-2.7, 0, 1.2] }: VintageMailboxProps) {
   const [hovered, setHovered] = useState(false);
   const isContactOpen = useRoomStore((state) => state.isContactOpen);
   const toggleContact = useRoomStore((state) => state.toggleContact);
@@ -52,7 +27,7 @@ export function VintageMailbox({
   useFrame((_, delta) => {
     // Smooth door hinge rotation
     if (doorRef.current) {
-      const targetDoorRot = isContactOpen ? Math.PI / 2.2 : 0;
+      const targetDoorRot = isContactOpen ? -Math.PI / 2.2 : 0;
       doorRef.current.rotation.x = THREE.MathUtils.lerp(
         doorRef.current.rotation.x,
         targetDoorRot,
@@ -76,37 +51,9 @@ export function VintageMailbox({
     toggleContact();
   };
 
-  const mailboxShape = useMemo(() => createMailboxShape(0.32, 0.14, 0.16), []);
-  const doorShape = useMemo(() => createMailboxShape(0.31, 0.135, 0.155), []);
-
-  const extrudeSettings = useMemo(
-    () => ({
-      depth: 0.52,
-      bevelEnabled: true,
-      bevelSegments: 3,
-      steps: 1,
-      bevelSize: 0.01,
-      bevelThickness: 0.01,
-    }),
-    []
-  );
-
-  const doorExtrudeSettings = useMemo(
-    () => ({
-      depth: 0.02,
-      bevelEnabled: true,
-      bevelSegments: 2,
-      steps: 1,
-      bevelSize: 0.005,
-      bevelThickness: 0.005,
-    }),
-    []
-  );
-
   return (
     <group
       position={position}
-      rotation={rotation}
       onClick={handleClick}
       onPointerOver={(e) => {
         e.stopPropagation();
@@ -119,90 +66,91 @@ export function VintageMailbox({
       }}
     >
       {/* =========================================
-          1. White Wooden Post & Beveled Capital
+          1. White Wooden Post & Base
          ========================================= */}
       {/* Floor Flange Base */}
       <mesh position={[0, 0.03, 0]} receiveShadow>
         <boxGeometry args={[0.22, 0.06, 0.22]} />
-        <meshStandardMaterial color="#F8FAFC" roughness={0.35} />
+        <meshStandardMaterial color="#F8FAFC" roughness={0.4} />
       </mesh>
 
       {/* Main Square Post */}
-      <mesh position={[0, 0.58, 0]} castShadow receiveShadow>
-        <boxGeometry args={[0.11, 1.1, 0.11]} />
-        <meshStandardMaterial color="#F8FAFC" roughness={0.35} />
+      <mesh position={[0, 0.6, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.11, 1.15, 0.11]} />
+        <meshStandardMaterial color="#F8FAFC" roughness={0.4} />
       </mesh>
 
       {/* Decorative Beveled Cap */}
-      <mesh position={[0, 1.15, 0]} castShadow>
-        <boxGeometry args={[0.18, 0.04, 0.18]} />
-        <meshStandardMaterial color="#F8FAFC" roughness={0.3} />
-      </mesh>
       <mesh position={[0, 1.19, 0]} castShadow>
-        <boxGeometry args={[0.13, 0.04, 0.13]} />
+        <boxGeometry args={[0.17, 0.05, 0.17]} />
         <meshStandardMaterial color="#F8FAFC" roughness={0.3} />
       </mesh>
-
-      {/* Horizontal Post Mounting Arm */}
-      <mesh position={[0, 1.18, 0.08]} castShadow>
-        <boxGeometry args={[0.09, 0.05, 0.36]} />
-        <meshStandardMaterial color="#F8FAFC" roughness={0.35} />
-      </mesh>
-      <mesh position={[0, 1.14, 0.02]} rotation={[0.4, 0, 0]} castShadow>
-        <boxGeometry args={[0.07, 0.04, 0.2]} />
-        <meshStandardMaterial color="#F8FAFC" roughness={0.35} />
+      <mesh position={[0, 1.24, 0]} castShadow>
+        <boxGeometry args={[0.12, 0.05, 0.12]} />
+        <meshStandardMaterial color="#F8FAFC" roughness={0.3} />
       </mesh>
 
       {/* =========================================
-          2. Continuous Domed American Mailbox Body
+          2. Domed Mailbox Body
          ========================================= */}
-      <group position={[0, 1.21, -0.2]}>
-        {/* Solid Extruded Tunnel Mailbox */}
-        <mesh castShadow receiveShadow>
-          <extrudeGeometry args={[mailboxShape, extrudeSettings]} />
-          <meshStandardMaterial color="#1E293B" roughness={0.4} metalness={0.6} />
+      <group position={[0, 1.35, 0.04]}>
+        {/* Lower Rectangular Box */}
+        <mesh position={[0, 0, 0]} castShadow receiveShadow>
+          <boxGeometry args={[0.3, 0.18, 0.5]} />
+          <meshStandardMaterial color="#1E2024" roughness={0.5} metalness={0.4} />
+        </mesh>
+
+        {/* Upper Semicircular Dome */}
+        <mesh
+          position={[0, 0.09, 0]}
+          rotation={[Math.PI / 2, 0, 0]}
+          castShadow
+        >
+          <cylinderGeometry args={[0.15, 0.15, 0.5, 24, 1, false, 0, Math.PI]} />
+          <meshStandardMaterial color="#1E2024" roughness={0.5} metalness={0.4} />
+        </mesh>
+
+        {/* Back Sealed Wall */}
+        <mesh position={[0, 0.04, -0.25]}>
+          <planeGeometry args={[0.3, 0.26]} />
+          <meshStandardMaterial color="#1E2024" roughness={0.6} />
         </mesh>
 
         {/* =========================================
-            3. Hinged Front Drop Door Flap
+            3. Hinged Front Door Flap
            ========================================= */}
-        <group ref={doorRef} position={[0, 0, 0.53]}>
-          <mesh castShadow position={[0, 0, 0]}>
-            <extrudeGeometry args={[doorShape, doorExtrudeSettings]} />
-            <meshStandardMaterial color="#0F172A" roughness={0.35} metalness={0.65} />
+        <group ref={doorRef} position={[0, -0.09, 0.25]}>
+          <mesh position={[0, 0.13, 0]} castShadow>
+            <boxGeometry args={[0.29, 0.26, 0.02]} />
+            <meshStandardMaterial color="#2B2D33" roughness={0.5} metalness={0.3} />
           </mesh>
-          {/* Polished Brass Pull Handle */}
-          <mesh position={[0, 0.24, 0.03]} castShadow>
-            <boxGeometry args={[0.08, 0.016, 0.02]} />
-            <meshStandardMaterial color="#D4AF37" metalness={0.9} roughness={0.25} />
-          </mesh>
-          {/* Brass Latch Catch */}
-          <mesh position={[0, 0.28, 0.02]}>
-            <boxGeometry args={[0.03, 0.02, 0.015]} />
-            <meshStandardMaterial color="#D4AF37" metalness={0.9} roughness={0.25} />
+          {/* Small Metal Pull Handle */}
+          <mesh position={[0, 0.22, 0.02]} castShadow>
+            <boxGeometry args={[0.07, 0.018, 0.02]} />
+            <meshStandardMaterial color="#D4AF37" metalness={0.9} roughness={0.3} />
           </mesh>
         </group>
 
         {/* =========================================
             4. Red Postal Flag (Pivoting on Side)
            ========================================= */}
-        <group ref={flagRef} position={[0.165, 0.12, 0.38]}>
-          {/* Brass Pivot Bolt */}
+        <group ref={flagRef} position={[-0.16, 0, -0.12]}>
+          {/* Pivot Screw */}
           <mesh rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.014, 0.014, 0.02, 16]} />
-            <meshStandardMaterial color="#D4AF37" metalness={0.9} roughness={0.3} />
+            <cylinderGeometry args={[0.016, 0.016, 0.025, 12]} />
+            <meshStandardMaterial color="#475569" metalness={0.8} />
           </mesh>
 
-          {/* Red Flag Arm */}
-          <mesh position={[0.008, 0.1, 0]}>
-            <boxGeometry args={[0.006, 0.22, 0.018]} />
-            <meshStandardMaterial color="#DC2626" roughness={0.4} />
+          {/* Flag Metal Arm */}
+          <mesh position={[0.012, 0, 0.12]} rotation={[0, 0, 0]}>
+            <boxGeometry args={[0.008, 0.016, 0.24]} />
+            <meshStandardMaterial color="#EF4444" roughness={0.4} />
           </mesh>
 
           {/* Red Flag Blade */}
-          <mesh position={[0.008, 0.18, -0.04]}>
-            <boxGeometry args={[0.006, 0.08, 0.09]} />
-            <meshStandardMaterial color="#DC2626" roughness={0.35} />
+          <mesh position={[0.012, 0.035, 0.22]}>
+            <boxGeometry args={[0.008, 0.07, 0.08]} />
+            <meshStandardMaterial color="#EF4444" roughness={0.3} />
           </mesh>
         </group>
       </group>
@@ -211,7 +159,7 @@ export function VintageMailbox({
           5. Hover Tooltip
          ========================================= */}
       {hovered && (
-        <Html position={[0, 1.82, 0]} center distanceFactor={7} pointerEvents="none">
+        <Html position={[0, 1.78, 0]} center distanceFactor={7} pointerEvents="none">
           <div className="bg-[#0F172A]/95 backdrop-blur-md border border-amber-400/50 shadow-2xl px-3 py-1.5 rounded-lg whitespace-nowrap text-center animate-in fade-in zoom-in-95 duration-150">
             <div className="text-xs font-bold text-white flex items-center gap-1.5 justify-center">
               <span>📮</span> Contact & Resume
