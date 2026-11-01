@@ -7,6 +7,7 @@ import { cartridgeProjects, techSkills } from '@/data/resumeData';
 import { RetroCartridge } from './RetroCartridge';
 import { TechEmblem } from './TechEmblem';
 import { AcousticGuitar } from './items/AcousticGuitar';
+import { Volleyball } from './items/Volleyball';
 import { playSound } from '@/lib/audioEngine';
 
 export function Bookcase() {
@@ -25,7 +26,8 @@ export function Bookcase() {
   // Guitar wobble animation ref
   const guitarRef = useRef<THREE.Group>(null);
   const guitarWobbleRef = useRef(0);
-  const baseGuitarRotZ = -0.06;
+  const baseGuitarRotX = -0.14;
+  const baseGuitarRotZ = 0; // Perfectly straight upright (zero crooked tilt)
 
   const handleGuitarClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
@@ -44,8 +46,13 @@ export function Bookcase() {
       guitarWobbleRef.current = Math.max(0, guitarWobbleRef.current - delta * 3.5);
       if (guitarRef.current) {
         guitarRef.current.rotation.z =
-          baseGuitarRotZ + Math.sin(guitarWobbleRef.current * 32) * 0.06 * guitarWobbleRef.current;
+          baseGuitarRotZ + Math.sin(guitarWobbleRef.current * 28) * 0.045 * guitarWobbleRef.current;
+        guitarRef.current.rotation.x =
+          baseGuitarRotX + Math.sin(guitarWobbleRef.current * 14) * 0.015 * guitarWobbleRef.current;
       }
+    } else if (guitarRef.current && (guitarRef.current.rotation.z !== baseGuitarRotZ || guitarRef.current.rotation.x !== baseGuitarRotX)) {
+      guitarRef.current.rotation.z = baseGuitarRotZ;
+      guitarRef.current.rotation.x = baseGuitarRotX;
     }
   });
 
@@ -353,46 +360,89 @@ export function Bookcase() {
       </group>
 
       {/* =========================================
-          7. Acoustic Guitar on Stand (Resting solidly on floor Y = 0.00)
+          7. Acoustic Guitar on Stand (Aligned straight, no crooked tilt)
          ========================================= */}
-      <group position={[caseX + 1.34, 0.0, caseZ + 0.34]}>
+      <group position={[caseX + 1.34, 0.0, caseZ + 0.34]} rotation={[0, -0.22, 0]}>
         {/* Matte Black Tubular Guitar Stand */}
         <group>
-          {/* Base Tri-feet resting directly on floor Y = 0.00 */}
-          <mesh position={[0, 0.015, -0.06]} receiveShadow>
-            <cylinderGeometry args={[0.014, 0.014, 0.32, 12]} />
+          {/* Center collar */}
+          <mesh position={[0, 0.02, -0.04]} receiveShadow>
+            <cylinderGeometry args={[0.02, 0.02, 0.04, 12]} />
             <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.4} />
           </mesh>
-          <mesh position={[-0.14, 0.015, 0.08]} rotation={[0, 0.6, 0]} receiveShadow>
-            <cylinderGeometry args={[0.014, 0.014, 0.28, 12]} />
+
+          {/* Left Front Leg lying flat on floor */}
+          <group position={[-0.09, 0.014, 0.08]} rotation={[0, -0.55, 0]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]} receiveShadow>
+              <cylinderGeometry args={[0.012, 0.012, 0.32, 12]} />
+              <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.4} />
+            </mesh>
+            <mesh position={[0, 0, 0.16]}>
+              <sphereGeometry args={[0.016, 12, 12]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.9} />
+            </mesh>
+          </group>
+
+          {/* Right Front Leg lying flat on floor */}
+          <group position={[0.09, 0.014, 0.08]} rotation={[0, 0.55, 0]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]} receiveShadow>
+              <cylinderGeometry args={[0.012, 0.012, 0.32, 12]} />
+              <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.4} />
+            </mesh>
+            <mesh position={[0, 0, 0.16]}>
+              <sphereGeometry args={[0.016, 12, 12]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.9} />
+            </mesh>
+          </group>
+
+          {/* Rear Leg lying flat on floor */}
+          <group position={[0, 0.014, -0.16]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]} receiveShadow>
+              <cylinderGeometry args={[0.012, 0.012, 0.24, 12]} />
+              <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.4} />
+            </mesh>
+            <mesh position={[0, 0, -0.12]}>
+              <sphereGeometry args={[0.016, 12, 12]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.9} />
+            </mesh>
+          </group>
+
+          {/* Leaning Main Spine (leans back with cradle) */}
+          <mesh position={[0, 0.38, -0.09]} rotation={[-0.14, 0, 0]} castShadow>
+            <cylinderGeometry args={[0.015, 0.015, 0.74, 12]} />
             <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.4} />
           </mesh>
-          <mesh position={[0.14, 0.015, 0.08]} rotation={[0, -0.6, 0]} receiveShadow>
-            <cylinderGeometry args={[0.014, 0.014, 0.28, 12]} />
-            <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.4} />
-          </mesh>
-          {/* Vertical Main Stem */}
-          <mesh position={[0, 0.36, -0.08]} rotation={[0.08, 0, 0]} castShadow>
-            <cylinderGeometry args={[0.015, 0.015, 0.70, 12]} />
-            <meshStandardMaterial color="#1E293B" metalness={0.7} roughness={0.4} />
-          </mesh>
-          {/* Lower Body Cradle Prongs (Foam Padded) */}
-          <mesh position={[0, 0.16, 0.02]} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.016, 0.016, 0.24, 12]} />
-            <meshStandardMaterial color="#0F172A" roughness={0.8} />
-          </mesh>
-          {/* Upper Neck Cradle Bracket */}
-          <mesh position={[0, 0.68, -0.06]}>
-            <torusGeometry args={[0.05, 0.012, 8, 16, Math.PI]} />
-            <meshStandardMaterial color="#0F172A" roughness={0.8} />
-          </mesh>
+
+          {/* Lower Body Cradle (Foam Padded) */}
+          <group position={[0, 0.16, -0.05]} rotation={[-0.14, 0, 0]}>
+            <mesh rotation={[0, 0, Math.PI / 2]}>
+              <cylinderGeometry args={[0.015, 0.015, 0.22, 12]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.8} />
+            </mesh>
+            <mesh position={[-0.10, 0.03, 0.07]} rotation={[-0.5, 0, 0]}>
+              <cylinderGeometry args={[0.014, 0.014, 0.14, 12]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.8} />
+            </mesh>
+            <mesh position={[0.10, 0.03, 0.07]} rotation={[-0.5, 0, 0]}>
+              <cylinderGeometry args={[0.014, 0.014, 0.14, 12]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.8} />
+            </mesh>
+          </group>
+
+          {/* Upper Neck Cradle Bracket (Padded U-Yoke) */}
+          <group position={[0, 0.72, -0.14]} rotation={[-0.14, 0, 0]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]}>
+              <torusGeometry args={[0.048, 0.012, 8, 16, Math.PI]} />
+              <meshStandardMaterial color="#0F172A" roughness={0.8} />
+            </mesh>
+          </group>
         </group>
 
-        {/* Dreadnought Acoustic Guitar in Stand */}
+        {/* Dreadnought Acoustic Guitar in Stand (Straight & symmetric, zero Z roll tilt) */}
         <group
           ref={guitarRef}
-          position={[0, 0.68, 0.04]}
-          rotation={[0.10, -0.22, baseGuitarRotZ]}
+          position={[0, 0.69, 0.01]}
+          rotation={[-0.14, 0, baseGuitarRotZ]}
           onClick={handleGuitarClick}
           onPointerOver={(e) => {
             e.stopPropagation();
@@ -404,42 +454,39 @@ export function Bookcase() {
         >
           <AcousticGuitar />
         </group>
+
+        {/* Generous invisible bounding cylinder for "clicked near" */}
+        <mesh
+          position={[0, 0.65, 0]}
+          onClick={handleGuitarClick}
+          onPointerOver={(e) => {
+            e.stopPropagation();
+            if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+          }}
+          onPointerOut={() => {
+            if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+          }}
+        >
+          <cylinderGeometry args={[0.45, 0.45, 1.6, 16]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
+
+        {/* Floor proximity click target */}
+        <mesh
+          position={[0, 0.01, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          onClick={handleGuitarClick}
+        >
+          <circleGeometry args={[0.65, 24]} />
+          <meshBasicMaterial transparent opacity={0} depthWrite={false} />
+        </mesh>
       </group>
 
       {/* =========================================
-          8. Tennis Racket & Neon Ball (Resting on floor Y = 0.00 under the window)
+          8. Interactive Volleyball with Realistic Physics & Spin
+             (Replaces previous tennis racket & ball under window)
          ========================================= */}
-      <group position={[caseX + 2.05, 0.0, caseZ + 0.32]}>
-        {/* Tennis Racket leaning against wall */}
-        <group position={[0, 0.62, 0]} rotation={[0.18, 0.08, 0.12]}>
-          {/* Oval White Racket Head */}
-          <mesh position={[0, 0.24, 0]} castShadow>
-            <torusGeometry args={[0.22, 0.018, 12, 24]} />
-            <meshStandardMaterial color="#F8FAFC" roughness={0.3} />
-          </mesh>
-          {/* Translucent Nylon String Mesh */}
-          <mesh position={[0, 0.24, 0]}>
-            <circleGeometry args={[0.20, 16]} />
-            <meshStandardMaterial
-              color="#E2E8F0"
-              transparent
-              opacity={0.35}
-              roughness={0.2}
-            />
-          </mesh>
-          {/* Racket Shaft & Grip touching floor */}
-          <mesh position={[0, -0.30, 0]}>
-            <cylinderGeometry args={[0.016, 0.016, 0.62, 12]} />
-            <meshStandardMaterial color="#1E293B" roughness={0.6} />
-          </mesh>
-        </group>
-
-        {/* Neon Yellow Tennis Ball resting on floor (radius 0.045, center Y = 0.045) */}
-        <mesh position={[0.22, 0.045, 0.12]} castShadow receiveShadow>
-          <sphereGeometry args={[0.045, 16, 16]} />
-          <meshStandardMaterial color="#A3E635" roughness={0.8} />
-        </mesh>
-      </group>
+      <Volleyball position={[caseX + 2.05, 0.0, caseZ + 0.32]} />
 
       {/* =========================================
           9. "Welcome!" Doormat & White Classic Sneakers (Floor Y = 0.00)

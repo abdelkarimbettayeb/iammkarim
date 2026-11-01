@@ -35,6 +35,10 @@ function setState(updater: Partial<RoomStoreValues> | ((prev: RoomStoreValues) =
   emitChange();
 }
 
+if (typeof window !== 'undefined') {
+  (window as any).__roomStore = () => roomStore;
+}
+
 export const roomStore = {
   getState: () => state,
   subscribe: (listener: Listener) => {

@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { VintageMailbox } from './VintageMailbox';
+import { MustardArmchair } from './items';
 
 export function ForegroundLounge() {
   // Proportional foreground placement matching reference photo
@@ -61,58 +62,12 @@ export function ForegroundLounge() {
       <VintageMailbox position={[-2.7, 0, 1.2]} />
 
       {/* =========================================
-          2. Mid-Century Mustard Yellow Tub Armchair
+          2. Mid-Century Mustard Yellow Couch / Armchair
          ========================================= */}
-      <group
-        ref={chairGroup}
+      <MustardArmchair
         position={[chairX, 0, chairZ]}
         rotation={[0, -Math.PI / 4.2, 0]}
-        onClick={handleChairClick}
-        onPointerOver={(e) => {
-          e.stopPropagation();
-          if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
-        }}
-        onPointerOut={() => {
-          if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
-        }}
-      >
-        {/* Plump Rounded Seat Cushion */}
-        <mesh position={[0, 0.45, 0]} castShadow receiveShadow>
-          <cylinderGeometry args={[0.52, 0.48, 0.24, 24]} />
-          <meshStandardMaterial color="#EAB308" roughness={0.65} />
-        </mesh>
-
-        {/* Curved Wraparound Tub Backrest */}
-        <mesh position={[0, 0.72, -0.16]} rotation={[0.15, 0, 0]} castShadow>
-          <cylinderGeometry
-            args={[0.54, 0.52, 0.56, 24, 1, false, Math.PI * 0.7, Math.PI * 1.6]}
-          />
-          <meshStandardMaterial color="#EAB308" roughness={0.65} side={THREE.DoubleSide} />
-        </mesh>
-
-        {/* Left & Right Curved Arm Cushions */}
-        <mesh position={[-0.42, 0.62, 0.05]} castShadow>
-          <boxGeometry args={[0.14, 0.28, 0.56]} />
-          <meshStandardMaterial color="#EAB308" roughness={0.65} />
-        </mesh>
-        <mesh position={[0.42, 0.62, 0.05]} castShadow>
-          <boxGeometry args={[0.14, 0.28, 0.56]} />
-          <meshStandardMaterial color="#EAB308" roughness={0.65} />
-        </mesh>
-
-        {/* 4 Tapered Light Oak Splayed Legs */}
-        {[
-          [-0.32, 0.18, -0.28, 0.16, -0.16],
-          [0.32, 0.18, -0.28, 0.16, 0.16],
-          [-0.32, 0.18, 0.28, -0.16, -0.16],
-          [0.32, 0.18, 0.28, -0.16, 0.16],
-        ].map(([lx, ly, lz, rx, rz], i) => (
-          <mesh key={i} position={[lx, ly, lz]} rotation={[rx, 0, rz]} castShadow>
-            <cylinderGeometry args={[0.024, 0.015, 0.38, 12]} />
-            <meshStandardMaterial color="#D97706" roughness={0.55} />
-          </mesh>
-        ))}
-      </group>
+      />
 
       {/* =========================================
           3. Low Round Coffee Table

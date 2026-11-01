@@ -3,7 +3,11 @@
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 
-export function AcousticGuitar(props: React.ComponentProps<'group'>) {
+interface AcousticGuitarProps extends React.ComponentProps<'group'> {
+  isLeaning?: boolean;
+}
+
+export function AcousticGuitar({ isLeaning = false, ...props }: AcousticGuitarProps) {
   // 1. Classical Dreadnought Acoustic Guitar Body Profile
   const bodyShape = useMemo(() => {
     const shape = new THREE.Shape();

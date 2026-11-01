@@ -5,6 +5,7 @@ export { TournamentDartboard } from './TournamentDartboard';
 export { PottedCactus } from './PottedCactus';
 export { CoffeeTable } from './CoffeeTable';
 export { WelcomeMatSneakers } from './WelcomeMatSneakers';
+export { Volleyball } from './Volleyball';
 export { TennisRacket } from './TennisRacket';
 export { WorkstationDesk } from './WorkstationDesk';
 export { CubeBookcase } from './CubeBookcase';
