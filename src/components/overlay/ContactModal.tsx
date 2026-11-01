@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { X, Mail, MessageSquare, Download, Linkedin, Github, Send, CheckCircle2 } from 'lucide-react';
-import { useRoomStore } from '@/store/useRoomStore';
+import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import { personalInfo } from '@/data/resumeData';
 import { sendEmail } from '@/app/actions';
 
@@ -40,7 +40,7 @@ export function ContactModal() {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
-      onClick={toggleContact}
+      onClick={() => { toggleContact(); roomStore.setActiveStation('none'); }}
     >
       {/* Radical Glassmorphic Dialog Panel */}
       <div

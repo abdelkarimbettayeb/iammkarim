@@ -7,7 +7,9 @@ import { RoomStructure } from './RoomStructure';
 import { LightingRig } from './LightingRig';
 import { CameraRig } from './CameraRig';
 import { DynamicSkyAndWeather } from './DynamicSkyAndWeather';
-import { useRoomStore } from '@/store/useRoomStore';
+import { CharacterManager } from './character/CharacterManager';
+import { useRoomStore, roomStore } from '@/store/useRoomStore';
+import type { ActiveStation } from '@/types/room';
 
 interface RoomCanvasProps {
   children?: React.ReactNode;
@@ -15,6 +17,16 @@ interface RoomCanvasProps {
 
 export function RoomCanvas({ children }: RoomCanvasProps) {
   const isNightMode = useRoomStore((state) => state.isNightMode);
+
+  const handleStationArrival = (station: ActiveStation) => {
+    if (station === 'workstation') {
+      roomStore.setActiveCartridge('alnurayn');
+    } else if (station === 'couch') {
+      if (!roomStore.getState().isDrawerOpen) {
+        roomStore.toggleDrawer();
+      }
+    }
+  };
 
   return (
     <div
@@ -41,7 +53,7 @@ export function RoomCanvas({ children }: RoomCanvasProps) {
           {/* 1. Dynamic Sky Dome, Sun/Moon, Clouds & Weather Particles */}
           <DynamicSkyAndWeather />
 
-          {/* 2. Camera & Navigation Controls */}
+          {/* 2. Camera & Navigation Controls (Locked Dancing Line Isometric) */}
           <CameraRig />
 
           {/* 3. Room Lighting Rig */}
@@ -70,7 +82,10 @@ export function RoomCanvas({ children }: RoomCanvasProps) {
             color={isNightMode ? '#38BDF8' : '#FDE68A'}
           />
 
-          {/* 7. Injected Interior Props & Shelving */}
+          {/* 7. Autonomous Low-Poly Character Avatar */}
+          <CharacterManager onStationArrival={handleStationArrival} />
+
+          {/* 8. Injected Interior Props & Shelving */}
           {children}
         </Suspense>
       </Canvas>

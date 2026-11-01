@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { X, ExternalLink, Sparkles, CheckCircle2 } from 'lucide-react';
-import { useRoomStore } from '@/store/useRoomStore';
+import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import { cartridgeProjects } from '@/data/resumeData';
 
 export function CaseStudyModal() {
@@ -19,6 +19,7 @@ export function CaseStudyModal() {
   const handleClose = () => {
     setActiveCartridge(null);
     setActiveZone('overview');
+    roomStore.setActiveStation('none');
   };
 
   return (

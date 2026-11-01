@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { X, Download, Briefcase, Award, Code2, MessageSquareQuote, ExternalLink } from 'lucide-react';
-import { useRoomStore } from '@/store/useRoomStore';
+import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import { personalInfo, achievements, techSkills, cartridgeProjects } from '@/data/resumeData';
 
 const testimonials = [
@@ -39,7 +39,7 @@ export function ResumeDrawer() {
       {/* Backdrop scrim */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-md"
-        onClick={toggleDrawer}
+        onClick={() => { toggleDrawer(); roomStore.setActiveStation('none'); }}
       />
 
       {/* Radical Glassmorphic Slide-out Sheet (VisionOS / Dark Glass) */}
