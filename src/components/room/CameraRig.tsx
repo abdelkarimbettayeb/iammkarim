@@ -92,6 +92,11 @@ export function CameraRig() {
       camera.position.y += (desiredPos.current.y + parallaxY - camera.position.y) * 0.04;
     }
 
+    // Hard barrier clamp: Camera cannot cross into negative space behind walls
+    camera.position.x = Math.max(camera.position.x, 0.2);
+    camera.position.z = Math.max(camera.position.z, 0.2);
+    camera.position.y = Math.max(camera.position.y, 0.8);
+
     controlsRef.current.update();
   });
 
@@ -101,12 +106,13 @@ export function CameraRig() {
       makeDefault
       enableDamping
       dampingFactor={0.06}
+      enablePan={false}
       minDistance={4.5}
-      maxDistance={16}
+      maxDistance={14.5}
       minPolarAngle={Math.PI / 6}
-      maxPolarAngle={Math.PI / 2.3}
-      minAzimuthAngle={-Math.PI / 4.5}
-      maxAzimuthAngle={Math.PI / 2.2}
+      maxPolarAngle={Math.PI / 2.35}
+      minAzimuthAngle={Math.PI / 4 - 0.42}
+      maxAzimuthAngle={Math.PI / 4 + 0.42}
     />
   );
 }

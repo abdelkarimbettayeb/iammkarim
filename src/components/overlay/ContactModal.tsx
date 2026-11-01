@@ -42,102 +42,110 @@ export function ContactModal() {
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
       onClick={toggleContact}
     >
+      {/* Radical Glassmorphic Dialog Panel */}
       <div
-        className="relative w-full max-w-lg bg-[#0F172A] border border-slate-700/80 shadow-2xl rounded-3xl p-6 sm:p-7 text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
+        className="relative w-full max-w-lg glass-panel-master rounded-[28px] p-6 sm:p-8 text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto overflow-x-hidden"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Ambient Decorative Light Diffusers */}
+        <div className="absolute -top-16 -right-16 w-52 h-52 rounded-full blur-3xl opacity-25 pointer-events-none bg-amber-500" />
+        <div className="absolute -bottom-16 -left-16 w-52 h-52 rounded-full blur-3xl opacity-20 pointer-events-none bg-sky-500" />
+
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="relative flex items-start justify-between">
           <div>
-            <div className="text-[11px] uppercase font-bold tracking-widest text-amber-400">
-              Direct Contact
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full glass-pill mb-2">
+              <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+              <span className="text-[10px] uppercase font-bold tracking-widest text-amber-300">
+                Direct Contact
+              </span>
             </div>
-            <h2 className="text-xl sm:text-2xl font-black mt-0.5 text-white">
+            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               Get in Touch
             </h2>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="text-xs text-slate-300/80 mt-1 font-medium">
               Have an exciting project, contract, or full-time role? Let&apos;s talk.
             </p>
           </div>
 
           <button
             onClick={toggleContact}
-            className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+            className="p-2.5 rounded-xl glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center shrink-0"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Quick Social & Resume Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-5">
+        {/* Quick Social & Resume Glass Tiles */}
+        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-6">
           <Link
             href={`mailto:${personalInfo.email}`}
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
+            className="p-3 rounded-2xl glass-tile flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
           >
-            <Mail size={16} className="text-sky-400" />
-            <span className="text-[10px] font-bold text-slate-200">Email</span>
+            <Mail size={17} className="text-sky-400" />
+            <span className="text-[11px] font-bold text-slate-200">Email</span>
           </Link>
 
           <Link
             href={personalInfo.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
+            className="p-3 rounded-2xl glass-tile flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
           >
-            <MessageSquare size={16} className="text-emerald-400" />
-            <span className="text-[10px] font-bold text-slate-200">WhatsApp</span>
+            <MessageSquare size={17} className="text-emerald-400" />
+            <span className="text-[11px] font-bold text-slate-200">WhatsApp</span>
           </Link>
 
           <Link
             href={personalInfo.linkedinUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
+            className="p-3 rounded-2xl glass-tile flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
           >
-            <Linkedin size={16} className="text-blue-400" />
-            <span className="text-[10px] font-bold text-slate-200">LinkedIn</span>
+            <Linkedin size={17} className="text-blue-400" />
+            <span className="text-[11px] font-bold text-slate-200">LinkedIn</span>
           </Link>
 
           <Link
             href={personalInfo.githubUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700/60 flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
+            className="p-3 rounded-2xl glass-tile flex flex-col items-center text-center gap-1.5 transition-all hover:scale-105"
           >
-            <Github size={16} className="text-slate-300" />
-            <span className="text-[10px] font-bold text-slate-200">GitHub</span>
+            <Github size={17} className="text-slate-200" />
+            <span className="text-[11px] font-bold text-slate-200">GitHub</span>
           </Link>
         </div>
 
-        {/* PDF Resume Download Banner */}
-        <div className="mt-4 p-3.5 rounded-2xl bg-gradient-to-r from-blue-900/30 to-indigo-900/30 border border-blue-500/30 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-              <Download size={16} />
+        {/* PDF Resume Download Glass Banner */}
+        <div className="relative mt-5 p-4 rounded-2xl glass-tile border border-sky-500/30 flex items-center justify-between gap-3 shadow-md">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/30">
+              <Download size={17} />
             </div>
             <div>
-              <div className="text-xs font-bold text-white">Curriculum Vitae (PDF)</div>
-              <div className="text-[10px] text-slate-400">Complete verified resume</div>
+              <div className="text-xs font-bold text-white tracking-wide">Curriculum Vitae (PDF)</div>
+              <div className="text-[10px] text-slate-300">Complete verified resume</div>
             </div>
           </div>
           <Link
             href={personalInfo.resumePdfUrl}
             target="_blank"
-            className="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-md transition-all shrink-0"
+            className="px-4 py-2 rounded-xl glass-btn-primary text-white font-bold text-xs transition-all hover:scale-105 shrink-0"
           >
             Download
           </Link>
         </div>
 
-        {/* Send Direct Message Form */}
-        <div className="mt-6 pt-5 border-t border-slate-800">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-            Send a Message
+        {/* Send Direct Message Glass Form */}
+        <div className="relative mt-6 pt-5 border-t border-white/[0.08]">
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3.5">
+            Send a Direct Message
           </h3>
 
           {submitted ? (
-            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 text-emerald-300 text-xs">
-              <CheckCircle2 size={20} className="shrink-0" />
+            <div className="p-4 rounded-2xl glass-tile border border-emerald-500/40 flex items-center gap-3 text-emerald-300 text-xs">
+              <CheckCircle2 size={20} className="shrink-0 text-emerald-400" />
               <span>Thank you! Your message has been sent successfully.</span>
             </div>
           ) : (
@@ -149,9 +157,10 @@ export function ContactModal() {
                   placeholder="Your Name"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl glass-input text-xs text-white placeholder-slate-400 focus:outline-none transition-all"
                 />
               </div>
+
               <div>
                 <input
                   type="email"
@@ -159,30 +168,34 @@ export function ContactModal() {
                   placeholder="Your Email Address"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors"
+                  className="w-full px-4 py-3 rounded-xl glass-input text-xs text-white placeholder-slate-400 focus:outline-none transition-all"
                 />
               </div>
+
               <div>
                 <textarea
-                  rows={3}
-                  placeholder="Your Message..."
+                  required
+                  rows={4}
+                  placeholder="Tell me about your project or inquiry..."
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400 transition-colors resize-none"
+                  className="w-full px-4 py-3 rounded-xl glass-input text-xs text-white placeholder-slate-400 focus:outline-none transition-all resize-none"
                 />
               </div>
 
               {errorMessage && (
-                <div className="text-xs text-rose-400 font-semibold">{errorMessage}</div>
+                <div className="text-xs text-rose-400 font-semibold p-2 rounded-lg bg-rose-500/10 border border-rose-500/20">
+                  {errorMessage}
+                </div>
               )}
 
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 transition-all disabled:opacity-50"
+                className="w-full py-3 rounded-xl glass-btn-primary text-white font-bold text-xs flex items-center justify-center gap-2 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
               >
-                <span>{submitting ? 'Sending...' : 'Send Message'}</span>
                 <Send size={14} />
+                <span>{submitting ? 'Sending Transmission...' : 'Send Message'}</span>
               </button>
             </form>
           )}
@@ -191,4 +204,3 @@ export function ContactModal() {
     </div>
   );
 }
-

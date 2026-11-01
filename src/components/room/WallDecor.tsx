@@ -11,22 +11,16 @@ export function WallDecor() {
     <group name="wall-decor">
       {/* 1. 3D Wall Branding ("BETTAYEB") */}
       <group position={[wallX, 3.85, -1.05]} rotation={[0, Math.PI / 2, 0]}>
-        {/* Soft Drop Shadow Plate */}
-        <mesh position={[0, -0.015, -0.015]}>
-          <planeGeometry args={[2.8, 0.6]} />
-          <meshBasicMaterial color="#000000" transparent opacity={0.35} />
-        </mesh>
-
-        {/* Primary 3D Extruded Lettering */}
+        {/* Primary 3D Extruded Lettering (Matte Architectural Charcoal on White Wall) */}
         <Text
           position={[0, 0, 0.035]}
           fontSize={0.46}
           letterSpacing={0.14}
-          color="#F1F5F9"
+          color="#FFFFFF"
           anchorX="center"
           anchorY="middle"
-          outlineWidth={0.018}
-          outlineColor="#64748B"
+          outlineWidth={0.015}
+          outlineColor="#94A3B8"
         >
           BETTAYEB
         </Text>

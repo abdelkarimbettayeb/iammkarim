@@ -38,38 +38,45 @@ export function ResumeDrawer() {
     <div className="fixed inset-0 z-50 flex justify-end animate-in fade-in duration-200">
       {/* Backdrop scrim */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/60 backdrop-blur-md"
         onClick={toggleDrawer}
       />
 
-      {/* Slide-out Sheet */}
-      <div className="relative w-full max-w-2xl bg-[#0B0F19] border-l border-slate-800 shadow-2xl h-full overflow-y-auto text-white p-6 sm:p-10 animate-in slide-in-from-right duration-300">
+      {/* Radical Glassmorphic Slide-out Sheet (VisionOS / Dark Glass) */}
+      <div className="relative w-full max-w-2xl glass-panel-master border-l border-white/[0.14] shadow-2xl h-full overflow-y-auto overflow-x-hidden text-white p-6 sm:p-10 animate-in slide-in-from-right duration-300">
+        {/* Ambient Decorative Diffused Lights */}
+        <div className="absolute top-10 right-10 w-64 h-64 rounded-full blur-3xl opacity-20 pointer-events-none bg-blue-500" />
+        <div className="absolute top-1/2 -left-20 w-72 h-72 rounded-full blur-3xl opacity-15 pointer-events-none bg-amber-500" />
+
         {/* Header */}
-        <div className="flex items-start justify-between pb-6 border-b border-slate-800">
+        <div className="relative flex items-start justify-between pb-6 border-b border-white/[0.08]">
           <div>
-            <div className="text-xs uppercase font-bold tracking-widest text-blue-400">
-              Curriculum Vitae
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full glass-pill mb-2">
+              <span className="w-2 h-2 rounded-full bg-sky-400 animate-pulse" />
+              <span className="text-[10px] uppercase font-bold tracking-widest text-sky-300">
+                Curriculum Vitae
+              </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black mt-1 text-white">
+            <h2 className="text-2xl sm:text-3xl font-black mt-1 text-white tracking-tight">
               {personalInfo.name}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
+            <p className="text-xs sm:text-sm text-slate-300/80 mt-0.5 font-medium">
               {personalInfo.role} • {personalInfo.experienceYears} Years Experience
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Link
               href={personalInfo.resumePdfUrl}
               target="_blank"
-              className="p-2 rounded-xl bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white transition-all flex items-center gap-1.5 text-xs font-bold px-3 border border-blue-500/30"
+              className="px-3.5 py-2 rounded-xl glass-btn-primary text-white transition-all flex items-center gap-1.5 text-xs font-bold shadow-md hover:scale-105"
             >
               <Download size={14} />
               <span className="hidden sm:inline">PDF</span>
             </Link>
             <button
               onClick={toggleDrawer}
-              className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors"
+              className="p-2.5 rounded-xl glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center"
             >
               <X size={18} />
             </button>
@@ -77,35 +84,37 @@ export function ResumeDrawer() {
         </div>
 
         {/* 1. Who Am I */}
-        <div className="mt-8">
-          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400 mb-2 flex items-center gap-2">
-            <Briefcase size={14} className="text-amber-400" />
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <Briefcase size={15} className="text-amber-400" />
             <span>Professional Summary</span>
           </h3>
-          <p className="text-sm text-slate-300 leading-relaxed">
-            Full-stack web developer and an experienced software engineer with over{' '}
-            <strong className="text-amber-400 font-bold">9 years</strong> of hands-on experience.
-            Specializing in high-performance web systems, reactive architectures, cloud integrations,
-            and optimized computational modules.
-          </p>
+          <div className="glass-tile p-5 rounded-2xl border border-white/[0.08]">
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+              Full-stack web developer and experienced software engineer with over{' '}
+              <strong className="text-amber-400 font-bold">9 years</strong> of hands-on experience.
+              Specializing in high-performance web systems, reactive architectures, cloud integrations,
+              and optimized computational modules.
+            </p>
+          </div>
         </div>
 
         {/* 2. Key Achievements Grid */}
-        <div className="mt-8">
-          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-            <Award size={14} className="text-amber-400" />
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <Award size={15} className="text-amber-400" />
             <span>Key Achievements</span>
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {achievements.map((item, idx) => (
               <div
                 key={idx}
-                className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-center"
+                className="p-4 rounded-2xl glass-tile flex flex-col justify-center transition-all hover:scale-105"
               >
-                <div className="text-xl sm:text-2xl font-black text-amber-400">
+                <div className="text-xl sm:text-2xl font-black text-amber-400 tracking-tight">
                   {item.number}
                 </div>
-                <div className="text-xs font-bold text-slate-300 mt-0.5">
+                <div className="text-xs font-bold text-slate-200 mt-1">
                   {item.title}
                 </div>
               </div>
@@ -114,28 +123,32 @@ export function ResumeDrawer() {
         </div>
 
         {/* 3. Core Tech Skills */}
-        <div className="mt-8">
-          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-            <Code2 size={14} className="text-amber-400" />
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <Code2 size={15} className="text-sky-400" />
             <span>Technical Skills</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {techSkills.map((skill) => (
               <div
                 key={skill.name}
-                className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col justify-between"
+                className="p-4 rounded-2xl glass-tile flex flex-col justify-between transition-all hover:scale-[1.02]"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-xs text-white">{skill.name}</span>
+                  <span className="font-bold text-xs text-white tracking-wide">{skill.name}</span>
                   <span
-                    className="text-[10px] font-bold px-1.5 py-0.5 rounded"
-                    style={{ backgroundColor: `${skill.color}20`, color: skill.color }}
+                    className="text-[10px] font-bold px-2 py-0.5 rounded-full border"
+                    style={{
+                      backgroundColor: `${skill.color}25`,
+                      color: skill.color,
+                      borderColor: `${skill.color}45`,
+                    }}
                   >
                     {skill.level}%
                   </span>
                 </div>
                 {skill.description && (
-                  <p className="text-[11px] text-slate-400 mt-1.5 leading-snug">
+                  <p className="text-[11px] text-slate-300/80 mt-2 leading-relaxed">
                     {skill.description}
                   </p>
                 )}
@@ -145,46 +158,47 @@ export function ResumeDrawer() {
         </div>
 
         {/* 4. Highlighted Projects */}
-        <div className="mt-8">
-          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-            <Briefcase size={14} className="text-amber-400" />
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <Briefcase size={15} className="text-amber-400" />
             <span>Featured Production Projects</span>
           </h3>
           <div className="space-y-4">
             {Object.values(cartridgeProjects).map((proj) => (
               <div
                 key={proj.id}
-                className="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-2.5"
+                className="p-5 rounded-2xl glass-tile space-y-3 transition-all hover:border-white/[0.18]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h4 className="text-sm sm:text-base font-bold text-white">{proj.title}</h4>
-                    <p className="text-xs text-slate-400">{proj.subtitle}</p>
+                    <h4 className="text-sm sm:text-base font-bold text-white tracking-wide">{proj.title}</h4>
+                    <p className="text-xs text-slate-300/80">{proj.subtitle}</p>
                   </div>
                   {proj.url && (
                     <Link
                       href={proj.url}
                       target="_blank"
-                      className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-400 transition-colors shrink-0"
+                      className="p-2 rounded-xl glass-btn-secondary text-sky-400 hover:text-white transition-all shrink-0"
                     >
                       <ExternalLink size={14} />
                     </Link>
                   )}
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   {proj.description.map((bullet, i) => (
-                    <p key={i} className="text-xs text-slate-300 leading-relaxed">
-                      • {bullet}
+                    <p key={i} className="text-xs text-slate-300 leading-relaxed flex items-start gap-2">
+                      <span className="text-sky-400 font-bold">•</span>
+                      <span>{bullet}</span>
                     </p>
                   ))}
                 </div>
 
-                <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/80">
+                <div className="flex flex-wrap gap-1.5 pt-2.5 border-t border-white/[0.08]">
                   {proj.stack.map((t) => (
                     <span
                       key={t}
-                      className="px-2 py-0.5 rounded bg-slate-800 text-[10px] uppercase font-bold text-slate-300"
+                      className="px-2.5 py-1 rounded-lg glass-pill text-[10px] uppercase font-bold text-slate-300"
                     >
                       {t}
                     </span>
@@ -196,19 +210,19 @@ export function ResumeDrawer() {
         </div>
 
         {/* 5. Client Testimonials */}
-        <div className="mt-8">
-          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-            <MessageSquareQuote size={14} className="text-amber-400" />
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <MessageSquareQuote size={15} className="text-amber-400" />
             <span>Client Recommendations</span>
           </h3>
           <div className="space-y-3">
             {testimonials.map((t, idx) => (
               <div
                 key={idx}
-                className="p-4 rounded-2xl bg-slate-900/50 border border-slate-800 text-xs text-slate-300 leading-relaxed"
+                className="p-4 rounded-2xl glass-tile text-xs text-slate-200 leading-relaxed"
               >
-                <p>&ldquo;{t.description}&rdquo;</p>
-                <div className="mt-2 text-[11px] font-bold text-amber-400 flex items-center gap-1.5">
+                <p className="italic text-slate-300/90">&ldquo;{t.description}&rdquo;</p>
+                <div className="mt-2.5 text-[11px] font-bold text-amber-400 flex items-center gap-2">
                   <span>{t.name}</span>
                   <span className="text-slate-500">•</span>
                   <span className="text-slate-400 font-normal">{t.country}</span>
@@ -219,7 +233,7 @@ export function ResumeDrawer() {
         </div>
 
         {/* Footer Contact Action */}
-        <div className="mt-10 pt-6 border-t border-slate-800 flex items-center justify-between gap-4">
+        <div className="relative mt-10 pt-6 border-t border-white/[0.08] flex items-center justify-between gap-4">
           <button
             onClick={toggleDrawer}
             className="text-xs text-slate-400 hover:text-white transition-colors"
@@ -231,7 +245,7 @@ export function ResumeDrawer() {
               toggleDrawer();
               toggleContact();
             }}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 transition-all"
+            className="px-5 py-2.5 rounded-xl glass-pill-active text-slate-950 font-bold text-xs shadow-lg transition-all hover:scale-105"
           >
             Contact Abdelkarim
           </button>
@@ -240,4 +254,3 @@ export function ResumeDrawer() {
     </div>
   );
 }
-

@@ -17,7 +17,6 @@ export function TopHeader() {
   const handleMuteClick = () => {
     toggleMute();
     if (isMuted) {
-      // Unmuting: play a pleasant chime confirmation
       setTimeout(() => playSound('chime'), 50);
     }
   };
@@ -32,34 +31,34 @@ export function TopHeader() {
 
   return (
     <header className="fixed top-4 inset-x-4 md:inset-x-8 z-30 pointer-events-none flex items-center justify-between">
-      {/* 1. Brand & Title Badge */}
-      <div className="pointer-events-auto bg-[#0F172A]/85 backdrop-blur-md border border-slate-700/60 shadow-xl px-4 py-2.5 rounded-2xl flex items-center gap-3 select-none">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black text-lg flex items-center justify-center shadow-md shadow-amber-500/30">
+      {/* 1. Brand & Title Glass Badge */}
+      <div className="pointer-events-auto glass-panel-subtle px-4 py-2.5 rounded-2xl flex items-center gap-3 select-none transition-all duration-300 hover:scale-[1.01]">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black text-lg flex items-center justify-center shadow-[0_0_16px_rgba(245,158,11,0.4),inset_0_1px_1px_rgba(255,255,255,0.6)] border border-white/20">
           B
         </div>
         <div>
-          <h1 className="text-sm font-black tracking-wide text-white flex items-center gap-1.5">
-            Abdelkarim Bettayeb
-            <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] rounded-full bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">
+          <h1 className="text-sm font-black tracking-wide text-white flex items-center gap-2">
+            <span>Abdelkarim Bettayeb</span>
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
               9+ Yrs Exp
             </span>
           </h1>
-          <p className="text-[11px] text-slate-400 font-medium line-clamp-1">
+          <p className="text-[11px] text-slate-300/80 font-medium line-clamp-1">
             3D Isometric Interactive Portfolio
           </p>
         </div>
       </div>
 
-      {/* 2. Controls & Actions */}
-      <div className="pointer-events-auto flex items-center gap-2">
-        {/* Audio Mute/Unmute Toggle */}
+      {/* 2. Glass Controls & Actions */}
+      <div className="pointer-events-auto flex items-center gap-2.5">
+        {/* Audio Mute/Unmute Glass Toggle */}
         <button
           onClick={handleMuteClick}
           title={isMuted ? 'Unmute 3D Audio' : 'Mute 3D Audio'}
-          className={`h-10 px-3 rounded-xl border flex items-center gap-2 transition-all shadow-lg backdrop-blur-md ${
+          className={`h-10 px-3.5 rounded-xl flex items-center gap-2 transition-all duration-200 select-none ${
             isMuted
-              ? 'bg-[#0F172A]/80 border-slate-700 text-slate-400 hover:text-white hover:border-slate-500'
-              : 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-emerald-500/10'
+              ? 'glass-btn-secondary text-slate-300 hover:text-white'
+              : 'glass-panel-subtle bg-emerald-500/20 border-emerald-500/40 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
           }`}
         >
           {isMuted ? <VolumeX size={17} /> : <Volume2 size={17} />}
@@ -68,19 +67,19 @@ export function TopHeader() {
           </span>
         </button>
 
-        {/* Day / Night Mode Toggle */}
+        {/* Day / Night Mode Glass Toggle */}
         <button
           onClick={handleThemeClick}
           title="Toggle Day / Night Mode"
-          className="h-10 w-10 rounded-xl bg-[#0F172A]/80 backdrop-blur-md border border-slate-700 text-amber-300 hover:text-amber-200 hover:border-slate-500 transition-all shadow-lg flex items-center justify-center"
+          className="h-10 w-10 rounded-xl glass-btn-secondary text-amber-300 hover:text-amber-200 transition-all flex items-center justify-center select-none"
         >
           {isNightMode ? <Sun size={17} /> : <Moon size={17} />}
         </button>
 
-        {/* Classic Full Resume Slide-out Trigger */}
+        {/* Classic Full Resume Glass Trigger */}
         <button
           onClick={toggleDrawer}
-          className="h-10 px-4 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-blue-500/25 transition-all active:scale-95"
+          className="h-10 px-4 rounded-xl glass-btn-primary text-white font-bold text-xs flex items-center gap-2 transition-all hover:scale-105 active:scale-95 select-none"
         >
           <FileText size={16} />
           <span>Full Resume</span>
@@ -89,4 +88,3 @@ export function TopHeader() {
     </header>
   );
 }
-

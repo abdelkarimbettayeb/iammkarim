@@ -449,7 +449,7 @@ function StudioContent() {
       {/* 2. Main Studio Canvas & Sidebars */}
       <div className="relative flex-1 w-full h-full">
         {/* Item Navigation Selector Carousel (Top Bar) */}
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-slate-900/85 backdrop-blur-md p-1.5 rounded-xl border border-slate-700/60 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 glass-panel-master p-1.5 rounded-2xl shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none">
           <button
             onClick={prevItem}
             className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center font-bold text-xs"
@@ -514,7 +514,7 @@ function StudioContent() {
         </Canvas>
 
         {/* Bottom Information Card */}
-        <div className="absolute bottom-4 left-4 z-10 bg-slate-900/85 backdrop-blur-md p-3.5 rounded-xl border border-slate-700/60 shadow-2xl max-w-sm">
+        <div className="absolute bottom-4 left-4 z-10 glass-panel-master p-4 rounded-2xl max-w-sm text-white">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-xl">{currentMeta.icon}</span>

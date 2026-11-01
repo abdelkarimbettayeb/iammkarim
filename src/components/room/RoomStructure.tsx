@@ -27,14 +27,14 @@ export function RoomStructure() {
         />
       </mesh>
 
-      {/* 3. Left Wall (Clean Gallery White Plaster) */}
+      {/* 3. Left Wall (Deep Charcoal Accent Wall) */}
       <mesh
         position={[-halfSize - wallThickness / 2, wallHeight / 2 - 0.08, 0]}
         receiveShadow
       >
         <boxGeometry args={[wallThickness, wallHeight, floorSize]} />
         <meshStandardMaterial
-          color="#F4F4F6"
+          color="#1D1F23"
           roughness={0.88}
           metalness={0.08}
         />
