@@ -7,7 +7,8 @@ export type SoundEffect =
   | 'cartridge'
   | 'chime'
   | 'volleyball'
-  | 'volleyball_bounce';
+  | 'volleyball_bounce'
+  | 'window';
 
 let audioCtx: AudioContext | null = null;
 let lastBounceSoundTime = 0;
@@ -252,6 +253,26 @@ function playChime(ctx: AudioContext) {
   osc.stop(now + 0.45);
 }
 
+
+function playWindowSlide(ctx: AudioContext) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(320, now);
+  osc.frequency.exponentialRampToValueAtTime(180, now + 0.18);
+
+  gain.gain.setValueAtTime(0.12, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+
+  osc.start(now);
+  osc.stop(now + 0.25);
+}
+
 export function playSound(effect: SoundEffect): void {
   if (typeof window === 'undefined') return;
 
@@ -284,6 +305,9 @@ export function playSound(effect: SoundEffect): void {
         break;
       case 'chime':
         playChime(ctx);
+        break;
+      case 'window':
+        playWindowSlide(ctx);
         break;
     }
   } catch (err) {

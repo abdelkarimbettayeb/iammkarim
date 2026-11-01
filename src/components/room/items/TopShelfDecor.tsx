@@ -2,8 +2,6 @@
 
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { languages } from '@/data/resumeData';
-import { WavingFlag } from '../WavingFlag';
 
 interface TopShelfDecorProps {
   position?: [number, number, number];
@@ -182,21 +180,7 @@ export function TopShelfDecor({
       ))}
 
       {/* =========================================
-          2. Spoken Language Flags (Left Shelf)
-         ========================================= */}
-      {languages.map((flag, idx) => {
-        const zOffset = -1.6 + idx * 0.55;
-        return (
-          <WavingFlag
-            key={flag.name}
-            flag={flag}
-            position={[0.04, 0.04, zOffset]}
-          />
-        );
-      })}
-
-      {/* =========================================
-          3. Framed Portrait Photo (Center Shelf)
+          2. Framed Portrait Photo (Center Shelf)
          ========================================= */}
       <group position={[0.04, 0.44, 0.05]} rotation={[0, 0.18, -0.06]}>
         {/* Dark Walnut Picture Frame */}
@@ -217,7 +201,7 @@ export function TopShelfDecor({
       </group>
 
       {/* =========================================
-          4. Small Middle Houseplant (Spade Leaves)
+          3. Small Middle Houseplant (Spade Leaves)
          ========================================= */}
       <group position={[0.04, 0.04, 0.72]}>
         {/* Two-Tone Ceramic Pot: Charcoal Lower Base */}
@@ -253,7 +237,7 @@ export function TopShelfDecor({
       </group>
 
       {/* =========================================
-          5. Lush Cascading Boston Fern (Right Shelf)
+          4. Lush Cascading Boston Fern (Right Shelf)
          ========================================= */}
       <group position={[0.04, 0.04, 1.52]}>
         {/* Two-Tone Ceramic Pot: Charcoal Lower Base */}

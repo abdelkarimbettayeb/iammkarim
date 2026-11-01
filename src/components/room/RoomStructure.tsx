@@ -31,29 +31,29 @@ export function RoomStructure() {
         />
       </mesh>
 
-      {/* 3. Left Wall (Deep Charcoal Accent Wall) */}
+      {/* 3. Left Wall (Pure Crisp White Plaster) */}
       <mesh
         position={[-halfWidth - wallThickness / 2, wallHeight / 2 - 0.08, interiorCenterZ]}
         receiveShadow
       >
         <boxGeometry args={[wallThickness, wallHeight, interiorDepth]} />
         <meshStandardMaterial
-          color="#1D1F23"
-          roughness={0.88}
-          metalness={0.08}
+          color="#FFFFFF"
+          roughness={0.9}
+          metalness={0.01}
         />
       </mesh>
 
-      {/* 4. Right Wall (Light Warm Plaster) */}
+      {/* 4. Right/Back Wall (Pure Crisp White Plaster) */}
       <mesh
         position={[0, wallHeight / 2 - 0.08, -halfWidth - wallThickness / 2]}
         receiveShadow
       >
         <boxGeometry args={[floorWidth, wallHeight, wallThickness]} />
         <meshStandardMaterial
-          color="#F4F4F6"
-          roughness={0.8}
-          metalness={0.04}
+          color="#FFFFFF"
+          roughness={0.9}
+          metalness={0.01}
         />
       </mesh>
 
@@ -69,8 +69,8 @@ export function RoomStructure() {
         <meshStandardMaterial color="#E2E8F0" roughness={0.6} />
       </mesh>
 
-      {/* 6. Window Frame & Venetian Blinds */}
-      <VenetianWindow position={[2.4, 3.7, -halfWidth + 0.06]} />
+      {/* 6. Window Frame & Venetian Blinds - Shifted to x=2.8 to clear bookcase and closet */}
+      <VenetianWindow position={[2.8, 3.6, -halfWidth + 0.06]} />
     </group>
   );
 }

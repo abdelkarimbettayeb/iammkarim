@@ -1,6 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
+import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { useRoomStore } from '@/store/useRoomStore';
+import { playSound } from '@/lib/audioEngine';
 
 interface VenetianWindowProps {
   position?: [number, number, number];
@@ -13,11 +17,58 @@ export function VenetianWindow({
   rotation = [0, 0, 0],
   scale = 1,
 }: VenetianWindowProps) {
+  const isNightMode = useRoomStore((state) => state.isNightMode);
+  const weatherState = useRoomStore((state) => state.weatherState);
+  const isWindowOpen = useRoomStore((state) => state.isWindowOpen);
+  const toggleWindow = useRoomStore((state) => state.toggleWindow);
+  const setActiveStation = useRoomStore((state) => state.setActiveStation);
+
+  const slatsGroupRef = useRef<THREE.Group>(null);
+  const slatAngleRef = useRef(isWindowOpen ? 0 : -1.2);
+
   const slatCount = 28;
   const blindSlats = Array.from({ length: slatCount }, (_, i) => i);
 
+  // Auto-close at night or during cold snow if not manually opened
+  React.useEffect(() => {
+    if (isNightMode || weatherState === 'snow') {
+      toggleWindow(false);
+    }
+  }, [isNightMode, weatherState, toggleWindow]);
+
+  useFrame((_, delta) => {
+    // Open slat angle = 0 (horizontal, letting light through); Closed = -1.2 (slanted shut)
+    const targetAngle = isWindowOpen ? 0.05 : -1.25;
+    slatAngleRef.current = THREE.MathUtils.damp(slatAngleRef.current, targetAngle, 6, delta);
+
+    if (slatsGroupRef.current) {
+      slatsGroupRef.current.children.forEach((child) => {
+        child.rotation.x = slatAngleRef.current;
+      });
+    }
+  });
+
+  const handleClick = (e: { stopPropagation: () => void }) => {
+    e.stopPropagation();
+    playSound('window');
+    setActiveStation('window');
+    toggleWindow();
+  };
+
   return (
-    <group position={position} rotation={rotation} scale={scale}>
+    <group
+      position={position}
+      rotation={rotation}
+      scale={scale}
+      onClick={handleClick}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+      }}
+    >
       {/* =========================================
           1. Architectural Window Frame & Sill
          ========================================= */}
@@ -78,22 +129,24 @@ export function VenetianWindow({
       ))}
 
       {/* =========================================
-          3. 28 Angled Horizontal Slats
+          3. 28 Angled Horizontal Slats (Animated Tilt)
          ========================================= */}
-      {blindSlats.map((i) => {
-        const yPos = 1.66 - (i / (slatCount - 1)) * 3.32;
-        return (
-          <mesh
-            key={i}
-            position={[0, yPos, 0.05]}
-            rotation={[-0.38, 0, 0]}
-            castShadow
-          >
-            <boxGeometry args={[1.9, 0.085, 0.008]} />
-            <meshStandardMaterial color="#1E293B" roughness={0.55} />
-          </mesh>
-        );
-      })}
+      <group ref={slatsGroupRef}>
+        {blindSlats.map((i) => {
+          const yPos = 1.66 - (i / (slatCount - 1)) * 3.32;
+          return (
+            <mesh
+              key={i}
+              position={[0, yPos, 0.05]}
+              rotation={[slatAngleRef.current, 0, 0]}
+              castShadow
+            >
+              <boxGeometry args={[1.9, 0.085, 0.008]} />
+              <meshStandardMaterial color="#1E293B" roughness={0.55} />
+            </mesh>
+          );
+        })}
+      </group>
     </group>
   );
 }

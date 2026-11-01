@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import * as THREE from 'three';
 import { useRoomStore } from '@/store/useRoomStore';
-import { cartridgeProjects } from '@/data/resumeData';
+import { cartridgeProjects, languages } from '@/data/resumeData';
+import { WavingFlag } from '../WavingFlag';
 import type { CartridgeProject } from '@/types/room';
 import { DeskLamp } from '../DeskLamp';
 
@@ -681,6 +682,7 @@ export function WorkstationDesk({
   const [screenHovered, setScreenHovered] = useState(false);
   const activeCartridge = useRoomStore((state) => state.activeCartridge);
   const setActiveZone = useRoomStore((state) => state.setActiveZone);
+  const setActiveStation = useRoomStore((state) => state.setActiveStation);
 
   const activeProject = activeCartridge ? cartridgeProjects[activeCartridge] : null;
 
@@ -705,21 +707,21 @@ export function WorkstationDesk({
       <group position={[0, 1.4, 0]}>
         {/* Warm Teak Tabletop (Smooth Chamfered Finish) */}
         <mesh position={[0, 0, 0]} castShadow receiveShadow>
-          <boxGeometry args={[2.35, 0.07, 1.15]} />
+          <boxGeometry args={[3.35, 0.07, 1.25]} />
           <meshStandardMaterial color="#CF6B2C" roughness={0.45} />
         </mesh>
         {/* Tabletop Apron / Under-frame */}
         <mesh position={[0, -0.05, 0]} castShadow>
-          <boxGeometry args={[2.15, 0.04, 0.98]} />
+          <boxGeometry args={[3.15, 0.04, 1.08]} />
           <meshStandardMaterial color="#B45309" roughness={0.5} />
         </mesh>
 
         {/* 4 Mid-Century Tapered Round Wooden Legs with Brass Ferrules */}
         {[
-          [-0.98, -0.68, -0.44, 0.12, -0.12],
-          [0.98, -0.68, -0.44, 0.12, 0.12],
-          [-0.98, -0.68, 0.44, -0.12, -0.12],
-          [0.98, -0.68, 0.44, -0.12, 0.12],
+          [-1.42, -0.68, -0.48, 0.12, -0.12],
+          [1.42, -0.68, -0.48, 0.12, 0.12],
+          [-1.42, -0.68, 0.48, -0.12, -0.12],
+          [1.42, -0.68, 0.48, -0.12, 0.12],
         ].map(([lx, ly, lz, rx, rz], i) => (
           <group key={i} position={[lx, ly, lz]} rotation={[rx, 0, rz]}>
             {/* Tapered Wood Leg */}
@@ -736,7 +738,25 @@ export function WorkstationDesk({
         ))}
 
         {/* Vertical Black Spine Book / Partner Showcase on Right Side */}
-        <group position={[0.92, 0.3, -0.05]} rotation={[0, 0.25, 0]} castShadow>
+        
+        {/* Country Language Flags on Widened Desktop */}
+        <group
+          position={[1.15, 0.04, -0.1]}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveStation('flags');
+          }}
+        >
+          {languages.map((flag, idx) => (
+            <WavingFlag
+              key={flag.name}
+              flag={flag}
+              position={[idx * 0.24 - 0.24, 0, 0]}
+            />
+          ))}
+        </group>
+
+        <group position={[1.42, 0.3, 0.15]} rotation={[0, 0.25, 0]} castShadow>
           <mesh castShadow>
             <boxGeometry args={[0.07, 0.54, 0.34]} />
             <meshStandardMaterial color="#0F172A" roughness={0.35} />
