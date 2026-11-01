@@ -60,10 +60,10 @@ export function ContactModal() {
                 Direct Contact
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-primary font-bold text-white tracking-tight">
               Get in Touch
             </h2>
-            <p className="text-xs text-slate-300/80 mt-1 font-medium">
+            <p className="text-xs sm:text-sm text-slate-300/80 mt-1 font-paragraph leading-relaxed">
               Have an exciting project, contract, or full-time role? Let&apos;s talk.
             </p>
           </div>

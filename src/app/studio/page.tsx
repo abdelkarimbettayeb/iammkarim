@@ -354,7 +354,7 @@ function StudioContent() {
             ← Back to Room
           </Link>
           <div className="h-4 w-px bg-slate-700" />
-          <h1 className="text-sm font-bold tracking-wide text-white flex items-center gap-2">
+          <h1 className="text-sm font-primary font-bold tracking-wide text-white flex items-center gap-2">
             <span>🔬</span>
             <span>3D ITEM WORKSHOP</span>
           </h1>
@@ -524,7 +524,7 @@ function StudioContent() {
               {currentIndex + 1} / {ITEMS.length}
             </span>
           </div>
-          <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
+          <p className="text-xs text-slate-300 mt-1.5 leading-relaxed font-paragraph">
             {currentMeta.notes}
           </p>
           <div className="text-[10px] text-amber-300/80 font-mono mt-2 pt-2 border-t border-slate-800 flex items-center justify-between">

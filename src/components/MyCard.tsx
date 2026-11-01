@@ -1,6 +1,6 @@
 'use client'
 import React, { PropsWithChildren, useMemo, useRef } from 'react';
-import { bebas, ubuntu } from '../app/helpers/fonts';
+import { josefinSans, padauk } from '../app/helpers/fonts';
 
 export default function MyCard({ children, title, flip, className }: PropsWithChildren & { title: string; flip?: boolean; className?: string }) {
 
@@ -37,12 +37,12 @@ export default function MyCard({ children, title, flip, className }: PropsWithCh
             <h2
                 ref={titleRef}
                 style={{
-                    ...bebas.style,
+                    ...josefinSans.style,
                 }} className={'sticky top-[60px] z-10 col-[1/3] row-[1/2] text-2xl sm:text-6xl w-max font-bold text-linear-color-2' + (flip ? ' justify-self-end ms-auto' : '')}>
                 {title}
             </h2>
 
-            <div className={'col-[2/3] row-[2/3] z-20 text-justify mt-5 sm:mt-10 ' + ubuntu.className + ' ' + (className ?? '')}>
+            <div className={'col-[2/3] row-[2/3] z-20 text-justify mt-5 sm:mt-10 ' + padauk.className + ' ' + (className ?? '')}>
                 {children}
             </div>
 

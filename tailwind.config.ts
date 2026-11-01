@@ -10,6 +10,17 @@ const config: Config = {
 	],
 	theme: {
 		extend: {
+			fontFamily: {
+				primary: ['var(--font-josefin)', 'system-ui', 'sans-serif'],
+				secondary: ['var(--font-signika)', 'system-ui', 'sans-serif'],
+				paragraph: ['var(--font-padauk)', 'system-ui', 'sans-serif'],
+				display: ['var(--font-josefin)', 'system-ui', 'sans-serif'],
+				body: ['var(--font-padauk)', 'system-ui', 'sans-serif'],
+				sans: ['var(--font-signika)', 'system-ui', 'sans-serif'],
+				josefin: ['var(--font-josefin)', 'system-ui', 'sans-serif'],
+				signika: ['var(--font-signika)', 'system-ui', 'sans-serif'],
+				padauk: ['var(--font-padauk)', 'system-ui', 'sans-serif'],
+			},
 			backgroundImage: {
 				'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
 				'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))'

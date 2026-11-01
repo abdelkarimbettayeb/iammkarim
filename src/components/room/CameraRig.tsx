@@ -31,8 +31,8 @@ const ZONE_PRESETS: Record<RoomZone, CameraPreset> = {
     target: new THREE.Vector3(-2.1, 2.1, -1.1),
   },
   contact: {
-    position: new THREE.Vector3(1.0, 3.0, 4.2),
-    target: new THREE.Vector3(-2.2, 1.1, 1.2),
+    position: new THREE.Vector3(4.5, 2.4, 5.2),
+    target: new THREE.Vector3(2.45, 1.25, 3.4),
   },
 };
 

@@ -33,17 +33,17 @@ export function TopHeader() {
     <header className="fixed top-4 inset-x-4 md:inset-x-8 z-30 pointer-events-none flex items-center justify-between">
       {/* 1. Brand & Title Glass Badge */}
       <div className="pointer-events-auto glass-panel-subtle px-4 py-2.5 rounded-2xl flex items-center gap-3 select-none transition-all duration-300 hover:scale-[1.01]">
-        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-black text-lg flex items-center justify-center shadow-[0_0_16px_rgba(245,158,11,0.4),inset_0_1px_1px_rgba(255,255,255,0.6)] border border-white/20">
+        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-500 to-amber-300 text-slate-950 font-primary font-black text-lg flex items-center justify-center shadow-[0_0_16px_rgba(245,158,11,0.4),inset_0_1px_1px_rgba(255,255,255,0.6)] border border-white/20">
           B
         </div>
         <div>
-          <h1 className="text-sm font-black tracking-wide text-white flex items-center gap-2">
+          <h1 className="text-sm font-primary font-bold tracking-wide text-white flex items-center gap-2">
             <span>Abdelkarim Bettayeb</span>
             <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
               9+ Yrs Exp
             </span>
           </h1>
-          <p className="text-[11px] text-slate-300/80 font-medium line-clamp-1">
+          <p className="text-[11px] text-slate-300/80 font-secondary font-medium line-clamp-1">
             3D Isometric Interactive Portfolio
           </p>
         </div>

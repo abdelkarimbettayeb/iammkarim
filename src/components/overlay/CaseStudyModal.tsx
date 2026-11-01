@@ -58,10 +58,10 @@ export function CaseStudyModal() {
               </span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight drop-shadow-sm">
+            <h2 className="text-2xl sm:text-3xl font-primary font-bold text-white tracking-tight drop-shadow-sm">
               {project.title}
             </h2>
-            <p className="text-xs text-slate-300/90 mt-0.5 font-medium">
+            <p className="text-xs text-slate-300/90 mt-0.5 font-secondary font-medium">
               {project.subtitle}
             </p>
           </div>
@@ -91,7 +91,7 @@ export function CaseStudyModal() {
           >
             <Sparkles size={16} />
           </div>
-          <span className="text-xs sm:text-sm font-semibold tracking-wide text-white">
+          <span className="text-xs sm:text-sm font-primary font-semibold tracking-wide text-white">
             {project.metrics}
           </span>
         </div>
@@ -106,7 +106,7 @@ export function CaseStudyModal() {
               <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
                 <CheckCircle2 size={13} />
               </div>
-              <span className="leading-relaxed">{bullet}</span>
+              <span className="leading-relaxed font-paragraph text-slate-200">{bullet}</span>
             </div>
           ))}
         </div>

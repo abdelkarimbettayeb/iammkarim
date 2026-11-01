@@ -7,6 +7,7 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ui/themeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ConditionalLayout } from '../components/ConditionalLayout';
+import { josefinSans, signika, padauk } from './helpers/fonts';
 
 export const metadata: Metadata = {
     title: 'Abdelkarim - Software developer',
@@ -28,6 +29,10 @@ const myColor: MantineColorsTuple = [
 ];
 
 const theme = createTheme({
+    fontFamily: 'var(--font-signika), system-ui, sans-serif',
+    headings: {
+        fontFamily: 'var(--font-josefin), system-ui, sans-serif',
+    },
     defaultGradient: {
         from: myColor[4],
         to: myColor[3],
@@ -49,12 +54,15 @@ export default function RootLayout({
 }) {
 
     return (
-        <html lang="en" {...mantineHtmlProps}>
+        <html
+            lang="en"
+            className={`${josefinSans.variable} ${signika.variable} ${padauk.variable} font-secondary`}
+            {...mantineHtmlProps}
+        >
             <head>
                 <ColorSchemeScript defaultColorScheme='dark' />
-                <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/sf-pro-display" />
             </head>
-            <body id='app' className='h-screen'>
+            <body id='app' className='h-screen font-secondary antialiased'>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"

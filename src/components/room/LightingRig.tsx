@@ -10,17 +10,17 @@ export function LightingRig() {
 
   return (
     <group name="lighting-rig">
-      {/* 1. Ambient Warm Diffused Fill (Softens harsh contrast) */}
+      {/* 1. Ambient Warm Diffused Fill (Softens harsh contrast without bleaching) */}
       <ambientLight
         color={isNightMode ? '#1E293B' : '#FFF7ED'}
-        intensity={isNightMode ? 0.45 : 1.55}
+        intensity={isNightMode ? 0.35 : 0.65}
       />
 
       {/* 2. Primary Sunlight (Streaming through the window on the right wall) */}
       <directionalLight
         ref={dirLightRef}
         position={isNightMode ? [3.5, 5, -2.5] : [5.2, 7.5, -4.2]}
-        intensity={isNightMode ? 0.3 : 1.85}
+        intensity={isNightMode ? 0.35 : 1.15}
         color={isNightMode ? '#64748B' : '#FFF6EA'}
         castShadow
         shadow-mapSize-width={2048}

@@ -57,10 +57,10 @@ export function ResumeDrawer() {
                 Curriculum Vitae
               </span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black mt-1 text-white tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-primary font-bold mt-1 text-white tracking-tight">
               {personalInfo.name}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300/80 mt-0.5 font-medium">
+            <p className="text-xs sm:text-sm text-slate-300/80 mt-0.5 font-secondary font-medium">
               {personalInfo.role} • {personalInfo.experienceYears} Years Experience
             </p>
           </div>
@@ -90,7 +90,7 @@ export function ResumeDrawer() {
             <span>Professional Summary</span>
           </h3>
           <div className="glass-tile p-5 rounded-2xl border border-white/[0.08]">
-            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-paragraph">
               Full-stack web developer and experienced software engineer with over{' '}
               <strong className="text-amber-400 font-bold">9 years</strong> of hands-on experience.
               Specializing in high-performance web systems, reactive architectures, cloud integrations,
@@ -111,10 +111,10 @@ export function ResumeDrawer() {
                 key={idx}
                 className="p-4 rounded-2xl glass-tile flex flex-col justify-center transition-all hover:scale-105"
               >
-                <div className="text-xl sm:text-2xl font-black text-amber-400 tracking-tight">
+                <div className="text-xl sm:text-2xl font-primary font-bold text-amber-400 tracking-tight">
                   {item.number}
                 </div>
-                <div className="text-xs font-bold text-slate-200 mt-1">
+                <div className="text-xs font-secondary font-medium text-slate-200 mt-1">
                   {item.title}
                 </div>
               </div>
@@ -148,7 +148,7 @@ export function ResumeDrawer() {
                   </span>
                 </div>
                 {skill.description && (
-                  <p className="text-[11px] text-slate-300/80 mt-2 leading-relaxed">
+                  <p className="text-[11px] text-slate-300/80 mt-2 leading-relaxed font-paragraph">
                     {skill.description}
                   </p>
                 )}
@@ -221,7 +221,7 @@ export function ResumeDrawer() {
                 key={idx}
                 className="p-4 rounded-2xl glass-tile text-xs text-slate-200 leading-relaxed"
               >
-                <p className="italic text-slate-300/90">&ldquo;{t.description}&rdquo;</p>
+                <p className="italic text-slate-300/90 font-paragraph text-sm leading-relaxed">&ldquo;{t.description}&rdquo;</p>
                 <div className="mt-2.5 text-[11px] font-bold text-amber-400 flex items-center gap-2">
                   <span>{t.name}</span>
                   <span className="text-slate-500">•</span>

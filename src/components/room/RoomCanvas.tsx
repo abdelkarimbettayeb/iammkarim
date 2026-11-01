@@ -32,6 +32,7 @@ export function RoomCanvas({ children }: RoomCanvasProps) {
         }}
         gl={{
           antialias: true,
+          preserveDrawingBuffer: true,
           powerPreference: 'high-performance',
         }}
       >

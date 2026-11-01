@@ -12,3 +12,4 @@ export { CubeBookcase } from './CubeBookcase';
 export { TopShelfDecor } from './TopShelfDecor';
 export { VenetianWindow } from './VenetianWindow';
 export { WallSconce } from './WallSconce';
+export { VintageMailbox } from '../VintageMailbox';
