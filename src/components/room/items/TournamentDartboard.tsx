@@ -233,6 +233,7 @@ export function TournamentDartboard({
 
   return (
     <group
+      ref={boardGroupRef}
       position={position}
       rotation={rotation}
       scale={scale}

@@ -52,3 +52,4 @@ export function ChillyBreathPuff({ active, position = [0, 0, 0] }: ChillyBreathP
     </group>
   );
 }
+

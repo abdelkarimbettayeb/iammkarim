@@ -10,3 +10,4 @@ test('Task 5 Volleyball physics and store integration', () => {
   const outdoorFile = fs.readFileSync('src/components/room/OutdoorPathway.tsx', 'utf-8');
   assert.ok(outdoorFile.includes('Volleyball'), 'OutdoorPathway should mount Volleyball in the garden court');
 });
+

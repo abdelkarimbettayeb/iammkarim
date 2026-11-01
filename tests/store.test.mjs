@@ -29,3 +29,4 @@ test('roomStore provides character and weather state management', () => {
   roomStore.toggleWindow(false);
   assert.equal(roomStore.getState().isWindowOpen, false);
 });
+

@@ -697,6 +697,7 @@ export function WorkstationDesk({
   const handleMonitorClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     setActiveZone('workstation');
+    setActiveStation('workstation');
   };
 
   return (

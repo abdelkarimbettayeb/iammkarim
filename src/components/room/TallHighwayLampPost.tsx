@@ -60,10 +60,10 @@ export function TallHighwayLampPost({
             intensity={isNightMode ? 3.5 : 1.2}
             distance={8.5}
             decay={2}
-            castShadow
-          />
+            />
         </group>
       </group>
     </group>
   );
 }
+

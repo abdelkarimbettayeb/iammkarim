@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useRoomStore } from '@/store/useRoomStore';
 import {
   CubeBookcase,
   AcousticGuitar,
@@ -10,6 +11,7 @@ import {
 export function Bookcase() {
   const caseX = 0.5;
   const caseZ = -3.58;
+  const activeStation = useRoomStore((state) => state.activeStation);
 
   return (
     <group name="bookcase">
@@ -19,6 +21,7 @@ export function Bookcase() {
       {/* 2. Dreadnought Acoustic Guitar Leaning Against Right Side */}
       <AcousticGuitar
         isLeaning
+        visible={activeStation !== 'guitar'}
         position={[caseX + 1.42, 1.25, caseZ + 0.32]}
       />
 

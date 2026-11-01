@@ -12,3 +12,4 @@ test('Task 3 outdoor components exist and export valid React components', () => 
   assert.ok(pathwayFile.includes('40'), 'OutdoorPathway should have expanded 40x40 grass meadow');
   assert.ok(pathwayFile.includes('Highway') || pathwayFile.includes('highway') || pathwayFile.includes('Main Road') || pathwayFile.includes('main-road'), 'OutdoorPathway should include main road');
 });
+

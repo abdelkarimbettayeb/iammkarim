@@ -32,6 +32,22 @@ export function ResumeDrawer() {
   const toggleDrawer = useRoomStore((state) => state.toggleDrawer);
   const toggleContact = useRoomStore((state) => state.toggleContact);
 
+  const handleClose = React.useCallback(() => {
+    toggleDrawer();
+    roomStore.setActiveStation('none');
+  }, [toggleDrawer]);
+
+  React.useEffect(() => {
+    if (!isDrawerOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isDrawerOpen, handleClose]);
+
   if (!isDrawerOpen) return null;
 
   return (
@@ -75,7 +91,7 @@ export function ResumeDrawer() {
               <span className="hidden sm:inline">PDF</span>
             </Link>
             <button
-              onClick={toggleDrawer}
+              onClick={handleClose}
               className="p-2.5 rounded-xl glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center"
             >
               <X size={18} />
@@ -235,7 +251,7 @@ export function ResumeDrawer() {
         {/* Footer Contact Action */}
         <div className="relative mt-10 pt-6 border-t border-white/[0.08] flex items-center justify-between gap-4">
           <button
-            onClick={toggleDrawer}
+            onClick={handleClose}
             className="text-xs text-slate-400 hover:text-white transition-colors"
           >
             ← Close Resume

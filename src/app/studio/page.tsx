@@ -340,7 +340,7 @@ function StudioContent() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentIndex]);
+  }, [currentIndex, nextItem, prevItem]);
 
   return (
     <div className="relative w-full h-screen bg-[#0D0F13] text-slate-100 flex flex-col overflow-hidden select-none">

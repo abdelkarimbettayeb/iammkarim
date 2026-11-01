@@ -1,5 +1,7 @@
 'use client';
 
+import { useRoomStore } from '@/store/useRoomStore';
+import { playSound } from '@/lib/audioEngine';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 
@@ -8,6 +10,7 @@ interface AcousticGuitarProps extends React.ComponentProps<'group'> {
 }
 
 export function AcousticGuitar({ isLeaning = false, ...props }: AcousticGuitarProps) {
+  const setActiveStation = useRoomStore((state) => state.setActiveStation);
   // 1. Classical Dreadnought Acoustic Guitar Body Profile
   const bodyShape = useMemo(() => {
     const shape = new THREE.Shape();
@@ -71,8 +74,24 @@ export function AcousticGuitar({ isLeaning = false, ...props }: AcousticGuitarPr
   const fretDots = [0.95, 0.83, 0.71, 0.59]; // 3rd, 5th, 7th, 9th frets
   const strings = [-0.022, -0.013, -0.004, 0.005, 0.014, 0.023]; // E, A, D, G, B, E
 
+  const handleGuitarClick = (e: any) => {
+    e.stopPropagation();
+    setActiveStation('guitar');
+    playSound('guitar');
+  };
+
   return (
-    <group {...props}>
+    <group
+      {...props}
+      onClick={handleGuitarClick}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+      }}
+    >
       {/* 3D Extruded Mahogany Body Shell (Back & Sides) */}
       <mesh geometry={bodyGeometry} castShadow receiveShadow>
         <meshStandardMaterial color="#5C240E" roughness={0.45} />

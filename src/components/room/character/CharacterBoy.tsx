@@ -238,3 +238,4 @@ export const CharacterBoy = forwardRef<CharacterBoyHandle, CharacterBoyProps>(
     );
   }
 );
+

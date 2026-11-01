@@ -1,5 +1,6 @@
 'use client';
 
+import { useRoomStore } from '@/store/useRoomStore';
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
@@ -15,6 +16,7 @@ export function MustardArmchair({
   rotation = [0, 0, 0],
   scale = 1,
 }: MustardArmchairProps) {
+  const setActiveStation = useRoomStore((state) => state.setActiveStation);
   const bounceRef = useRef(0);
   const chairGroup = useRef<THREE.Group>(null);
 
@@ -33,6 +35,7 @@ export function MustardArmchair({
   });
 
   const handleChairClick = (e: { stopPropagation: () => void }) => {
+    setActiveStation('couch');
     e.stopPropagation();
     bounceRef.current = 1;
   };

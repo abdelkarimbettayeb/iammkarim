@@ -11,16 +11,27 @@ export function CaseStudyModal() {
   const setActiveCartridge = useRoomStore((state) => state.setActiveCartridge);
   const setActiveZone = useRoomStore((state) => state.setActiveZone);
 
+  const handleClose = React.useCallback(() => {
+    setActiveCartridge(null);
+    setActiveZone('overview');
+    roomStore.setActiveStation('none');
+  }, [setActiveCartridge, setActiveZone]);
+
+  React.useEffect(() => {
+    if (!activeCartridge) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeCartridge, handleClose]);
+
   if (!activeCartridge) return null;
 
   const project = cartridgeProjects[activeCartridge];
   if (!project) return null;
-
-  const handleClose = () => {
-    setActiveCartridge(null);
-    setActiveZone('overview');
-    roomStore.setActiveStation('none');
-  };
 
   return (
     <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-end p-4 md:p-8">

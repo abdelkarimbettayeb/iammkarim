@@ -48,10 +48,10 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
       case 'walking': {
         const walkCycle = Math.sin(t * 10);
         if (root) root.position.y = currentPos[1] + Math.abs(Math.sin(t * 10)) * 0.05; // Playful bobbing
-        if (leftArm) leftArm.rotation.x = walkCycle * 0.6;
-        if (rightArm) rightArm.rotation.x = -walkCycle * 0.6;
-        if (leftLeg) leftLeg.rotation.x = -walkCycle * 0.7;
-        if (rightLeg) rightLeg.rotation.x = walkCycle * 0.7;
+        if (leftArm) leftArm.rotation.set(walkCycle * 0.6, 0, 0);
+        if (rightArm) rightArm.rotation.set(-walkCycle * 0.6, 0, 0);
+        if (leftLeg) leftLeg.rotation.set(-walkCycle * 0.7, 0, 0);
+        if (rightLeg) rightLeg.rotation.set(walkCycle * 0.7, 0, 0);
         if (head) head.rotation.set(0, 0, 0);
         break;
       }

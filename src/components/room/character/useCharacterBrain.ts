@@ -59,6 +59,17 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
   const activeStationRef = useRef(activeStation);
   activeStationRef.current = activeStation;
 
+  const autonomousTimers = useRef<NodeJS.Timeout[]>([]);
+  const clearAutonomousTimers = () => {
+    autonomousTimers.current.forEach(clearTimeout);
+    autonomousTimers.current = [];
+  };
+  const addAutonomousTimer = (fn: () => void, ms: number) => {
+    const t = setTimeout(fn, ms);
+    autonomousTimers.current.push(t);
+    return t;
+  };
+
   // Initial Arrival: highway road -> doorway wave -> idle
   useEffect(() => {
     posVec.current.set(1.65, 0, 6.8);
@@ -85,6 +96,7 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
 
   // Dispatch to clicked active station
   useEffect(() => {
+    clearAutonomousTimers();
     if (!hasArrivedInitial.current) return;
     lastInteractionTime.current = Date.now();
 
@@ -151,11 +163,11 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
           targetRotY.current = wp.rotY;
           setCurrentPose('walking');
           isNavigating.current = true;
-          setTimeout(() => setCurrentPose('thinking'), 2800);
-          setTimeout(() => {
+          addAutonomousTimer(() => setCurrentPose('thinking'), 2800);
+          addAutonomousTimer(() => {
             targetVec.current.set(1.4, 0, 1.8);
             setCurrentPose('walking');
-            setTimeout(() => setCurrentPose('idle'), 2800);
+            addAutonomousTimer(() => setCurrentPose('idle'), 2800);
           }, 8000);
         } else if (chosen === 'volleyball_bump') {
           const wp = STATION_WAYPOINTS.volleyball;
@@ -163,11 +175,11 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
           targetRotY.current = wp.rotY;
           setCurrentPose('walking');
           isNavigating.current = true;
-          setTimeout(() => setCurrentPose('bumping'), 2400);
-          setTimeout(() => {
+          addAutonomousTimer(() => setCurrentPose('bumping'), 2400);
+          addAutonomousTimer(() => {
             targetVec.current.set(1.4, 0, 1.8);
             setCurrentPose('walking');
-            setTimeout(() => setCurrentPose('idle'), 2400);
+            addAutonomousTimer(() => setCurrentPose('idle'), 2400);
           }, 7000);
         } else if (chosen === 'guitar_play') {
           const wp = STATION_WAYPOINTS.guitar;
@@ -175,35 +187,35 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
           targetRotY.current = wp.rotY;
           setCurrentPose('walking');
           isNavigating.current = true;
-          setTimeout(() => {
+          addAutonomousTimer(() => {
             setCurrentPose('strumming');
             setIsHoldingGuitar(true);
           }, 2400);
-          setTimeout(() => {
+          addAutonomousTimer(() => {
             setIsHoldingGuitar(false);
             targetVec.current.set(1.4, 0, 1.8);
             setCurrentPose('walking');
-            setTimeout(() => setCurrentPose('idle'), 2400);
+            addAutonomousTimer(() => setCurrentPose('idle'), 2400);
           }, 8000);
         } else if (chosen === 'chilly_window') {
           // Shiver & close window
           setCurrentPose('shivering');
           setIsChillyBreath(true);
-          setTimeout(() => {
+          addAutonomousTimer(() => {
             setIsChillyBreath(false);
             const wp = STATION_WAYPOINTS.window;
             targetVec.current.set(wp.pos[0], wp.pos[1], wp.pos[2]);
             targetRotY.current = wp.rotY;
             setCurrentPose('walking');
             isNavigating.current = true;
-            setTimeout(() => {
+            addAutonomousTimer(() => {
               setCurrentPose('window');
               roomStore.toggleWindow(false);
             }, 2600);
             setTimeout(() => {
               targetVec.current.set(1.4, 0, 1.8);
               setCurrentPose('walking');
-              setTimeout(() => setCurrentPose('idle'), 2600);
+              addAutonomousTimer(() => setCurrentPose('idle'), 2600);
             }, 6500);
           }, 2500);
         }

@@ -60,3 +60,4 @@ export function PathwayLampPost({ position = [0, 0, 0] }: PathwayLampPostProps) 
     </group>
   );
 }
+

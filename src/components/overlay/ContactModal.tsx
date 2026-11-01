@@ -11,6 +11,22 @@ export function ContactModal() {
   const isContactOpen = useRoomStore((state) => state.isContactOpen);
   const toggleContact = useRoomStore((state) => state.toggleContact);
 
+  const handleClose = React.useCallback(() => {
+    toggleContact();
+    roomStore.setActiveStation('none');
+  }, [toggleContact]);
+
+  React.useEffect(() => {
+    if (!isContactOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isContactOpen, handleClose]);
+
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -69,7 +85,7 @@ export function ContactModal() {
           </div>
 
           <button
-            onClick={toggleContact}
+            onClick={handleClose}
             className="p-2.5 rounded-xl glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center shrink-0"
           >
             <X size={18} />

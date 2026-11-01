@@ -12,3 +12,4 @@ test('Task 4 sky dome and weather system exist and integrate properly', () => {
   const canvasFile = fs.readFileSync('src/components/room/RoomCanvas.tsx', 'utf-8');
   assert.ok(canvasFile.includes('DynamicSkyAndWeather'), 'RoomCanvas should mount DynamicSkyAndWeather');
 });
+
