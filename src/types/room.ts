@@ -1,5 +1,11 @@
 export type RoomZone = 'overview' | 'skills' | 'experience' | 'workstation' | 'contact';
 
+export type ActiveStation = 'none' | 'workstation' | 'guitar' | 'couch' | 'window' | 'dartboard' | 'volleyball' | 'flags';
+
+export type CharacterState = 'spawning' | 'walking' | 'waving' | 'idle' | 'interacting' | 'autonomous_idle';
+
+export type WeatherState = 'clear' | 'rain' | 'snow';
+
 export type CartridgeId = 'alnurayn' | 'freelance' | 'tastytracks';
 
 export interface FlagItem {
@@ -40,15 +46,25 @@ export interface AchievementItem {
 export interface RoomState {
   activeZone: RoomZone;
   activeCartridge: CartridgeId | null;
+  activeStation: ActiveStation;
+  characterState: CharacterState;
+  weatherState: WeatherState;
+  dartsLeft: number;
+  isWindowOpen: boolean;
   isMuted: boolean;
   isDrawerOpen: boolean;
   isContactOpen: boolean;
   isNightMode: boolean;
   setActiveZone: (zone: RoomZone) => void;
   setActiveCartridge: (id: CartridgeId | null) => void;
+  setActiveStation: (station: ActiveStation) => void;
+  setCharacterState: (state: CharacterState) => void;
+  setWeatherState: (weather: WeatherState) => void;
+  decrementDarts: () => void;
+  resetDarts: () => void;
+  toggleWindow: (forceOpen?: boolean) => void;
   toggleMute: () => void;
   toggleDrawer: () => void;
   toggleContact: () => void;
   toggleNightMode: () => void;
 }
-
