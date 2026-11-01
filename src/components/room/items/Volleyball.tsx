@@ -4,6 +4,7 @@ import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { playSound, playVolleyballBounceSound } from '@/lib/audioEngine';
+import { useRoomStore } from '@/store/useRoomStore';
 
 interface VolleyballProps {
   position?: [number, number, number];
@@ -164,6 +165,17 @@ export function Volleyball({
 
   // Hover state
   const isHovered = useRef(false);
+  const activeStation = useRoomStore((state) => state.activeStation);
+  const setActiveStation = useRoomStore((state) => state.setActiveStation);
+
+  useEffect(() => {
+    if (activeStation === 'volleyball') {
+      const timer = setTimeout(() => {
+        triggerHitImpulse();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [activeStation]);
 
   useEffect(() => {
     return () => {
@@ -208,6 +220,7 @@ export function Volleyball({
 
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
+    setActiveStation('volleyball');
     triggerHitImpulse(e.point);
   };
 

@@ -5,6 +5,7 @@ import { VintageMailbox } from './VintageMailbox';
 import { RoadsidePuddleWithDuck } from './RoadsidePuddleWithDuck';
 import { TallHighwayLampPost } from './TallHighwayLampPost';
 import { PathwayLampPost } from './PathwayLampPost';
+import { Volleyball } from './items/Volleyball';
 
 interface OutdoorPathwayProps {
   position?: [number, number, number];
@@ -224,7 +225,12 @@ export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
       </group>
 
       {/* ========================================================
-          9. VINTAGE MAILBOX (BESIDE THE STONE WALKWAY)
+          9. PHYSICS VOLLEYBALL (GARDEN LAWN COURT)
+          ======================================================== */}
+      <Volleyball position={[2.7, 0.0, 2.5]} />
+
+      {/* ========================================================
+          10. VINTAGE MAILBOX (BESIDE THE STONE WALKWAY)
           ======================================================== */}
       <VintageMailbox
         position={[2.45, 0.0, 3.4]}
