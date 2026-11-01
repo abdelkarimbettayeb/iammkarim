@@ -1,19 +1,16 @@
-
 import '@mantine/core/styles.css';
 
 import { ColorSchemeScript, MantineColorsTuple, MantineProvider, createTheme, mantineHtmlProps } from '@mantine/core';
 import { Metadata } from 'next';
-import GoToTopButtonContainer from '../components/GoToTopButtonContainer';
-import Header from '../components/Header';
-import Sidebar, { SidebarContextProvider } from '../components/Sidebar';
 import './globals.css';
-import BackgroundScene from '../components/Background';
 import { ThemeProvider } from '@/components/ui/themeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { SidebarContextProvider } from '../components/Sidebar';
+import { ConditionalLayout } from '../components/ConditionalLayout';
 
 export const metadata: Metadata = {
-    title: 'Abdelkarim - Software developer',
-    description: 'A simple descriptive portfolio website for ABDELKARIM BETTAYEB.',
+    title: 'Abdelkarim Bettayeb - 3D Interactive Resume & Portfolio',
+    description: 'Interactive 3D isometric diorama resume and portfolio for Abdelkarim Bettayeb.',
     icons: 'favicon.ico'
 };
 
@@ -50,40 +47,29 @@ export default function RootLayout({
 }: {
     children: React.ReactNode;
 }) {
-
     return (
         <html lang="en" {...mantineHtmlProps}>
             <head>
                 <ColorSchemeScript defaultColorScheme='dark' />
                 <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/sf-pro-display" />
             </head>
-            <body id='app' className='h-screen'>
-
+            <body id='app' className='h-screen overflow-hidden p-0 m-0'>
                 <ThemeProvider
                     attribute="class"
-                    defaultTheme="system"
+                    defaultTheme="dark"
                     enableSystem
                     disableTransitionOnChange>
                     <TooltipProvider>
                         <SidebarContextProvider>
                             <MantineProvider defaultColorScheme='dark' theme={theme}>
-                                <GoToTopButtonContainer id='scrollContainer' className='h-screen overflow-y-auto overflow-x-hidden'>
-                                    <Header />
-                                    <BackgroundScene />
-
-                                    <Sidebar />
-
-                                    <main className='m-5 sm:m-10'>
-                                        {children}
-                                    </main>
-
-                                    {/* <Footer /> */}
-                                </GoToTopButtonContainer>
+                                <ConditionalLayout>
+                                    {children}
+                                </ConditionalLayout>
                             </MantineProvider>
                         </SidebarContextProvider>
                     </TooltipProvider>
                 </ThemeProvider>
             </body>
-        </html >
+        </html>
     );
 }

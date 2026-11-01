@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { useTheme } from 'next-themes';
 import { Volume2, VolumeX, Sun, Moon, FileText } from 'lucide-react';
 import { useRoomStore } from '@/store/useRoomStore';
@@ -17,7 +18,6 @@ export function TopHeader() {
   const handleMuteClick = () => {
     toggleMute();
     if (isMuted) {
-      // Unmuting: play a pleasant chime confirmation
       setTimeout(() => playSound('chime'), 50);
     }
   };
@@ -52,6 +52,16 @@ export function TopHeader() {
 
       {/* 2. Controls & Actions */}
       <div className="pointer-events-auto flex items-center gap-2">
+        {/* Item Studio Sandbox Link */}
+        <Link
+          href="/studio"
+          className="h-10 px-3.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/10 transition-all"
+          title="Open 3D Item Inspection Studio"
+        >
+          <span>🔬</span>
+          <span className="hidden md:inline">Item Studio</span>
+        </Link>
+
         {/* Audio Mute/Unmute Toggle */}
         <button
           onClick={handleMuteClick}
@@ -89,4 +99,3 @@ export function TopHeader() {
     </header>
   );
 }
-

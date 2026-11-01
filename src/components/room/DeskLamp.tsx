@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import * as THREE from 'three';
 import { useTheme } from 'next-themes';
 import { useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
 
 interface DeskLampProps {
   position: [number, number, number];
+  rotation?: [number, number, number];
 }
 
-export function DeskLamp({ position }: DeskLampProps) {
+export function DeskLamp({ position, rotation = [0, 0, 0] }: DeskLampProps) {
   const [hovered, setHovered] = useState(false);
   const isNightMode = useRoomStore((state) => state.isNightMode);
   const toggleNightMode = useRoomStore((state) => state.toggleNightMode);
@@ -34,6 +36,7 @@ export function DeskLamp({ position }: DeskLampProps) {
   return (
     <group
       position={position}
+      rotation={rotation}
       onClick={handleClick}
       onPointerOver={(e) => {
         e.stopPropagation();
@@ -45,84 +48,123 @@ export function DeskLamp({ position }: DeskLampProps) {
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
       }}
     >
-      {/* 1. Lamp Weighted Base */}
-      <mesh position={[0, 0.02, 0]} castShadow>
-        <cylinderGeometry args={[0.14, 0.16, 0.04, 20]} />
+      {/* 1. Lamp Weighted Circular Base */}
+      <mesh position={[0, 0.015, 0]} castShadow receiveShadow>
+        <cylinderGeometry args={[0.11, 0.12, 0.03, 24]} />
         <meshStandardMaterial
-          color="#1E2024"
+          color={hovered ? '#334155' : '#1E293B'}
           roughness={0.4}
-          metalness={0.8}
+          metalness={0.7}
         />
       </mesh>
-
-      {/* 2. Lower Articulated Arm (Angled) */}
-      <mesh
-        position={[0.08, 0.28, 0]}
-        rotation={[0, 0, -0.32]}
-        castShadow
-      >
-        <cylinderGeometry args={[0.016, 0.016, 0.55, 8]} />
-        <meshStandardMaterial color="#1E2024" roughness={0.3} metalness={0.8} />
+      {/* Base Stem Collar */}
+      <mesh position={[0, 0.035, 0]} castShadow>
+        <cylinderGeometry args={[0.024, 0.028, 0.02, 16]} />
+        <meshStandardMaterial color="#0F172A" roughness={0.3} metalness={0.8} />
       </mesh>
 
-      {/* Elbow Joint Pivot */}
-      <mesh position={[0.16, 0.52, 0]} castShadow>
-        <sphereGeometry args={[0.035, 12, 12]} />
-        <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.9} />
-      </mesh>
-
-      {/* 3. Upper Articulated Arm (Angled Down toward desk) */}
-      <mesh
-        position={[0.04, 0.68, 0]}
-        rotation={[0, 0, 0.48]}
-        castShadow
-      >
-        <cylinderGeometry args={[0.016, 0.016, 0.45, 8]} />
-        <meshStandardMaterial color="#1E2024" roughness={0.3} metalness={0.8} />
-      </mesh>
-
-      {/* Shade Pivot Joint */}
-      <mesh position={[-0.08, 0.82, 0]} castShadow>
-        <sphereGeometry args={[0.032, 12, 12]} />
-        <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.9} />
-      </mesh>
-
-      {/* 4. Conical Lamp Shade */}
-      <group position={[-0.14, 0.82, 0]} rotation={[0, 0, 0.65]}>
+      {/* 2. Lower Twin Articulated Arms */}
+      <group position={[0, 0.05, 0]}>
+        {/* Base swivel joint */}
         <mesh castShadow>
-          <coneGeometry args={[0.16, 0.24, 20, 1, true]} />
-          <meshStandardMaterial
-            color="#1E2024"
-            roughness={0.3}
-            metalness={0.8}
-            side={2}
-          />
+          <sphereGeometry args={[0.022, 16, 16]} />
+          <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.9} />
         </mesh>
 
-        {/* Interior Light Bulb */}
-        <mesh position={[0, -0.05, 0]}>
-          <sphereGeometry args={[0.055, 16, 16]} />
-          <meshStandardMaterial
-            color="#FFFBEB"
-            emissive="#F59E0B"
-            emissiveIntensity={isNightMode ? 2.5 : 0.8}
-            roughness={0.2}
-          />
-        </mesh>
+        {/* Lower twin bars angling forward-right (towards desk center) */}
+        <group rotation={[0.2, 0, -0.55]}>
+          <mesh position={[-0.014, 0.22, 0]} castShadow>
+            <cylinderGeometry args={[0.007, 0.007, 0.44, 8]} />
+            <meshStandardMaterial color="#1E293B" roughness={0.3} metalness={0.7} />
+          </mesh>
+          <mesh position={[0.014, 0.22, 0]} castShadow>
+            <cylinderGeometry args={[0.007, 0.007, 0.44, 8]} />
+            <meshStandardMaterial color="#1E293B" roughness={0.3} metalness={0.7} />
+          </mesh>
+          {/* Tension springs */}
+          <mesh position={[0, 0.16, 0.012]}>
+            <cylinderGeometry args={[0.005, 0.005, 0.22, 8]} />
+            <meshStandardMaterial color="#94A3B8" roughness={0.2} metalness={0.9} />
+          </mesh>
 
-        {/* Focused Desk Spotlight Cone */}
-        <spotLight
-          position={[0, -0.08, 0]}
-          target-position={[0, -2, 0]}
-          color="#FEF3C7"
-          intensity={isNightMode ? 3.2 : 0.9}
-          angle={0.65}
-          penumbra={0.4}
-          distance={6}
-          castShadow
-        />
+          {/* Elbow Joint at tip of lower arm */}
+          <group position={[0, 0.44, 0]}>
+            <mesh castShadow>
+              <sphereGeometry args={[0.024, 16, 16]} />
+              <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.9} />
+            </mesh>
+            <mesh position={[0, 0, 0.024]} rotation={[Math.PI / 2, 0, 0]}>
+              <cylinderGeometry args={[0.014, 0.014, 0.01, 12]} />
+              <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.9} />
+            </mesh>
+
+            {/* Upper Arm angling down-forward over the desk */}
+            <group rotation={[-0.1, 0, -0.65]}>
+              <mesh position={[-0.012, 0.18, 0]} castShadow>
+                <cylinderGeometry args={[0.007, 0.007, 0.36, 8]} />
+                <meshStandardMaterial color="#1E293B" roughness={0.3} metalness={0.7} />
+              </mesh>
+              <mesh position={[0.012, 0.18, 0]} castShadow>
+                <cylinderGeometry args={[0.007, 0.007, 0.36, 8]} />
+                <meshStandardMaterial color="#1E293B" roughness={0.3} metalness={0.7} />
+              </mesh>
+
+              {/* Shade Socket Joint */}
+              <group position={[0, 0.36, 0]}>
+                <mesh castShadow>
+                  <sphereGeometry args={[0.022, 16, 16]} />
+                  <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.9} />
+                </mesh>
+
+                {/* Lamp Shade pointing downward towards desk */}
+                <group rotation={[0.4, 0, -0.8]}>
+                  {/* Flared shade cone */}
+                  <mesh position={[0, -0.06, 0]} castShadow>
+                    <cylinderGeometry args={[0.035, 0.11, 0.15, 24, 1, true]} />
+                    <meshStandardMaterial
+                      color="#1E293B"
+                      roughness={0.35}
+                      metalness={0.7}
+                      side={THREE.DoubleSide}
+                    />
+                  </mesh>
+                  {/* Shade rounded dome top */}
+                  <mesh position={[0, 0.015, 0]} castShadow>
+                    <sphereGeometry args={[0.038, 16, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
+                    <meshStandardMaterial color="#1E293B" roughness={0.35} metalness={0.7} />
+                  </mesh>
+                  {/* Brass shade trim ring */}
+                  <mesh position={[0, -0.135, 0]} rotation={[Math.PI / 2, 0, 0]}>
+                    <torusGeometry args={[0.11, 0.005, 12, 24]} />
+                    <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.9} />
+                  </mesh>
+
+                  {/* Interior glowing warm light bulb */}
+                  <mesh position={[0, -0.04, 0]}>
+                    <sphereGeometry args={[0.032, 16, 16]} />
+                    <meshStandardMaterial
+                      color="#FFFBEB"
+                      emissive="#FBBF24"
+                      emissiveIntensity={isNightMode ? 3.5 : 1.2}
+                      roughness={0.2}
+                    />
+                  </mesh>
+
+                  {/* Focused warm pool of light */}
+                  <pointLight
+                    position={[0, -0.1, 0]}
+                    color="#FEF3C7"
+                    intensity={isNightMode ? 3.0 : 1.0}
+                    distance={3.5}
+                    decay={2}
+                    castShadow
+                  />
+                </group>
+              </group>
+            </group>
+          </group>
+        </group>
       </group>
     </group>
   );
 }
-

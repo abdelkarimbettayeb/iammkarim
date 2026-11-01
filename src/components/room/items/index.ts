@@ -1,0 +1,13 @@
+export { AcousticGuitar } from './AcousticGuitar';
+export { MustardArmchair } from './MustardArmchair';
+export { EamesChair } from './EamesChair';
+export { TournamentDartboard } from './TournamentDartboard';
+export { PottedCactus } from './PottedCactus';
+export { CoffeeTable } from './CoffeeTable';
+export { WelcomeMatSneakers } from './WelcomeMatSneakers';
+export { TennisRacket } from './TennisRacket';
+export { WorkstationDesk } from './WorkstationDesk';
+export { CubeBookcase } from './CubeBookcase';
+export { TopShelfDecor } from './TopShelfDecor';
+export { VenetianWindow } from './VenetianWindow';
+export { WallSconce } from './WallSconce';
