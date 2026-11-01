@@ -1,12 +1,27 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Float, Html } from '@react-three/drei';
+import React, { useState, Suspense } from 'react';
+import { Float, Html, useTexture } from '@react-three/drei';
 import type { TechSkillItem } from '@/types/room';
 
 interface TechEmblemProps {
   skill: TechSkillItem;
   position: [number, number, number];
+}
+
+function EmblemIcon({ iconPath }: { iconPath: string }) {
+  const texture = useTexture(iconPath);
+  return (
+    <mesh position={[0, 0, 0.031]}>
+      <planeGeometry args={[0.16, 0.16]} />
+      <meshBasicMaterial
+        map={texture}
+        transparent
+        depthWrite={false}
+        toneMapped={false}
+      />
+    </mesh>
+  );
 }
 
 export function TechEmblem({ skill, position }: TechEmblemProps) {
@@ -36,30 +51,34 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
             />
           </mesh>
 
-          {/* 2. Glowing Front Emblem Inset */}
+          {/* 2. Glowing Hexagonal Accent Rim */}
           <mesh position={[0, 0, 0.024]} rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.105, 0.105, 0.010, 6]} />
+            <cylinderGeometry args={[0.115, 0.115, 0.008, 6]} />
             <meshStandardMaterial
               color={skill.color}
               emissive={skill.color}
-              emissiveIntensity={hovered ? 0.7 : 0.3}
+              emissiveIntensity={hovered ? 0.8 : 0.4}
               roughness={0.3}
               metalness={0.4}
             />
           </mesh>
 
-          {/* 3. Center Metallic Core */}
-          <mesh position={[0, 0, 0.032]}>
-            <sphereGeometry args={[0.032, 12, 12]} />
+          {/* 3. Dark Contrast Inset Face */}
+          <mesh position={[0, 0, 0.028]} rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.100, 0.100, 0.005, 6]} />
             <meshStandardMaterial
-              color="#FFFFFF"
-              emissive="#FFFFFF"
-              emissiveIntensity={hovered ? 0.6 : 0.2}
-              roughness={0.2}
+              color="#0B0F19"
+              roughness={0.6}
+              metalness={0.3}
             />
           </mesh>
 
-          {/* 4. Hover Tooltip Badge */}
+          {/* 4. Official Skill Brand Icon (replacing placeholder dot) */}
+          <Suspense fallback={null}>
+            <EmblemIcon iconPath={skill.iconPath} />
+          </Suspense>
+
+          {/* 5. Hover Tooltip Badge */}
           {hovered && (
             <Html position={[0, 0.26, 0.06]} center distanceFactor={7} pointerEvents="none">
               <div className="bg-[#0B0F19]/95 backdrop-blur-md border border-slate-700 shadow-xl px-3 py-1.5 rounded-lg text-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-150">

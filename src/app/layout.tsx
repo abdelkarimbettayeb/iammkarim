@@ -1,15 +1,12 @@
-
 import '@mantine/core/styles.css';
 
 import { ColorSchemeScript, MantineColorsTuple, MantineProvider, createTheme, mantineHtmlProps } from '@mantine/core';
 import { Metadata } from 'next';
-import GoToTopButtonContainer from '../components/GoToTopButtonContainer';
-import Header from '../components/Header';
-import Sidebar, { SidebarContextProvider } from '../components/Sidebar';
+import { SidebarContextProvider } from '../components/Sidebar';
 import './globals.css';
-import BackgroundScene from '../components/Background';
 import { ThemeProvider } from '@/components/ui/themeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { ConditionalLayout } from '../components/ConditionalLayout';
 
 export const metadata: Metadata = {
     title: 'Abdelkarim - Software developer',
@@ -58,7 +55,6 @@ export default function RootLayout({
                 <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/sf-pro-display" />
             </head>
             <body id='app' className='h-screen'>
-
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
@@ -67,18 +63,9 @@ export default function RootLayout({
                     <TooltipProvider>
                         <SidebarContextProvider>
                             <MantineProvider defaultColorScheme='dark' theme={theme}>
-                                <GoToTopButtonContainer id='scrollContainer' className='h-screen overflow-y-auto overflow-x-hidden'>
-                                    <Header />
-                                    <BackgroundScene />
-
-                                    <Sidebar />
-
-                                    <main className='m-5 sm:m-10'>
-                                        {children}
-                                    </main>
-
-                                    {/* <Footer /> */}
-                                </GoToTopButtonContainer>
+                                <ConditionalLayout>
+                                    {children}
+                                </ConditionalLayout>
                             </MantineProvider>
                         </SidebarContextProvider>
                     </TooltipProvider>
