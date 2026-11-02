@@ -9,6 +9,17 @@ interface TechEmblemProps {
   position: [number, number, number];
 }
 
+// A failed texture load throws during render; contain it so the badge renders without an icon.
+class IconBoundary extends React.Component<{ children: React.ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+  render() {
+    return this.state.failed ? null : this.props.children;
+  }
+}
+
 function EmblemIcon({ iconPath }: { iconPath: string }) {
   const texture = useTexture(iconPath);
   return (
@@ -74,14 +85,16 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
           </mesh>
 
           {/* 4. Official Skill Brand Icon (replacing placeholder dot) */}
-          <Suspense fallback={null}>
-            <EmblemIcon iconPath={skill.iconPath} />
-          </Suspense>
+          <IconBoundary>
+            <Suspense fallback={null}>
+              <EmblemIcon iconPath={skill.iconPath} />
+            </Suspense>
+          </IconBoundary>
 
           {/* 5. Hover Tooltip Badge */}
           {hovered && (
             <Html position={[0, 0.26, 0.06]} center distanceFactor={7} pointerEvents="none">
-              <div className="bg-[#0B0F19]/95 backdrop-blur-md border border-slate-700 shadow-xl px-3 py-1.5 rounded-lg text-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-150">
+              <div className="bg-[#0B0F19]/95 backdrop-blur-md border border-slate-700 shadow-xl px-3 py-1.5 rounded text-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-150">
                 <div className="flex items-center gap-2 justify-center">
                   <span className="font-bold text-xs text-white tracking-wide">
                     {skill.name}

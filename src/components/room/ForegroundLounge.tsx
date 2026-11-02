@@ -2,24 +2,28 @@
 
 import React from 'react';
 import { MustardArmchair, CoffeeTable, PottedCactus } from './items';
+import { PLACEMENTS, scaleToNumber } from './layout';
 
 export function ForegroundLounge() {
-  const chairX = 0.25;
-  const chairZ = 0.75;
+  const { armchair, coffeeTable, cactus } = PLACEMENTS;
 
   return (
     <group name="foreground-lounge">
-      {/* 1. Mid-Century Mustard Yellow Tub Armchair */}
+      {/* 1. Mid-Century Mustard Yellow Tub Armchair, turned towards the table */}
       <MustardArmchair
-        position={[chairX, 0, chairZ]}
-        rotation={[0, -Math.PI * 0.35, 0]}
+        position={[armchair.x, 0, armchair.z]}
+        rotation={[0, armchair.yaw, 0]}
+        scale={scaleToNumber(armchair.scale)}
       />
 
-      {/* 2. Low Round Coffee Table */}
-      <CoffeeTable position={[-0.7, 0, 0.75]} />
+      {/* 2. Low Round Coffee Table (0.3 m clear of the armchair) */}
+      <CoffeeTable
+        position={[coffeeTable.x, 0, coffeeTable.z]}
+        scale={coffeeTable.scale as [number, number, number]}
+      />
 
-      {/* 3. Floor Potted Saguaro Cactus */}
-      <PottedCactus position={[-1.4, 0, 1.1]} />
+      {/* 3. Floor Potted Saguaro Cactus in the front-left corner */}
+      <PottedCactus position={[cactus.x, 0, cactus.z]} scale={scaleToNumber(cactus.scale)} />
     </group>
   );
 }

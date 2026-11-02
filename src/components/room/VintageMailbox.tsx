@@ -336,7 +336,7 @@ export function VintageMailbox({
           ======================================================== */}
       {hovered && (
         <Html position={[0, 1.85, 0.25]} center distanceFactor={7} pointerEvents="none">
-          <div className="glass-panel-subtle px-4 py-2 rounded-2xl whitespace-nowrap text-center animate-in fade-in zoom-in-95 duration-150 shadow-2xl">
+          <div className="glass-panel-subtle px-4 py-2 rounded whitespace-nowrap text-center animate-in fade-in zoom-in-95 duration-150 shadow-2xl">
             <div className="text-xs font-bold text-white flex items-center gap-2 justify-center">
               <span>📮</span>
               <span>Send Message & Connect</span>

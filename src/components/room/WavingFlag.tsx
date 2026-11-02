@@ -200,7 +200,7 @@ export function WavingFlag({ flag, position, rotation }: WavingFlagProps) {
           distanceFactor={7}
           pointerEvents="none"
         >
-          <div className="bg-[#121620]/95 backdrop-blur-md border border-sky-500/40 shadow-xl shadow-black/60 px-3 py-1.5 rounded-lg flex flex-col items-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[#121620]/95 backdrop-blur-md border border-sky-500/40 shadow-xl shadow-black/60 px-3 py-1.5 rounded flex flex-col items-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
             <div className="flex items-center gap-1.5">
               <span className="font-bold text-xs text-white tracking-wide">{flag.name}</span>
               <span className="text-[10px] text-sky-400 font-semibold">{flag.nativeName}</span>

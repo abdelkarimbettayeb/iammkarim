@@ -42,26 +42,20 @@ export function CaseStudyModal() {
       />
 
       {/* Radical Glassmorphic Case Study Panel (VisionOS / Refined Dark Glass) */}
-      <div className="relative pointer-events-auto w-full max-w-lg glass-panel-master rounded-[28px] p-6 sm:p-8 text-white animate-in slide-in-from-right duration-300 overflow-hidden">
-        {/* Ambient Project Glow Orbs behind the frosted glass */}
-        <div
-          className="absolute -top-16 -right-16 w-56 h-56 rounded-full blur-3xl opacity-30 pointer-events-none transition-colors duration-500"
-          style={{ backgroundColor: project.color }}
-        />
-        <div className="absolute -bottom-20 -left-16 w-52 h-52 rounded-full blur-3xl opacity-20 pointer-events-none bg-sky-500" />
+      <div className="relative pointer-events-auto w-full max-w-lg glass-panel-master rounded p-6 sm:p-8 text-white animate-in slide-in-from-right duration-300 overflow-hidden">
 
         {/* Header Section */}
         <div className="relative flex items-start justify-between gap-4">
           <div>
             {/* Glass Status Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full glass-pill mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded glass-pill mb-2">
               <span className="relative flex h-2 w-2">
                 <span
-                  className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75"
+                  className="animate-ping absolute inline-flex h-full w-full rounded opacity-75"
                   style={{ backgroundColor: project.color }}
                 />
                 <span
-                  className="relative inline-flex rounded-full h-2 w-2"
+                  className="relative inline-flex rounded h-2 w-2"
                   style={{ backgroundColor: project.color }}
                 />
               </span>
@@ -80,7 +74,7 @@ export function CaseStudyModal() {
 
           <button
             onClick={handleClose}
-            className="p-2.5 rounded-xl glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center shrink-0"
+            className="p-2.5 rounded glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center shrink-0"
             title="Close modal"
           >
             <X size={18} />
@@ -89,13 +83,13 @@ export function CaseStudyModal() {
 
         {/* Highlighted Metric Banner (Glass Tile with Colored Accents) */}
         <div
-          className="relative mt-5 p-3.5 rounded-2xl glass-tile flex items-center gap-3 border transition-all"
+          className="relative mt-5 p-3.5 rounded glass-tile flex items-center gap-3 border transition-all"
           style={{
             borderColor: `${project.color}35`,
           }}
         >
           <div
-            className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
+            className="w-8 h-8 rounded flex items-center justify-center shrink-0 shadow-sm"
             style={{
               backgroundColor: `${project.color}25`,
               color: project.color,
@@ -113,9 +107,9 @@ export function CaseStudyModal() {
           {project.description.map((bullet, idx) => (
             <div
               key={idx}
-              className="glass-tile rounded-2xl p-3.5 flex items-start gap-3 text-xs sm:text-sm text-slate-200 transition-all hover:translate-x-1"
+              className="glass-tile rounded p-3.5 flex items-start gap-3 text-xs sm:text-sm text-slate-200 transition-all"
             >
-              <div className="w-5 h-5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
+              <div className="w-5 h-5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
                 <CheckCircle2 size={13} />
               </div>
               <span className="leading-relaxed font-paragraph text-slate-200">{bullet}</span>
@@ -132,7 +126,7 @@ export function CaseStudyModal() {
             {project.stack.map((tech) => (
               <span
                 key={tech}
-                className="px-3 py-1.5 rounded-xl glass-pill text-[11px] font-bold uppercase text-slate-200 tracking-wide transition-all hover:scale-105"
+                className="px-3 py-1.5 rounded glass-pill text-[11px] font-bold uppercase text-slate-200 tracking-wide transition-all"
               >
                 {tech}
               </span>
@@ -144,7 +138,7 @@ export function CaseStudyModal() {
         <div className="relative mt-7 pt-4 border-t border-white/[0.08] flex items-center justify-between gap-3">
           <button
             onClick={handleClose}
-            className="px-4 py-2.5 rounded-xl glass-btn-secondary text-slate-300 font-bold text-xs transition-all hover:text-white"
+            className="px-4 py-2.5 rounded glass-btn-secondary text-slate-300 font-bold text-xs transition-all hover:text-white"
           >
             ← Back to Room
           </button>
@@ -154,7 +148,7 @@ export function CaseStudyModal() {
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2.5 rounded-xl glass-btn-primary text-white font-bold text-xs flex items-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              className="px-5 py-2.5 rounded glass-btn-primary text-white font-bold text-xs flex items-center gap-2 transition-all"
             >
               <span>Visit Live Project</span>
               <ExternalLink size={14} />

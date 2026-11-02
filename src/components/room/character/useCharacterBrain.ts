@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
-import * as THREE from 'three';
+import { useCallback, useEffect, useRef } from 'react';
 import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import type { ActiveStation } from '@/types/room';
+import { NODES, STOPS, planPath, type StopKey } from '../walkmap';
+import type { Vec2 } from '../layout';
 
 export type ActionPose =
   | 'walking'
@@ -20,247 +21,297 @@ export type ActionPose =
   | 'shivering'
   | 'fiddling_flags';
 
-export interface StationWaypoint {
-  pos: [number, number, number];
-  rotY: number;
+type Step =
+  | { kind: 'go'; stop: StopKey; speed?: number }
+  | {
+      kind: 'do';
+      pose: ActionPose;
+      /** seconds; null = until something else happens */
+      duration: number | null;
+      enter?: () => void;
+      exit?: () => void;
+    };
+
+export const WALK_SPEED = 1.4;
+const DOCK_SPEED = 0.8;
+/** Metres per full gait cycle (left + right step) */
+export const STRIDE = 1.3;
+/** Seconds of inactivity before an autonomous routine starts */
+const IDLE_BEFORE_ROUTINE = 10;
+
+export interface Walker {
+  x: number;
+  z: number;
+  yaw: number;
   pose: ActionPose;
+  /** Accumulated gait phase in radians (advances with distance walked) */
+  gait: number;
+  moving: boolean;
 }
 
-export const STATION_WAYPOINTS: Record<ActiveStation | 'spawn' | 'doorway' | 'thinking_outdoor', StationWaypoint> = {
-  spawn: { pos: [1.65, 0, 6.8], rotY: Math.PI, pose: 'walking' },
-  doorway: { pos: [1.4, 0, 1.8], rotY: Math.PI * 0.25, pose: 'waving' },
-  workstation: { pos: [-2.15, 0, -0.15], rotY: 0, pose: 'typing' },
-  couch: { pos: [-1.6, 0, -1.2], rotY: Math.PI, pose: 'sitting' },
-  guitar: { pos: [1.8, 0, -3.2], rotY: 0.35, pose: 'strumming' },
-  window: { pos: [2.8, 0, -3.6], rotY: 0, pose: 'window' },
-  dartboard: { pos: [-2.8, 0, 0.8], rotY: -Math.PI * 0.5, pose: 'throwing' },
-  volleyball: { pos: [2.2, 0, 2.5], rotY: Math.PI * 0.3, pose: 'bumping' },
-  flags: { pos: [-0.90, 0, 0.12], rotY: Math.PI * 0.96, pose: 'fiddling_flags' },
-  thinking_outdoor: { pos: [-1.8, 0, 4.2], rotY: -Math.PI * 0.4, pose: 'thinking' },
-  none: { pos: [1.4, 0, 1.8], rotY: Math.PI * 0.25, pose: 'idle' },
+export interface CharacterFlags {
+  chilly: boolean;
+  guitar: boolean;
+  dart: boolean;
+}
+
+/** Station the user can select -> where he goes and what he does when he gets there */
+const STATION_PLANS: Record<
+  Exclude<ActiveStation, 'none'>,
+  { stop: StopKey; pose: ActionPose; flags?: Partial<CharacterFlags> }
+> = {
+  workstation: { stop: 'workstation', pose: 'typing' },
+  couch: { stop: 'couch', pose: 'sitting' },
+  guitar: { stop: 'guitar', pose: 'strumming', flags: { guitar: true } },
+  window: { stop: 'window', pose: 'window' },
+  dartboard: { stop: 'dartboard', pose: 'throwing', flags: { dart: true } },
+  volleyball: { stop: 'volleyball', pose: 'bumping' },
+  flags: { stop: 'flags', pose: 'fiddling_flags' },
 };
+
+function wrapAngle(a: number): number {
+  return Math.atan2(Math.sin(a), Math.cos(a));
+}
 
 export function useCharacterBrain(onStationArrival?: (station: ActiveStation) => void) {
   const activeStation = useRoomStore((state) => state.activeStation);
   const dartsLeft = useRoomStore((state) => state.dartsLeft);
 
-  const [currentPose, setCurrentPose] = useState<ActionPose>('walking');
-  const [currentPos, setCurrentPos] = useState<[number, number, number]>([1.65, 0, 6.8]);
-  const [currentRotY, setCurrentRotY] = useState(Math.PI);
-  const [isChillyBreath, setIsChillyBreath] = useState(false);
-  const [isHoldingGuitar, setIsHoldingGuitar] = useState(false);
-  const [isHoldingDart, setIsHoldingDart] = useState(false);
+  const spawn = NODES[STOPS.spawn.node];
+  const walker = useRef<Walker>({
+    x: spawn[0],
+    z: spawn[1],
+    yaw: STOPS.spawn.yaw,
+    pose: 'walking',
+    gait: 0,
+    moving: true,
+  });
+  const flags = useRef<CharacterFlags>({ chilly: false, guitar: false, dart: false });
 
-  const posVec = useRef(new THREE.Vector3(1.65, 0, 6.8));
-  const targetVec = useRef(new THREE.Vector3(1.4, 0, 1.8));
-  const targetRotY = useRef(Math.PI);
-  const isNavigating = useRef(true);
-  const hasArrivedInitial = useRef(false);
-  const lastInteractionTime = useRef(Date.now());
+  const targetYaw = useRef<number>(STOPS.spawn.yaw);
+  const path = useRef<Vec2[]>([]);
+  const pathIndex = useRef(0);
+  const currentStop = useRef<StopKey | null>(null);
+  const queue = useRef<Step[]>([]);
+  const stepTimer = useRef(0);
+  const stepStarted = useRef(false);
+  const idleTime = useRef(0);
+  const routineRunning = useRef(false);
+  const leaveIgnores = useRef<string[]>([]);
+  const onArrivalRef = useRef(onStationArrival);
+  onArrivalRef.current = onStationArrival;
   const activeStationRef = useRef(activeStation);
   activeStationRef.current = activeStation;
+  // Last station we reacted to. Starts at 'none' so the intro walk isn't overridden
+  // (also keeps React StrictMode's double effect run harmless).
+  const handledStation = useRef<ActiveStation>('none');
 
-  const autonomousTimers = useRef<NodeJS.Timeout[]>([]);
-  const clearAutonomousTimers = () => {
-    autonomousTimers.current.forEach(clearTimeout);
-    autonomousTimers.current = [];
-  };
-  const addAutonomousTimer = (fn: () => void, ms: number) => {
-    const t = setTimeout(fn, ms);
-    autonomousTimers.current.push(t);
-    return t;
-  };
-
-  // Initial Arrival: highway road -> doorway wave -> idle
-  useEffect(() => {
-    posVec.current.set(1.65, 0, 6.8);
-    targetVec.current.set(1.4, 0, 1.8);
-    setCurrentPose('walking');
-    isNavigating.current = true;
-
-    const waveTimer = setTimeout(() => {
-      setCurrentPose('waving');
-      targetRotY.current = Math.PI * 0.25;
-      hasArrivedInitial.current = true;
-    }, 3000);
-
-    const idleTimer = setTimeout(() => {
-      setCurrentPose('idle');
-      isNavigating.current = false;
-    }, 4400);
-
-    return () => {
-      clearTimeout(waveTimer);
-      clearTimeout(idleTimer);
-    };
+  const setQueue = useCallback((steps: Step[], routine = false) => {
+    // Leave the current 'do' cleanly (reset temporary props)
+    const cur = queue.current[0];
+    if (cur && cur.kind === 'do' && stepStarted.current) cur.exit?.();
+    queue.current = steps;
+    stepStarted.current = false;
+    stepTimer.current = 0;
+    idleTime.current = 0;
+    routineRunning.current = routine;
   }, []);
 
-  // Dispatch to clicked active station
+  const setFlags = (patch: Partial<CharacterFlags>) => {
+    flags.current = { ...flags.current, ...patch };
+  };
+
+  // Intro: walk in from the road, wave at the door, then settle
   useEffect(() => {
-    clearAutonomousTimers();
-    if (!hasArrivedInitial.current) return;
-    lastInteractionTime.current = Date.now();
+    setQueue([
+      { kind: 'go', stop: 'rest' },
+      { kind: 'do', pose: 'waving', duration: 1.6 },
+      { kind: 'do', pose: 'idle', duration: null },
+    ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-    // Reset temporary states on new click
-    setIsHoldingGuitar(false);
-    setIsHoldingDart(false);
-    setIsChillyBreath(false);
-
+  // User picked a station
+  useEffect(() => {
+    if (handledStation.current === activeStation) return;
+    handledStation.current = activeStation;
     if (activeStation === 'none') {
-      targetVec.current.set(1.4, 0, 1.8);
-      targetRotY.current = Math.PI * 0.25;
-      setCurrentPose('idle');
-      isNavigating.current = false;
+      setFlags({ guitar: false, dart: false, chilly: false });
+      setQueue([
+        { kind: 'go', stop: 'rest' },
+        { kind: 'do', pose: 'idle', duration: null },
+      ]);
       return;
     }
+    const plan = STATION_PLANS[activeStation];
+    setFlags({ guitar: false, dart: false, chilly: false });
+    setQueue([
+      { kind: 'go', stop: plan.stop },
+      {
+        kind: 'do',
+        pose: plan.pose,
+        duration: null,
+        enter: () => {
+          if (plan.flags) setFlags(plan.flags);
+          onArrivalRef.current?.(activeStation);
+        },
+        exit: () => setFlags({ guitar: false, dart: false }),
+      },
+    ]);
+  }, [activeStation, setQueue]);
 
-    const wp = STATION_WAYPOINTS[activeStation];
-    if (wp) {
-      targetVec.current.set(wp.pos[0], wp.pos[1], wp.pos[2]);
-      targetRotY.current = wp.rotY;
-      setCurrentPose('walking');
-      isNavigating.current = true;
-    }
-  }, [activeStation]);
-
-  // Dartboard retrieval loop when darts run out
+  // When the darts run out he walks to the board, collects them and returns
   useEffect(() => {
-    if (activeStation === 'dartboard' && dartsLeft === 0) {
-      // Walk to board to retrieve darts
-      const walkToBoard = setTimeout(() => {
-        targetVec.current.set(-3.7, 0, -0.6);
-        targetRotY.current = -Math.PI * 0.5;
-        setCurrentPose('retrieving');
-      }, 1200);
+    if (activeStation !== 'dartboard' || dartsLeft !== 0) return;
+    setQueue([
+      { kind: 'do', pose: 'throwing', duration: 0.8 },
+      { kind: 'go', stop: 'dartRetrieve' },
+      { kind: 'do', pose: 'retrieving', duration: 1.4, enter: () => setFlags({ dart: false }) },
+      { kind: 'go', stop: 'dartboard' },
+      { kind: 'do', pose: 'throwing', duration: null, enter: () => setFlags({ dart: true }) },
+    ]);
+  }, [activeStation, dartsLeft, setQueue]);
 
-      const returnToLine = setTimeout(() => {
-        targetVec.current.set(-2.8, 0, 0.8);
-        targetRotY.current = -Math.PI * 0.5;
-        setCurrentPose('throwing');
-      }, 3200);
+  const startRoutine = () => {
+    const routines: Step[][] = [
+      // A thoughtful walk on the lawn
+      [
+        { kind: 'go', stop: 'thinking_outdoor' },
+        { kind: 'do', pose: 'thinking', duration: 5 },
+        { kind: 'go', stop: 'rest' },
+        { kind: 'do', pose: 'idle', duration: null },
+      ],
+      // A few volleyball bumps
+      [
+        { kind: 'go', stop: 'volleyball' },
+        { kind: 'do', pose: 'bumping', duration: 4.5 },
+        { kind: 'go', stop: 'rest' },
+        { kind: 'do', pose: 'idle', duration: null },
+      ],
+      // Play the guitar
+      [
+        { kind: 'go', stop: 'guitar' },
+        {
+          kind: 'do',
+          pose: 'strumming',
+          duration: 6,
+          enter: () => setFlags({ guitar: true }),
+          exit: () => setFlags({ guitar: false }),
+        },
+        { kind: 'go', stop: 'rest' },
+        { kind: 'do', pose: 'idle', duration: null },
+      ],
+      // Feel a chill, go and close the window
+      [
+        {
+          kind: 'do',
+          pose: 'shivering',
+          duration: 2.5,
+          enter: () => setFlags({ chilly: true }),
+          exit: () => setFlags({ chilly: false }),
+        },
+        { kind: 'go', stop: 'window' },
+        { kind: 'do', pose: 'window', duration: 1.8, enter: () => roomStore.toggleWindow(false) },
+        { kind: 'go', stop: 'rest' },
+        { kind: 'do', pose: 'idle', duration: null },
+      ],
+    ];
+    setQueue(routines[Math.floor(Math.random() * routines.length)], true);
+  };
 
-      return () => {
-        clearTimeout(walkToBoard);
-        clearTimeout(returnToLine);
-      };
-    }
-  }, [activeStation, dartsLeft]);
+  /** Advance the simulation. Call from useFrame. */
+  const update = useCallback((delta: number) => {
+    const w = walker.current;
+    const dt = Math.min(delta, 0.1);
+    const step = queue.current[0];
 
-  // Autonomous Idle Scheduler: fires after 10s of inactivity
-  useEffect(() => {
-    const idleCheckInterval = setInterval(() => {
-      if (activeStationRef.current !== 'none') return;
-      const elapsed = Date.now() - lastInteractionTime.current;
-
-      if (elapsed > 10000 && !isNavigating.current) {
-        lastInteractionTime.current = Date.now();
-        // Pick randomly from 4 autonomous routines
-        const routines = ['outdoor_walk', 'volleyball_bump', 'guitar_play', 'chilly_window'];
-        const chosen = routines[Math.floor(Math.random() * routines.length)];
-
-        if (chosen === 'outdoor_walk') {
-          const wp = STATION_WAYPOINTS.thinking_outdoor;
-          targetVec.current.set(wp.pos[0], wp.pos[1], wp.pos[2]);
-          targetRotY.current = wp.rotY;
-          setCurrentPose('walking');
-          isNavigating.current = true;
-          addAutonomousTimer(() => setCurrentPose('thinking'), 2800);
-          addAutonomousTimer(() => {
-            targetVec.current.set(1.4, 0, 1.8);
-            setCurrentPose('walking');
-            addAutonomousTimer(() => setCurrentPose('idle'), 2800);
-          }, 8000);
-        } else if (chosen === 'volleyball_bump') {
-          const wp = STATION_WAYPOINTS.volleyball;
-          targetVec.current.set(wp.pos[0], wp.pos[1], wp.pos[2]);
-          targetRotY.current = wp.rotY;
-          setCurrentPose('walking');
-          isNavigating.current = true;
-          addAutonomousTimer(() => setCurrentPose('bumping'), 2400);
-          addAutonomousTimer(() => {
-            targetVec.current.set(1.4, 0, 1.8);
-            setCurrentPose('walking');
-            addAutonomousTimer(() => setCurrentPose('idle'), 2400);
-          }, 7000);
-        } else if (chosen === 'guitar_play') {
-          const wp = STATION_WAYPOINTS.guitar;
-          targetVec.current.set(wp.pos[0], wp.pos[1], wp.pos[2]);
-          targetRotY.current = wp.rotY;
-          setCurrentPose('walking');
-          isNavigating.current = true;
-          addAutonomousTimer(() => {
-            setCurrentPose('strumming');
-            setIsHoldingGuitar(true);
-          }, 2400);
-          addAutonomousTimer(() => {
-            setIsHoldingGuitar(false);
-            targetVec.current.set(1.4, 0, 1.8);
-            setCurrentPose('walking');
-            addAutonomousTimer(() => setCurrentPose('idle'), 2400);
-          }, 8000);
-        } else if (chosen === 'chilly_window') {
-          // Shiver & close window
-          setCurrentPose('shivering');
-          setIsChillyBreath(true);
-          addAutonomousTimer(() => {
-            setIsChillyBreath(false);
-            const wp = STATION_WAYPOINTS.window;
-            targetVec.current.set(wp.pos[0], wp.pos[1], wp.pos[2]);
-            targetRotY.current = wp.rotY;
-            setCurrentPose('walking');
-            isNavigating.current = true;
-            addAutonomousTimer(() => {
-              setCurrentPose('window');
-              roomStore.toggleWindow(false);
-            }, 2600);
-            setTimeout(() => {
-              targetVec.current.set(1.4, 0, 1.8);
-              setCurrentPose('walking');
-              addAutonomousTimer(() => setCurrentPose('idle'), 2600);
-            }, 6500);
-          }, 2500);
-        }
+    if (!step) {
+      // Nothing queued: idle, and maybe start a little routine
+      w.pose = w.pose === 'walking' ? 'idle' : w.pose;
+      w.moving = false;
+    } else if (step.kind === 'do') {
+      w.moving = false;
+      if (!stepStarted.current) {
+        stepStarted.current = true;
+        stepTimer.current = 0;
+        w.pose = step.pose;
+        step.enter?.();
       }
-    }, 3000);
+      stepTimer.current += dt;
+      if (step.duration !== null && stepTimer.current >= step.duration) {
+        step.exit?.();
+        queue.current.shift();
+        stepStarted.current = false;
+      }
+    } else if (step.kind === 'go') {
+      const stop = STOPS[step.stop];
+      if (!stepStarted.current) {
+        stepStarted.current = true;
+        // Plan from wherever he is now, along the predefined lanes only
+        const from: Vec2 = [w.x, w.z];
+        path.current = planPath(from, step.stop, leaveIgnores.current);
+        // Not at a seat any more; the seat ignores apply again once he gets to a dock
+        leaveIgnores.current = [];
+        pathIndex.current = path.current.length > 1 ? 1 : 0;
+        currentStop.current = step.stop;
+      }
 
-    return () => clearInterval(idleCheckInterval);
+      const target = path.current[pathIndex.current];
+      const reachedEnd = !target || pathIndex.current >= path.current.length;
+      if (reachedEnd) {
+        w.moving = false;
+        targetYaw.current = stop.yaw;
+        // finish once facing roughly the right way
+        if (Math.abs(wrapAngle(stop.yaw - w.yaw)) < 0.25) {
+          leaveIgnores.current = stop.dockIgnores ?? [];
+          queue.current.shift();
+          stepStarted.current = false;
+        }
+      } else {
+        w.moving = true;
+        w.pose = 'walking';
+        const dx = target[0] - w.x;
+        const dz = target[1] - w.z;
+        const d = Math.hypot(dx, dz);
+        targetYaw.current = Math.atan2(dx, dz);
+
+        const isDock = !!stop.dock && pathIndex.current === path.current.length - 1;
+        const base = step.speed ?? (isDock ? DOCK_SPEED : WALK_SPEED);
+        // Slow down while turning so he doesn't slide sideways around corners
+        const turn = Math.abs(wrapAngle(targetYaw.current - w.yaw));
+        const speed = base * Math.min(1, Math.max(0.1, 1 - turn / 1.2));
+        const move = Math.min(speed * dt, d);
+        if (d > 1e-5) {
+          w.x += (dx / d) * move;
+          w.z += (dz / d) * move;
+        }
+        w.gait += (move / STRIDE) * Math.PI * 2;
+        if (d - move < 0.02) pathIndex.current += 1;
+      }
+    }
+
+    // Smooth turning (shortest way round)
+    const diff = wrapAngle(targetYaw.current - w.yaw);
+    w.yaw = wrapAngle(w.yaw + diff * (1 - Math.exp(-9 * dt)));
+
+    // Autonomous behaviour after a while with nothing to do
+    const restingForever =
+      !routineRunning.current &&
+      activeStationRef.current === 'none' &&
+      (!queue.current[0] || (queue.current[0].kind === 'do' && queue.current[0].duration === null));
+    if (restingForever) {
+      idleTime.current += dt;
+      if (idleTime.current > IDLE_BEFORE_ROUTINE) {
+        idleTime.current = 0;
+        startRoutine();
+      }
+    } else if (routineRunning.current && queue.current.length === 0) {
+      routineRunning.current = false;
+    } else if (!routineRunning.current && activeStationRef.current !== 'none') {
+      idleTime.current = 0;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const updatePosition = useCallback((delta: number) => {
-    const speed = 2.4;
-    const dist = posVec.current.distanceTo(targetVec.current);
-
-    if (dist > 0.08) {
-      const dir = targetVec.current.clone().sub(posVec.current).normalize();
-      posVec.current.addScaledVector(dir, Math.min(speed * delta, dist));
-      targetRotY.current = Math.atan2(dir.x, dir.z);
-    } else if (isNavigating.current) {
-      isNavigating.current = false;
-      const active = activeStationRef.current;
-      if (active !== 'none') {
-        const wp = STATION_WAYPOINTS[active];
-        if (wp) {
-          setCurrentPose(wp.pose);
-          targetRotY.current = wp.rotY;
-          if (active === 'guitar') setIsHoldingGuitar(true);
-          if (active === 'dartboard') setIsHoldingDart(true);
-          if (onStationArrival) onStationArrival(active);
-        }
-      }
-    }
-
-    // Smooth rotation lerp
-    setCurrentRotY((prev) => THREE.MathUtils.damp(prev, targetRotY.current, 8, delta));
-    setCurrentPos([posVec.current.x, posVec.current.y, posVec.current.z]);
-  }, [onStationArrival]);
-
-  return {
-    currentPos,
-    currentRotY,
-    currentPose,
-    isChillyBreath,
-    isHoldingGuitar,
-    isHoldingDart,
-    updatePosition,
-  };
+  return { walker, flags, update };
 }

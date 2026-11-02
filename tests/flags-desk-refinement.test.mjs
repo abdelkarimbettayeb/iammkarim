@@ -25,8 +25,8 @@ test('Flags and enlarged desk refinement verification', () => {
 
   // 5. Flags waypoint uses 'fiddling_flags' pose and stands in front of desk
   assert.ok(
-    brain.includes("flags: { pos: [") && brain.includes("pose: 'fiddling_flags'"),
-    "Flags waypoint must use 'fiddling_flags' pose"
+    brain.includes("flags: { stop: 'flags', pose: 'fiddling_flags' }"),
+    "Flags station must use 'fiddling_flags' pose"
   );
 
   // 6. CharacterManager.tsx implements 'fiddling_flags' choreography

@@ -1,13 +1,25 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { playSound } from '@/lib/audioEngine';
+import { duckHeading, duckPosition, puddleControlPoints } from './puddleMath';
 
 interface RoadsidePuddleWithDuckProps {
   position?: [number, number, number];
   rotation?: [number, number, number];
+}
+
+const BLOB_SEGMENTS = 96;
+
+/** Closed smooth outline through the control points, as a flat shape */
+function buildBlob(scale: number): { shape: THREE.Shape; outline: THREE.Vector2[] } {
+  const control = puddleControlPoints().map(([x, z]) => new THREE.Vector3(x * scale, 0, z * scale));
+  const curve = new THREE.CatmullRomCurve3(control, true, 'catmullrom', 0.5);
+  // Shape lives in the XY plane; the mesh is rotated flat so shape y becomes -z
+  const outline = curve.getPoints(BLOB_SEGMENTS).map((p) => new THREE.Vector2(p.x, -p.z));
+  return { shape: new THREE.Shape(outline), outline };
 }
 
 export function RoadsidePuddleWithDuck({
@@ -16,26 +28,41 @@ export function RoadsidePuddleWithDuck({
 }: RoadsidePuddleWithDuckProps) {
   const duckRef = useRef<THREE.Group>(null);
   const rippleRef = useRef<THREE.Mesh>(null);
+  const rippleMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const [quacked, setQuacked] = useState(false);
+
+  const { water, mud, wetGrass, pebbles } = useMemo(() => {
+    const water = buildBlob(1);
+    const mud = buildBlob(1.13);
+    const wetGrass = buildBlob(1.42);
+    // Pebbles sit just outside the muddy rim at irregular intervals
+    const pebbles = mud.outline
+      .filter((_, i) => i % 9 === 4 || i % 23 === 0)
+      .map((p, i) => {
+        const len = Math.hypot(p.x, p.y) || 1;
+        const out = 1 + (0.06 + (i % 3) * 0.04) / len;
+        return { x: p.x * out, z: -p.y * out, r: 0.03 + (i % 4) * 0.012 };
+      });
+    return { water, mud, wetGrass, pebbles };
+  }, []);
 
   useFrame((state) => {
     const t = state.clock.getElapsedTime();
 
     if (duckRef.current) {
-      // Gentle floating bob & circular paddle swim in the puddle
-      const swimRadius = 0.22;
-      duckRef.current.position.x = Math.cos(t * 0.8) * swimRadius;
-      duckRef.current.position.z = Math.sin(t * 0.8) * swimRadius;
-      duckRef.current.position.y = 0.03 + Math.sin(t * 3.5) * 0.015;
-      // Facing the direction of travel + gentle waddle tilt
-      duckRef.current.rotation.y = -t * 0.8 + Math.PI / 2;
-      duckRef.current.rotation.z = Math.sin(t * 4.0) * 0.08;
-    }
+      const [x, z] = duckPosition(t);
+      duckRef.current.position.set(x, 0.02 + Math.sin(t * 3.2) * 0.006, z);
+      // Beak points along the direction of travel, with a gentle waddle roll
+      duckRef.current.rotation.y = duckHeading(t);
+      duckRef.current.rotation.z = Math.sin(t * 3.6) * 0.05;
 
-    if (rippleRef.current) {
-      // Subtle pulsing water surface ripple
-      const scale = 1 + (Math.sin(t * 2.0) * 0.06);
-      rippleRef.current.scale.set(scale, 1, scale);
+      // Expanding ripple that trails the duck
+      if (rippleRef.current && rippleMatRef.current) {
+        const phase = (t * 0.7) % 1;
+        rippleRef.current.position.set(x, 0.018, z);
+        rippleRef.current.scale.setScalar(0.4 + phase * 1.6);
+        rippleMatRef.current.opacity = 0.35 * (1 - phase);
+      }
     }
   });
 
@@ -48,59 +75,48 @@ export function RoadsidePuddleWithDuck({
 
   return (
     <group position={position} rotation={rotation} name="roadside-puddle-with-duck">
-      {/* =========================================
-          1. Organic Roadside Water Puddle
-         ========================================= */}
-      {/* Dark Damp Mud Basin */}
-      <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0.3]} receiveShadow>
-        <circleGeometry args={[0.95, 32]} />
-        <meshStandardMaterial color="#292524" roughness={0.9} />
+      {/* Damp grass around the puddle */}
+      <mesh position={[0, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <shapeGeometry args={[wetGrass.shape, 24]} />
+        <meshStandardMaterial color="#2C6B30" roughness={1} transparent opacity={0.55} depthWrite={false} />
       </mesh>
 
-      {/* Glossy Reflective Water Surface */}
-      <mesh
-        ref={rippleRef}
-        position={[0, 0.016, 0]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        receiveShadow
-      >
-        <circleGeometry args={[0.82, 32]} />
+      {/* Wet mud rim */}
+      <mesh position={[0, 0.006, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <shapeGeometry args={[mud.shape, 24]} />
+        <meshStandardMaterial color="#4A3B2A" roughness={0.95} />
+      </mesh>
+
+      {/* Reflective water */}
+      <mesh position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <shapeGeometry args={[water.shape, 24]} />
         <meshStandardMaterial
-          color="#38BDF8"
-          roughness={0.08}
-          metalness={0.7}
+          color="#4FA8D8"
+          roughness={0.05}
+          metalness={0.55}
           transparent
-          opacity={0.85}
+          opacity={0.88}
         />
       </mesh>
 
-      {/* Gentle Concentric Ripple Ring */}
-      <mesh position={[0, 0.018, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.3, 0.33, 24]} />
-        <meshBasicMaterial color="#E0F2FE" transparent opacity={0.35} />
+      {/* Ripple trailing the duck */}
+      <mesh ref={rippleRef} rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.1, 0.115, 32]} />
+        <meshBasicMaterial ref={rippleMatRef} color="#E0F2FE" transparent opacity={0.3} depthWrite={false} />
       </mesh>
 
-      {/* Smooth Pebbles Around Water Rim */}
-      {[
-        [-0.7, 0.02, 0.3, 0.06],
-        [-0.45, 0.02, -0.65, 0.08],
-        [0.65, 0.02, 0.4, 0.05],
-        [0.72, 0.02, -0.3, 0.07],
-        [0.1, 0.02, 0.78, 0.06],
-      ].map(([px, py, pz, pr], i) => (
-        <mesh key={i} position={[px, py, pz]} castShadow receiveShadow>
-          <sphereGeometry args={[pr, 8, 8]} />
-          <meshStandardMaterial color="#78716C" roughness={0.6} />
+      {/* Pebbles scattered unevenly around the rim */}
+      {pebbles.map((p, i) => (
+        <mesh key={i} position={[p.x, p.r * 0.5, p.z]} scale={[1, 0.6, 1.2]} castShadow receiveShadow>
+          <sphereGeometry args={[p.r, 8, 6]} />
+          <meshStandardMaterial color={i % 2 ? '#78716C' : '#A8A29E'} roughness={0.7} />
         </mesh>
       ))}
 
-      {/* =========================================
-          2. Cute Low-Poly Floating Duck
-         ========================================= */}
+      {/* Low-poly duck, ~35 cm long */}
       <group
         ref={duckRef}
-        position={[0, 0.03, 0]}
-        scale={quacked ? 1.25 : 1}
+        scale={quacked ? 1.5 : 1.3}
         onClick={handleDuckClick}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -110,42 +126,48 @@ export function RoadsidePuddleWithDuck({
           if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
         }}
       >
-        {/* Yellow Feathered Body */}
-        <mesh position={[0, 0.06, 0]} castShadow>
-          <capsuleGeometry args={[0.075, 0.12, 4, 8]} />
+        {/* Body */}
+        <mesh position={[0, 0.06, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <capsuleGeometry args={[0.075, 0.12, 6, 12]} />
           <meshStandardMaterial color="#FBBF24" roughness={0.5} />
         </mesh>
 
-        {/* Tail Feather Tip */}
-        <mesh position={[0, 0.1, -0.1]} rotation={[-0.4, 0, 0]} castShadow>
-          <coneGeometry args={[0.04, 0.08, 4]} />
+        {/* Tail */}
+        <mesh position={[0, 0.095, -0.15]} rotation={[-0.9, 0, 0]} castShadow>
+          <coneGeometry args={[0.04, 0.09, 6]} />
           <meshStandardMaterial color="#F59E0B" roughness={0.5} />
         </mesh>
 
         {/* Head */}
-        <mesh position={[0, 0.16, 0.09]} castShadow>
-          <sphereGeometry args={[0.06, 8, 8]} />
+        <mesh position={[0, 0.17, 0.1]} castShadow>
+          <sphereGeometry args={[0.06, 12, 12]} />
           <meshStandardMaterial color="#FBBF24" roughness={0.5} />
         </mesh>
 
-        {/* Cheerful Orange Beak */}
-        <mesh position={[0, 0.145, 0.16]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-          <coneGeometry args={[0.028, 0.065, 4]} />
+        {/* Beak */}
+        <mesh position={[0, 0.155, 0.17]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+          <coneGeometry args={[0.028, 0.065, 8]} />
           <meshStandardMaterial color="#EA580C" roughness={0.4} />
         </mesh>
 
-        {/* Black Bead Eyes (Left & Right) */}
-        {[-0.045, 0.045].map((xEye, idx) => (
-          <mesh key={idx} position={[xEye, 0.175, 0.11]}>
-            <sphereGeometry args={[0.012, 6, 6]} />
+        {/* Eyes */}
+        {[-0.045, 0.045].map((xEye) => (
+          <mesh key={xEye} position={[xEye, 0.185, 0.125]}>
+            <sphereGeometry args={[0.011, 8, 8]} />
             <meshBasicMaterial color="#0F172A" />
           </mesh>
         ))}
 
-        {/* Folded Wings (Left & Right) */}
-        {[-0.08, 0.08].map((xWing, idx) => (
-          <mesh key={idx} position={[xWing, 0.075, 0]} rotation={[0, 0, idx === 0 ? 0.2 : -0.2]}>
-            <boxGeometry args={[0.02, 0.06, 0.1]} />
+        {/* Folded wings */}
+        {[-0.078, 0.078].map((xWing, idx) => (
+          <mesh
+            key={xWing}
+            position={[xWing, 0.08, -0.01]}
+            rotation={[0, 0, idx === 0 ? 0.2 : -0.2]}
+            scale={[0.3, 0.8, 1.5]}
+            castShadow
+          >
+            <sphereGeometry args={[0.05, 8, 8]} />
             <meshStandardMaterial color="#F59E0B" roughness={0.6} />
           </mesh>
         ))}
@@ -153,4 +175,3 @@ export function RoadsidePuddleWithDuck({
     </group>
   );
 }
-

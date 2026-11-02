@@ -1,6 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { dayNight, lerp } from '@/store/dayNight';
 import { useTheme } from 'next-themes';
 import { useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
@@ -12,9 +15,17 @@ interface DeskLampProps {
 
 export function DeskLamp({ position, rotation }: DeskLampProps) {
   const [hovered, setHovered] = useState(false);
-  const isNightMode = useRoomStore((state) => state.isNightMode);
+  const bulbMatRef = useRef<THREE.MeshStandardMaterial>(null);
+  const spotRef = useRef<THREE.SpotLight>(null);
   const toggleNightMode = useRoomStore((state) => state.toggleNightMode);
   const { theme, setTheme } = useTheme();
+
+  // Lamp glow fades in and out together with the day/night blend
+  useFrame(() => {
+    const n = dayNight.blend;
+    if (bulbMatRef.current) bulbMatRef.current.emissiveIntensity = lerp(0.8, 2.5, n);
+    if (spotRef.current) spotRef.current.intensity = lerp(0.9, 3.2, n);
+  });
 
   useEffect(() => {
     return () => {
@@ -105,19 +116,21 @@ export function DeskLamp({ position, rotation }: DeskLampProps) {
         <mesh position={[0, -0.05, 0]}>
           <sphereGeometry args={[0.055, 16, 16]} />
           <meshStandardMaterial
+            ref={bulbMatRef}
             color="#FFFBEB"
             emissive="#F59E0B"
-            emissiveIntensity={isNightMode ? 2.5 : 0.8}
+            emissiveIntensity={0.8}
             roughness={0.2}
           />
         </mesh>
 
         {/* Focused Desk Spotlight Cone */}
         <spotLight
+          ref={spotRef}
           position={[0, -0.08, 0]}
           target-position={[0, -2, 0]}
           color="#FEF3C7"
-          intensity={isNightMode ? 3.2 : 0.9}
+          intensity={0.9}
           angle={0.65}
           penumbra={0.4}
           distance={6}

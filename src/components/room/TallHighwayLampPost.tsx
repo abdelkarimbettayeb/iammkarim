@@ -1,7 +1,9 @@
 'use client';
 
-import React from 'react';
-import { useRoomStore } from '@/store/useRoomStore';
+import React, { useRef } from 'react';
+import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { dayNight, lerp } from '@/store/dayNight';
 
 interface TallHighwayLampPostProps {
   position?: [number, number, number];
@@ -12,7 +14,14 @@ export function TallHighwayLampPost({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
 }: TallHighwayLampPostProps) {
-  const isNightMode = useRoomStore((state) => state.isNightMode);
+  const panelMat = useRef<THREE.MeshStandardMaterial>(null);
+  const light = useRef<THREE.PointLight>(null);
+
+  useFrame(() => {
+    const n = dayNight.blend;
+    if (panelMat.current) panelMat.current.emissiveIntensity = lerp(0.8, 2.5, n);
+    if (light.current) light.current.intensity = lerp(1.2, 3.5, n);
+  });
 
   return (
     <group position={position} rotation={rotation} name="tall-highway-lamp-post">
@@ -46,18 +55,20 @@ export function TallHighwayLampPost({
           <mesh position={[0, -0.052, 0]} rotation={[Math.PI / 2, 0, 0]}>
             <planeGeometry args={[0.44, 0.18]} />
             <meshStandardMaterial
+              ref={panelMat}
               color="#FEF3C7"
               emissive="#FDE68A"
-              emissiveIntensity={isNightMode ? 2.5 : 0.8}
+              emissiveIntensity={0.8}
               roughness={0.1}
             />
           </mesh>
 
           {/* Streetlight Downlight Beam */}
           <pointLight
+            ref={light}
             position={[0, -0.2, 0]}
             color="#FEF3C7"
-            intensity={isNightMode ? 3.5 : 1.2}
+            intensity={1.2}
             distance={8.5}
             decay={2}
             />

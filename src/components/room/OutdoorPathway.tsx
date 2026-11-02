@@ -1,183 +1,132 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { VintageMailbox } from './VintageMailbox';
 import { RoadsidePuddleWithDuck } from './RoadsidePuddleWithDuck';
 import { TallHighwayLampPost } from './TallHighwayLampPost';
 import { PathwayLampPost } from './PathwayLampPost';
 import { Volleyball } from './items/Volleyball';
+import { Lawn } from './Lawn';
+import { CURB_Z, OUTDOOR, PATH_X, ROAD, ROOM } from './layout';
 
 interface OutdoorPathwayProps {
   position?: [number, number, number];
 }
 
-/**
- * Procedural flagstone / cobblestone paver pattern
- * Leading from the main road (Z = 6.2, X = 1.65)
- * curving gently to the interior doorway threshold (Z = 1.6, X = 1.4).
- */
-const PAVERS = [
-  // Road connecting pavers
-  { x: 1.65, z: 6.0, w: 1.25, l: 0.46, rot: 0.02, color: '#475569' },
-  { x: 1.65, z: 5.48, w: 1.2, l: 0.44, rot: -0.02, color: '#64748B' },
-  { x: 1.62, z: 4.96, w: 1.18, l: 0.45, rot: 0.01, color: '#94A3B8' },
-  // Garden lawn path
-  { x: 1.6, z: 4.45, w: 1.15, l: 0.44, rot: 0.03, color: '#64748B' },
-  { x: 1.56, z: 3.95, w: 1.12, l: 0.42, rot: -0.02, color: '#94A3B8' },
-  { x: 1.52, z: 3.45, w: 1.1, l: 0.45, rot: 0.02, color: '#475569' },
-  { x: 1.48, z: 2.95, w: 1.08, l: 0.42, rot: -0.01, color: '#78716C' },
-  { x: 1.44, z: 2.48, w: 1.12, l: 0.44, rot: 0.02, color: '#94A3B8' },
-  { x: 1.41, z: 2.02, w: 1.06, l: 0.42, rot: -0.02, color: '#64748B' },
-  { x: 1.4, z: 1.68, w: 1.15, l: 0.38, rot: 0.01, color: '#CBD5E1' },
-];
+const PAVER_COLORS = ['#8B8F96', '#9CA3AF', '#A8A29E', '#94A3B8', '#868B94'];
+const PATH_WIDTH = 1.0;
 
-/**
- * Clustered natural grass tufts across the garden lawn
- */
-const GRASS_TUFTS = [
-  { x: -3.4, z: 2.2, scale: 0.95, rot: 0.3 },
-  { x: -2.8, z: 3.1, scale: 1.1, rot: -0.2 },
-  { x: -2.1, z: 2.4, scale: 0.85, rot: 0.5 },
-  { x: -1.4, z: 3.8, scale: 1.0, rot: -0.4 },
-  { x: -0.6, z: 2.6, scale: 0.9, rot: 0.2 },
-  { x: 0.4, z: 3.6, scale: 1.05, rot: -0.1 },
-  { x: 0.5, z: 2.2, scale: 0.8, rot: 0.4 },
-  { x: 0.6, z: 4.4, scale: 0.9, rot: -0.3 },
-  { x: 2.7, z: 4.3, scale: 1.05, rot: 0.2 },
-  { x: 3.3, z: 2.3, scale: 0.85, rot: -0.5 },
-  { x: 3.5, z: 3.5, scale: 1.15, rot: 0.4 },
-  { x: 3.2, z: 4.4, scale: 0.9, rot: -0.2 },
-  { x: -2.4, z: 5.2, scale: 1.1, rot: 0.25 },
-  { x: 0.8, z: 5.4, scale: 0.95, rot: -0.3 },
-  { x: 2.9, z: 5.6, scale: 1.05, rot: 0.15 },
-];
+/** Flagstones from the doorstep to the curb, with small per-stone jitter */
+const PAVERS = Array.from({ length: 8 }, (_, i) => ({
+  x: PATH_X + (((i * 37) % 7) - 3) * 0.008,
+  z: ROOM.maxZ + 0.75 + i * 0.5,
+  w: 0.9 - (i % 3) * 0.03,
+  l: 0.42,
+  rot: (((i * 53) % 9) - 4) * 0.008,
+  color: PAVER_COLORS[i % PAVER_COLORS.length],
+}));
 
-/**
- * Smooth river pebbles along the pathway edges
- */
-const PEBBLES = [
-  [0.82, -0.01, 3.4],
-  [0.78, -0.01, 3.9],
-  [0.85, -0.01, 4.4],
-  [2.15, -0.01, 2.5],
-  [2.18, -0.01, 3.1],
-  [2.22, -0.01, 4.2],
-  [0.76, -0.01, 2.8],
-  [0.74, -0.01, 2.1],
-  [0.86, -0.01, 5.0],
-  [2.28, -0.01, 5.2],
-];
+function hash(i: number, salt: number): number {
+  const s = Math.sin(i * 12.9898 + salt * 78.233) * 43758.5453;
+  return s - Math.floor(s);
+}
 
 export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
+  // Grass tufts scattered on the lawn, kept clear of the path, puddle, house and road
+  const tufts = useMemo(() => {
+    const out: { x: number; z: number; scale: number; rot: number }[] = [];
+    for (let i = 0; i < 120 && out.length < 46; i++) {
+      const x = -9 + hash(i, 1) * 18;
+      const z = 0.5 + hash(i, 2) * (CURB_Z - 0.9);
+      const insideHouse = x > ROOM.minX - 0.4 && x < ROOM.maxX + 0.5 && z < ROOM.maxZ + 0.7;
+      const onPath = Math.abs(x - PATH_X) < PATH_WIDTH / 2 + 0.25;
+      const inPuddle = Math.hypot(x - OUTDOOR.puddle.x, z - OUTDOOR.puddle.z) < OUTDOOR.puddle.r + 0.25;
+      const nearProp =
+        Math.hypot(x - OUTDOOR.mailbox.x, z - OUTDOOR.mailbox.z) < 0.6 ||
+        Math.hypot(x - OUTDOOR.bush.x, z - OUTDOOR.bush.z) < 0.6 ||
+        Math.hypot(x - OUTDOOR.volleyball.x, z - OUTDOOR.volleyball.z) < 0.5;
+      if (insideHouse || onPath || inPuddle || nearProp) continue;
+      out.push({ x, z, scale: 0.8 + hash(i, 3) * 0.6, rot: hash(i, 4) * Math.PI });
+    }
+    return out;
+  }, []);
+
+  // River pebbles hugging both sides of the walkway
+  const pebbles = useMemo(
+    () =>
+      Array.from({ length: 14 }, (_, i) => {
+        const side = i % 2 === 0 ? -1 : 1;
+        return {
+          x: PATH_X + side * (PATH_WIDTH / 2 + 0.08 + hash(i, 5) * 0.1),
+          z: ROOM.maxZ + 0.6 + (i / 14) * (CURB_Z - ROOM.maxZ - 0.8) + hash(i, 6) * 0.2,
+          r: 0.025 + hash(i, 7) * 0.025,
+        };
+      }),
+    []
+  );
+
   return (
     <group name="outdoor-pathway" position={position}>
-      {/* ========================================================
-          1. EXPANDED OUTDOOR MEADOW (40x40 Full-View Frustum)
-          ======================================================== */}
-      <mesh position={[0, -0.07, 6.0]} receiveShadow>
-        <boxGeometry args={[40.0, 0.14, 40.0]} />
-        <meshStandardMaterial
-          color="#2E7D32"
-          roughness={0.92}
-          metalness={0.01}
-        />
-      </mesh>
+      {/* 1. Lawn that fades into the horizon haze */}
+      <Lawn />
 
-      {/* Sub-base Soil Crust Foundation */}
-      <mesh position={[0, -0.21, 6.0]} receiveShadow>
-        <boxGeometry args={[40.2, 0.14, 40.2]} />
-        <meshStandardMaterial color="#1C1917" roughness={0.98} />
-      </mesh>
-
-      {/* ========================================================
-          2. FOREGROUND ASPHALT HIGHWAY ROAD (From X=-20 to +20)
-          ======================================================== */}
-      <group position={[0, 0.01, 7.4]} name="main-road">
-        {/* Asphalt Pavement Surface */}
+      {/* 2. Road with curb in front of the garden */}
+      <group position={[0, 0.01, ROAD.centerZ]} name="main-road">
         <mesh receiveShadow>
-          <boxGeometry args={[40.0, 0.04, 2.6]} />
-          <meshStandardMaterial color="#1E293B" roughness={0.85} />
+          <boxGeometry args={[80, 0.04, ROAD.width]} />
+          <meshStandardMaterial color="#334155" roughness={0.85} />
         </mesh>
-
-        {/* Road Curb Edge Facing the House */}
-        <mesh position={[0, 0.028, -1.32]} receiveShadow castShadow>
-          <boxGeometry args={[40.0, 0.05, 0.12]} />
-          <meshStandardMaterial color="#64748B" roughness={0.7} />
+        <mesh position={[0, 0.028, -ROAD.width / 2 - 0.06]} receiveShadow castShadow>
+          <boxGeometry args={[80, 0.07, 0.14]} />
+          <meshStandardMaterial color="#94A3B8" roughness={0.7} />
         </mesh>
-
-        {/* White Center Dashes Along the Highway */}
+        {/* Dashed centre line */}
         {[-14, -10, -6, -2, 2, 6, 10, 14].map((dashX) => (
           <mesh key={dashX} position={[dashX, 0.022, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <planeGeometry args={[1.8, 0.14]} />
+            <planeGeometry args={[1.8, 0.12]} />
             <meshStandardMaterial color="#F8FAFC" roughness={0.5} />
           </mesh>
         ))}
-
-        {/* 2 Tall Modern Highway Streetlamps Overhanging the Road */}
-        <TallHighwayLampPost position={[-4.5, 0.02, -1.25]} rotation={[0, -0.15, 0]} />
-        <TallHighwayLampPost position={[6.5, 0.02, -1.25]} rotation={[0, 0.15, 0]} />
       </group>
 
-      {/* ========================================================
-          3. ROADSIDE WATER PUDDLE WITH DUCK
-          ======================================================== */}
-      <RoadsidePuddleWithDuck position={[-0.9, 0.0, 5.8]} />
+      {/* Street lamps beside the road, arms reaching over it */}
+      {OUTDOOR.highwayLamps.map((l, i) => (
+        <group key={i} position={[l.x, 0.02, l.z]} rotation={[0, l.yaw, 0]} scale={1.3}>
+          <TallHighwayLampPost />
+        </group>
+      ))}
 
-      {/* ========================================================
-          4. ARCHITECTURAL DOORWAY THRESHOLD AT Z = 1.6
-          ======================================================== */}
-      {/* Dark Slate Threshold Curb spanning the front of the room */}
-      <mesh position={[0, 0.01, 1.6]} receiveShadow castShadow>
-        <boxGeometry args={[8.0, 0.06, 0.12]} />
-        <meshStandardMaterial color="#1E293B" roughness={0.5} metalness={0.4} />
-      </mesh>
+      {/* 3. Irregular puddle with a duck, out on the lawn */}
+      <RoadsidePuddleWithDuck position={[OUTDOOR.puddle.x, 0, OUTDOOR.puddle.z]} />
 
-      {/* Polished Brass Inset Weatherstrip Trim at the Doorway */}
-      <mesh position={[1.4, 0.042, 1.6]}>
-        <boxGeometry args={[1.35, 0.01, 0.03]} />
+      {/* 4. Doorway weatherstrip */}
+      <mesh position={[PATH_X, 0.014, ROOM.maxZ + 0.01]}>
+        <boxGeometry args={[1.0, 0.012, 0.03]} />
         <meshStandardMaterial color="#F59E0B" metalness={0.92} roughness={0.15} />
       </mesh>
 
-      {/* ========================================================
-          5. PAVED COBBLESTONE WALKWAY LEADING INSIDE
-          ======================================================== */}
-      {/* Pathway Mortar / Gravel Sub-bed */}
-      <mesh position={[1.5, -0.03, 3.8]} receiveShadow>
-        <boxGeometry args={[1.35, 0.04, 4.4]} />
+      {/* 5. Paved walkway (1 m wide) from the doorstep to the curb */}
+      <mesh position={[PATH_X, -0.02, (ROOM.maxZ + CURB_Z) / 2 + 0.2]} receiveShadow>
+        <boxGeometry args={[PATH_WIDTH + 0.14, 0.04, CURB_Z - ROOM.maxZ - 0.2]} />
         <meshStandardMaterial color="#57534E" roughness={0.94} />
       </mesh>
-
-      {/* Handcrafted Flagstone Pavers */}
       {PAVERS.map((p, i) => (
-        <mesh
-          key={i}
-          position={[p.x, 0.015, p.z]}
-          rotation={[0, p.rot, 0]}
-          receiveShadow
-          castShadow
-        >
+        <mesh key={i} position={[p.x, 0.0, p.z]} rotation={[0, p.rot, 0]} receiveShadow castShadow>
           <boxGeometry args={[p.w, 0.035, p.l]} />
-          <meshStandardMaterial
-            color={p.color}
-            roughness={0.8}
-            metalness={0.06}
-          />
+          <meshStandardMaterial color={p.color} roughness={0.8} metalness={0.05} />
         </mesh>
       ))}
 
-      {/* ========================================================
-          6. COZY MID-SIZED PATHWAY LANTERN POSTS
-          ======================================================== */}
-      <PathwayLampPost position={[0.72, 0.0, 2.3]} />
-      <PathwayLampPost position={[2.22, 0.0, 3.3]} />
-      <PathwayLampPost position={[0.75, 0.0, 4.3]} />
-      <PathwayLampPost position={[2.25, 0.0, 5.3]} />
+      {/* 6. Garden lantern posts flanking the walkway */}
+      {OUTDOOR.pathLamps.map((l, i) => (
+        <group key={i} position={[l.x, 0, l.z]} scale={0.8}>
+          <PathwayLampPost />
+        </group>
+      ))}
 
-      {/* ========================================================
-          7. SCULPTED LOW-POLY GRASS TUFTS ON LAWN
-          ======================================================== */}
-      {GRASS_TUFTS.map((g, i) => (
-        <group key={i} position={[g.x, 0.0, g.z]} rotation={[0, g.rot, 0]} scale={g.scale}>
+      {/* 7. Grass tufts */}
+      {tufts.map((g, i) => (
+        <group key={i} position={[g.x, -0.03, g.z]} rotation={[0, g.rot, 0]} scale={g.scale}>
           <mesh position={[-0.03, 0.08, 0]} rotation={[0, 0, 0.22]} castShadow>
             <coneGeometry args={[0.02, 0.16, 4]} />
             <meshStandardMaterial color="#4ADE80" roughness={0.7} />
@@ -193,48 +142,41 @@ export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
         </group>
       ))}
 
-      {/* Smooth Garden River Pebbles along the walkway border */}
-      {PEBBLES.map(([px, py, pz], i) => (
-        <mesh key={i} position={[px, 0.01, pz]} castShadow receiveShadow>
-          <sphereGeometry args={[0.038, 8, 8]} />
+      {/* Pebbles along the walkway border */}
+      {pebbles.map((p, i) => (
+        <mesh key={i} position={[p.x, -0.01, p.z]} scale={[1, 0.65, 1]} castShadow receiveShadow>
+          <sphereGeometry args={[p.r, 8, 6]} />
           <meshStandardMaterial color="#94A3B8" roughness={0.65} />
         </mesh>
       ))}
 
-      {/* ========================================================
-          8. LOW-POLY GARDEN BUSHES / SHRUBS (Corner Landscaping)
-          ======================================================== */}
-      <group position={[-3.1, 0.0, 2.7]}>
-        <mesh position={[0, 0.16, 0]} castShadow>
-          <dodecahedronGeometry args={[0.26, 1]} />
+      {/* 8. Shrub with blossoms in the left corner */}
+      <group position={[OUTDOOR.bush.x, -0.03, OUTDOOR.bush.z]}>
+        <mesh position={[0, 0.2, 0]} castShadow>
+          <dodecahedronGeometry args={[0.3, 1]} />
           <meshStandardMaterial color="#15803D" roughness={0.8} />
         </mesh>
-        <mesh position={[0.18, 0.12, 0.14]} castShadow>
-          <dodecahedronGeometry args={[0.18, 1]} />
+        <mesh position={[0.2, 0.15, 0.15]} castShadow>
+          <dodecahedronGeometry args={[0.2, 1]} />
           <meshStandardMaterial color="#16A34A" roughness={0.8} />
         </mesh>
-        {/* Little White Blossom Petals */}
-        <mesh position={[0.06, 0.32, 0.08]}>
-          <sphereGeometry args={[0.035, 6, 6]} />
+        <mesh position={[0.06, 0.4, 0.08]}>
+          <sphereGeometry args={[0.04, 8, 8]} />
           <meshStandardMaterial color="#FFFFFF" roughness={0.4} />
         </mesh>
-        <mesh position={[-0.14, 0.24, 0.12]}>
-          <sphereGeometry args={[0.03, 6, 6]} />
+        <mesh position={[-0.15, 0.3, 0.12]}>
+          <sphereGeometry args={[0.035, 8, 8]} />
           <meshStandardMaterial color="#FEF08A" roughness={0.4} />
         </mesh>
       </group>
 
-      {/* ========================================================
-          9. PHYSICS VOLLEYBALL (GARDEN LAWN COURT)
-          ======================================================== */}
-      <Volleyball position={[2.7, 0.0, 2.5]} />
+      {/* 9. Volleyball (regulation size) on the lawn */}
+      <Volleyball position={[OUTDOOR.volleyball.x, 0, OUTDOOR.volleyball.z]} />
 
-      {/* ========================================================
-          10. VINTAGE MAILBOX (BESIDE THE STONE WALKWAY)
-          ======================================================== */}
+      {/* 10. Vintage mailbox beside the walkway */}
       <VintageMailbox
-        position={[2.45, 0.0, 3.4]}
-        rotation={[0, -Math.PI * 0.25, 0]}
+        position={[OUTDOOR.mailbox.x, 0, OUTDOOR.mailbox.z]}
+        rotation={[0, OUTDOOR.mailbox.yaw, 0]}
       />
     </group>
   );

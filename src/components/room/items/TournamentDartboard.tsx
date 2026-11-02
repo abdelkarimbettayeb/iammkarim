@@ -306,7 +306,7 @@ export function TournamentDartboard({
       {/* 5. Celebratory Hit Badge on Click */}
       {showHitBadge && (
         <Html position={[0, 0.55, 0.08]} center pointerEvents="none">
-          <div className="bg-amber-500/95 text-slate-950 font-black text-xs px-2.5 py-1 rounded-full shadow-lg shadow-amber-500/50 border border-amber-300 animate-bounce whitespace-nowrap select-none">
+          <div className="bg-amber-500/95 text-slate-950 font-black text-xs px-2.5 py-1 rounded shadow-lg shadow-amber-500/50 border border-amber-300 animate-bounce whitespace-nowrap select-none">
             🎯 Bullseye! +50
           </div>
         </Html>

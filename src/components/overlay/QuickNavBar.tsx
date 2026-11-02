@@ -35,23 +35,24 @@ export function QuickNavBar() {
   };
 
   return (
-    <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
-      {/* VisionOS Floating Spatial Glass Dock */}
-      <div className="glass-panel-master p-1.5 rounded-full flex items-center gap-1.5 shadow-2xl font-secondary font-secondary">
+    <nav aria-label="Room sections" className="fixed bottom-6 left-1/2 -translate-x-1/2 z-30 pointer-events-auto">
+      {/* Segmented dock */}
+      <div className="glass-panel-master p-1 rounded flex items-center gap-1 font-secondary">
         {NAV_ITEMS.map(({ id, label, icon: Icon }) => {
           const isActive = activeZone === id;
           return (
             <button
               key={id}
               onClick={() => handleNavClick(id)}
-              className={`relative flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold transition-all select-none duration-200 ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`relative flex items-center gap-2 px-3.5 py-2 rounded text-xs font-medium transition-colors select-none ${
                 isActive
-                  ? 'glass-pill-active text-slate-950 scale-105 shadow-md'
-                  : 'text-slate-300 hover:text-white hover:bg-white/[0.08] hover:scale-102'
+                  ? 'glass-pill-active text-slate-950'
+                  : 'text-slate-300 hover:text-white hover:bg-white/[0.08]'
               }`}
             >
               <Icon size={15} className={isActive ? 'text-slate-950' : 'text-slate-300'} />
-              <span className="hidden sm:inline tracking-wide">{label}</span>
+              <span className="hidden sm:inline">{label}</span>
             </button>
           );
         })}

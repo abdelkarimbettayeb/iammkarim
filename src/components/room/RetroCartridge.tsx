@@ -98,7 +98,7 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
       {/* 5. Tooltip Preview on Hover */}
       {(hovered || isSelected) && (
         <Html position={[0, 0.32, 0.06]} center distanceFactor={7} pointerEvents="none">
-          <div className="bg-[#0F172A]/95 backdrop-blur-md border border-sky-400/50 shadow-2xl px-3 py-2 rounded-lg text-left whitespace-nowrap min-w-[190px]">
+          <div className="bg-[#0F172A]/95 backdrop-blur-md border border-sky-400/50 shadow-2xl px-3 py-2 rounded text-left whitespace-nowrap min-w-[190px]">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold text-white tracking-wide">
                 {project.title}

@@ -1,14 +1,23 @@
 'use client';
 
-import React from 'react';
-import { useRoomStore } from '@/store/useRoomStore';
+import React, { useRef } from 'react';
+import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { dayNight, lerp } from '@/store/dayNight';
 
 interface PathwayLampPostProps {
   position?: [number, number, number];
 }
 
 export function PathwayLampPost({ position = [0, 0, 0] }: PathwayLampPostProps) {
-  const isNightMode = useRoomStore((state) => state.isNightMode);
+  const glassMat = useRef<THREE.MeshStandardMaterial>(null);
+  const light = useRef<THREE.PointLight>(null);
+
+  useFrame(() => {
+    const n = dayNight.blend;
+    if (glassMat.current) glassMat.current.emissiveIntensity = lerp(0.75, 2.2, n);
+    if (light.current) light.current.intensity = lerp(0.6, 1.8, n);
+  });
 
   return (
     <group position={position} name="pathway-lamp-post">
@@ -34,9 +43,10 @@ export function PathwayLampPost({ position = [0, 0, 0] }: PathwayLampPostProps) 
       <mesh position={[0, 1.12, 0]}>
         <cylinderGeometry args={[0.1, 0.075, 0.22, 6]} />
         <meshStandardMaterial
+          ref={glassMat}
           color="#FEF3C7"
           emissive="#F59E0B"
-          emissiveIntensity={isNightMode ? 2.2 : 0.75}
+          emissiveIntensity={0.75}
           roughness={0.2}
           transparent
           opacity={0.9}
@@ -51,9 +61,10 @@ export function PathwayLampPost({ position = [0, 0, 0] }: PathwayLampPostProps) 
 
       {/* Warm Ambient Pathway Lantern Glow */}
       <pointLight
+        ref={light}
         position={[0, 1.12, 0]}
         color="#FDE68A"
-        intensity={isNightMode ? 1.8 : 0.6}
+        intensity={0.6}
         distance={4.2}
         decay={2}
       />

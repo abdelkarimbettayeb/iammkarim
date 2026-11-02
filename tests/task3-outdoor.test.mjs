@@ -9,7 +9,7 @@ test('Task 3 outdoor components exist and export valid React components', () => 
 
   const pathwayFile = fs.readFileSync('src/components/room/OutdoorPathway.tsx', 'utf-8');
   assert.ok(pathwayFile.includes('RoadsidePuddleWithDuck'), 'OutdoorPathway should mount RoadsidePuddleWithDuck');
-  assert.ok(pathwayFile.includes('40'), 'OutdoorPathway should have expanded 40x40 grass meadow');
+  assert.ok(pathwayFile.includes('<Lawn'), 'OutdoorPathway should mount the Lawn that fades into the horizon');
   assert.ok(pathwayFile.includes('Highway') || pathwayFile.includes('highway') || pathwayFile.includes('Main Road') || pathwayFile.includes('main-road'), 'OutdoorPathway should include main road');
 });
 

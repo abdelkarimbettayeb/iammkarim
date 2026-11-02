@@ -52,7 +52,8 @@ function setState(updater: Partial<RoomStoreValues> | ((prev: RoomStoreValues) =
   emitChange();
 }
 
-if (typeof window !== 'undefined') {
+// Debug handle for the browser console; never exposed in production builds
+if (typeof window !== 'undefined' && process.env.NODE_ENV !== 'production') {
   (window as any).__roomStore = () => roomStore;
 }
 

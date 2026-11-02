@@ -5,7 +5,7 @@ import React from 'react';
 interface CoffeeTableProps {
   position?: [number, number, number];
   rotation?: [number, number, number];
-  scale?: number;
+  scale?: number | [number, number, number];
 }
 
 export function CoffeeTable({

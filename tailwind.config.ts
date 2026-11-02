@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss";
 import plugin from "tailwindcss/plugin";
+import tailwindcssAnimate from "tailwindcss-animate";
 
 const config: Config = {
 	darkMode: ["class"],
@@ -9,6 +10,18 @@ const config: Config = {
 		"./src/app/**/*.{js,ts,jsx,tsx,mdx}",
 	],
 	theme: {
+		// Design rule: no corner radius larger than 4px anywhere (including `rounded-full`)
+		borderRadius: {
+			none: '0px',
+			sm: '2px',
+			DEFAULT: '4px',
+			md: '4px',
+			lg: '4px',
+			xl: '4px',
+			'2xl': '4px',
+			'3xl': '4px',
+			full: '4px'
+		},
 		extend: {
 			fontFamily: {
 				primary: ['var(--font-josefin)', 'system-ui', 'sans-serif'],
@@ -97,7 +110,7 @@ const config: Config = {
 
 			addUtilities(newUtilities);
 		}),
-		require("tailwindcss-animate")
+		tailwindcssAnimate
 	],
 	corePlugins: {
 		// preflight: false

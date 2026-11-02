@@ -20,11 +20,13 @@ test('Code Review Fixes: Dartboard ref, Modal Escape/X sync, Autonomous timer cl
 
   // 3. Autonomous timers cleanup in useCharacterBrain
   const brain = fs.readFileSync('src/components/room/character/useCharacterBrain.ts', 'utf-8');
-  assert.ok(brain.includes('clearAutonomousTimers') || brain.includes('autonomousTimers'), 'useCharacterBrain must manage and clear autonomous timers');
+  // Autonomous routines now run on a frame-driven step queue, so there are no timers to leak
+  assert.ok(!brain.includes('setTimeout') && !brain.includes('setInterval'), 'useCharacterBrain must not use free-running timers');
+  assert.ok(brain.includes('setQueue'), 'useCharacterBrain must run behaviour through the step queue');
 
   // 4. Walking limb reset in CharacterManager
   const charMgr = fs.readFileSync('src/components/room/character/CharacterManager.tsx', 'utf-8');
-  assert.ok(charMgr.includes('leftArm.rotation.set('), 'CharacterManager walking must reset Y/Z limb rotations');
+  assert.ok(charMgr.includes('leftArm.rotation.set(0, 0, 0.06)'), 'CharacterManager must reset limb rotations every frame');
 
   // 5. Click handlers on Workstation, Couch, and Guitar
   const desk = fs.readFileSync('src/components/room/items/WorkstationDesk.tsx', 'utf-8');

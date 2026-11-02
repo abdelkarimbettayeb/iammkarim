@@ -140,7 +140,7 @@ export function Volleyball({
   scale = 1,
   onBounce,
 }: VolleyballProps) {
-  const ballRadius = 0.16;
+  const ballRadius = 0.105; // regulation volleyball (Ø21 cm)
   const floorY = position[1]; // baseline floor height
   const homeX = position[0];
   const homeZ = position[2];
