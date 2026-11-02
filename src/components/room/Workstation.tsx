@@ -4,7 +4,7 @@ import React from 'react';
 import { WorkstationDesk, EamesChair } from './items';
 
 export function Workstation() {
-  const deskX = -2.1;
+  const deskX = -1.95;
   const deskZ = -1.1;
 
   return (
@@ -12,9 +12,9 @@ export function Workstation() {
       {/* 1. Mid-Century Modern Teak Desk & Realistic Ultrawide Monitor */}
       <WorkstationDesk position={[deskX, 0, deskZ]} />
 
-      {/* 2. Eames-Style Eiffel Desk Chair */}
+      {/* 2. Eames-Style Eiffel Desk Chair (aligned with monitor at X = deskX - 0.2) */}
       <EamesChair
-        position={[deskX, 0, deskZ + 0.95]}
+        position={[deskX - 0.2, 0, deskZ + 0.95]}
         rotation={[0, Math.PI, 0]}
       />
     </group>

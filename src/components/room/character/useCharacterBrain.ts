@@ -17,7 +17,8 @@ export type ActionPose =
   | 'throwing'
   | 'retrieving'
   | 'thinking'
-  | 'shivering';
+  | 'shivering'
+  | 'fiddling_flags';
 
 export interface StationWaypoint {
   pos: [number, number, number];
@@ -28,13 +29,13 @@ export interface StationWaypoint {
 export const STATION_WAYPOINTS: Record<ActiveStation | 'spawn' | 'doorway' | 'thinking_outdoor', StationWaypoint> = {
   spawn: { pos: [1.65, 0, 6.8], rotY: Math.PI, pose: 'walking' },
   doorway: { pos: [1.4, 0, 1.8], rotY: Math.PI * 0.25, pose: 'waving' },
-  workstation: { pos: [-1.4, 0, -2.5], rotY: 0, pose: 'typing' },
+  workstation: { pos: [-2.15, 0, -0.15], rotY: 0, pose: 'typing' },
   couch: { pos: [-1.6, 0, -1.2], rotY: Math.PI, pose: 'sitting' },
   guitar: { pos: [1.8, 0, -3.2], rotY: 0.35, pose: 'strumming' },
   window: { pos: [2.8, 0, -3.6], rotY: 0, pose: 'window' },
   dartboard: { pos: [-2.8, 0, 0.8], rotY: -Math.PI * 0.5, pose: 'throwing' },
   volleyball: { pos: [2.2, 0, 2.5], rotY: Math.PI * 0.3, pose: 'bumping' },
-  flags: { pos: [-0.6, 0, -2.5], rotY: -0.2, pose: 'typing' },
+  flags: { pos: [-0.90, 0, 0.12], rotY: Math.PI * 0.96, pose: 'fiddling_flags' },
   thinking_outdoor: { pos: [-1.8, 0, 4.2], rotY: -Math.PI * 0.4, pose: 'thinking' },
   none: { pos: [1.4, 0, 1.8], rotY: Math.PI * 0.25, pose: 'idle' },
 };

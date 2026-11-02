@@ -12,5 +12,5 @@ test('Task 2 architectural fixes in files', () => {
 
   const workstation = fs.readFileSync('src/components/room/items/WorkstationDesk.tsx', 'utf-8');
   assert.ok(workstation.includes('WavingFlag'), 'Workstation desk should mount WavingFlag');
-  assert.ok(workstation.includes('3.35'), 'Desk should be widened to 3.35');
+  assert.ok(workstation.includes('3.8'), 'Desk should be enlarged to 3.8');
 });

@@ -708,21 +708,21 @@ export function WorkstationDesk({
       <group position={[0, 1.4, 0]}>
         {/* Warm Teak Tabletop (Smooth Chamfered Finish) */}
         <mesh position={[0, 0, 0]} castShadow receiveShadow>
-          <boxGeometry args={[3.35, 0.07, 1.25]} />
+          <boxGeometry args={[3.8, 0.07, 1.3]} />
           <meshStandardMaterial color="#CF6B2C" roughness={0.45} />
         </mesh>
         {/* Tabletop Apron / Under-frame */}
         <mesh position={[0, -0.05, 0]} castShadow>
-          <boxGeometry args={[3.15, 0.04, 1.08]} />
+          <boxGeometry args={[3.58, 0.04, 1.12]} />
           <meshStandardMaterial color="#B45309" roughness={0.5} />
         </mesh>
 
         {/* 4 Mid-Century Tapered Round Wooden Legs with Brass Ferrules */}
         {[
-          [-1.42, -0.68, -0.48, 0.12, -0.12],
-          [1.42, -0.68, -0.48, 0.12, 0.12],
-          [-1.42, -0.68, 0.48, -0.12, -0.12],
-          [1.42, -0.68, 0.48, -0.12, 0.12],
+          [-1.65, -0.68, -0.50, 0.12, -0.12],
+          [1.65, -0.68, -0.50, 0.12, 0.12],
+          [-1.65, -0.68, 0.50, -0.12, -0.12],
+          [1.65, -0.68, 0.50, -0.12, 0.12],
         ].map(([lx, ly, lz, rx, rz], i) => (
           <group key={i} position={[lx, ly, lz]} rotation={[rx, 0, rz]}>
             {/* Tapered Wood Leg */}
@@ -740,9 +740,9 @@ export function WorkstationDesk({
 
         {/* Vertical Black Spine Book / Partner Showcase on Right Side */}
         
-        {/* Country Language Flags on Widened Desktop */}
+        {/* Country Language Flags on Widened Desktop - Spaced with 0.46m clearance */}
         <group
-          position={[1.15, 0.04, -0.1]}
+          position={[1.05, 0.04, -0.05]}
           onClick={(e) => {
             e.stopPropagation();
             setActiveStation('flags');
@@ -752,12 +752,14 @@ export function WorkstationDesk({
             <WavingFlag
               key={flag.name}
               flag={flag}
-              position={[idx * 0.24 - 0.24, 0, 0]}
+              position={[(idx - 1) * 0.46, 0, 0]}
+              rotation={[0, 0.2, 0]}
             />
           ))}
         </group>
 
-        <group position={[1.42, 0.3, 0.15]} rotation={[0, 0.25, 0]} castShadow>
+        {/* Partner Showcase book moved to the far left corner to clear the flags display */}
+        <group position={[-1.62, 0.3, -0.28]} rotation={[0, 0.15, 0]} castShadow>
           <mesh castShadow>
             <boxGeometry args={[0.07, 0.54, 0.34]} />
             <meshStandardMaterial color="#0F172A" roughness={0.35} />
@@ -773,7 +775,7 @@ export function WorkstationDesk({
       {/* =========================================
           2. Under-Desk Gaming Console (White PS5 Vertical)
          ========================================= */}
-      <group position={[-0.72, 0.38, 0.15]} rotation={[0, -0.08, 0]}>
+      <group position={[-0.98, 0.38, 0.15]} rotation={[0, -0.08, 0]}>
         {/* Black Glossy Core Body */}
         <mesh castShadow>
           <boxGeometry args={[0.09, 0.65, 0.34]} />
@@ -805,7 +807,7 @@ export function WorkstationDesk({
           3. Sleek Ultrawide Display (Silver Stand & Slim Bezel)
          ========================================= */}
       <group
-        position={[0, 2.15, -0.18]}
+        position={[-0.2, 2.15, -0.18]}
         onClick={handleMonitorClick}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -869,7 +871,7 @@ export function WorkstationDesk({
           4. Slim Keyboard & Apple-Style White Mouse
          ========================================= */}
       {/* Keyboard Base */}
-      <group position={[0, 1.45, 0.14]}>
+      <group position={[-0.2, 1.45, 0.14]}>
         <mesh castShadow>
           <boxGeometry args={[0.66, 0.016, 0.2]} />
           <meshStandardMaterial color="#E2E8F0" roughness={0.3} metalness={0.6} />
@@ -882,7 +884,7 @@ export function WorkstationDesk({
       </group>
 
       {/* Minimalist White Wireless Mouse (Directly on Desk, No Bulky Pad) */}
-      <group position={[0.48, 1.455, 0.14]}>
+      <group position={[0.32, 1.455, 0.14]}>
         <mesh castShadow>
           <boxGeometry args={[0.075, 0.022, 0.13]} />
           <meshStandardMaterial color="#FFFFFF" roughness={0.2} metalness={0.1} />
@@ -892,7 +894,7 @@ export function WorkstationDesk({
       {/* =========================================
           5. Forest Green Water Flask
          ========================================= */}
-      <group position={[-0.52, 1.57, 0.14]}>
+      <group position={[-0.78, 1.57, 0.14]}>
         <mesh castShadow>
           <cylinderGeometry args={[0.048, 0.048, 0.26, 20]} />
           <meshStandardMaterial color="#166534" roughness={0.35} />
@@ -912,7 +914,7 @@ export function WorkstationDesk({
       {/* =========================================
           6. Interactive Desk Lamp
          ========================================= */}
-      <DeskLamp position={[-0.86, 1.44, 0.08]} rotation={[0, 0.3, 0]} />
+      <DeskLamp position={[-1.32, 1.44, 0.08]} rotation={[0, 0.3, 0]} />
     </group>
   );
 }

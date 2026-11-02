@@ -4,11 +4,13 @@ import React, { useRef, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
+import { useRoomStore } from '@/store/useRoomStore';
 import type { FlagItem } from '@/types/room';
 
 interface WavingFlagProps {
   flag: FlagItem;
   position: [number, number, number];
+  rotation?: [number, number, number];
 }
 
 // Generates crisp CanvasTexture for flag cloth
@@ -104,7 +106,8 @@ function createFlagTexture(code: string): THREE.Texture {
   return texture;
 }
 
-export function WavingFlag({ flag, position }: WavingFlagProps) {
+export function WavingFlag({ flag, position, rotation }: WavingFlagProps) {
+  const activeStation = useRoomStore((state) => state.activeStation);
   const [hovered, setHovered] = useState(false);
   const meshRef = useRef<THREE.Mesh>(null);
   const geomRef = useRef<THREE.PlaneGeometry>(null);
@@ -126,7 +129,8 @@ export function WavingFlag({ flag, position }: WavingFlagProps) {
   useFrame(({ clock }) => {
     if (!geomRef.current) return;
 
-    const time = clock.getElapsedTime() * (hovered ? 5.5 : 3.2);
+    const isFiddling = activeStation === 'flags';
+    const time = clock.getElapsedTime() * (hovered || isFiddling ? 5.5 : 3.2);
     const positionAttr = geomRef.current.attributes.position;
     const count = positionAttr.count;
 
