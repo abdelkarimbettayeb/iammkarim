@@ -40,11 +40,11 @@ export function TopHeader() {
           <h1 className="text-sm font-primary font-bold tracking-wide text-white flex items-center gap-2">
             <span>Abdelkarim Bettayeb</span>
             <span className="hidden sm:inline-flex items-center px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/20 text-emerald-300 font-bold border border-emerald-500/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]">
-              9+ Yrs Exp
+              Lead Engineer • 30+ Delivered
             </span>
           </h1>
           <p className="text-[11px] text-slate-300/80 font-secondary font-medium line-clamp-1">
-            3D Isometric Interactive Portfolio
+            Full-Stack & Lead Software Engineer • Top 5% M.Sc.
           </p>
         </div>
       </div>

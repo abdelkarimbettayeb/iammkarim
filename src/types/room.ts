@@ -6,7 +6,7 @@ export type CharacterState = 'spawning' | 'walking' | 'waving' | 'idle' | 'inter
 
 export type WeatherState = 'clear' | 'rain' | 'snow';
 
-export type CartridgeId = 'alnurayn' | 'freelance' | 'tastytracks';
+export type CartridgeId = 'jud' | 'alnurayn' | 'freelance' | 'tastytracks';
 
 export interface FlagItem {
   name: string;
@@ -15,7 +15,7 @@ export interface FlagItem {
   nativeName: string;
 }
 
-export type SkillCategory = 'frontend' | 'backend' | 'database' | 'tools' | 'languages';
+export type SkillCategory = 'frontend' | 'backend' | 'database' | 'tools' | 'languages' | 'systems' | 'ai';
 
 export interface TechSkillItem {
   name: string;
@@ -36,6 +36,23 @@ export interface CartridgeProject {
   metrics: string;
   color: string;
   image?: string;
+}
+
+export interface WorkExperienceItem {
+  role: string;
+  company: string;
+  location: string;
+  period: string;
+  type: string;
+  highlights: string[];
+}
+
+export interface EducationItem {
+  degree: string;
+  institution: string;
+  location: string;
+  period: string;
+  honors: string;
 }
 
 export interface AchievementItem {

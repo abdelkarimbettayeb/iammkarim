@@ -157,9 +157,9 @@ export function CubeBookcase({
          ========================================= */}
       {/* Left Cube: Interactive Retro Game Cartridges */}
       <group position={[-0.56, 3.82, 0.08]}>
-        <RetroCartridge project={cartridgeProjects.alnurayn} position={[-0.28, 0, 0]} />
-        <RetroCartridge project={cartridgeProjects.freelance} position={[0, 0, 0]} />
-        <RetroCartridge project={cartridgeProjects.tastytracks} position={[0.28, 0, 0]} />
+        <RetroCartridge project={cartridgeProjects.jud} position={[-0.28, 0, 0]} />
+        <RetroCartridge project={cartridgeProjects.alnurayn} position={[0, 0, 0]} />
+        <RetroCartridge project={cartridgeProjects.freelance} position={[0.28, 0, 0]} />
       </group>
 
       {/* Right Cube: Vertical Books (Red, White, Blue Spines) */}

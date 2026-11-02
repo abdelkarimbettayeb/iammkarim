@@ -2,9 +2,29 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { X, Download, Briefcase, Award, Code2, MessageSquareQuote, ExternalLink } from 'lucide-react';
+import {
+  X,
+  Download,
+  Briefcase,
+  Award,
+  Code2,
+  MessageSquareQuote,
+  ExternalLink,
+  GraduationCap,
+  Globe,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react';
 import { useRoomStore, roomStore } from '@/store/useRoomStore';
-import { personalInfo, achievements, techSkills, cartridgeProjects } from '@/data/resumeData';
+import {
+  personalInfo,
+  achievements,
+  techSkills,
+  cartridgeProjects,
+  workExperience,
+  education,
+  languages,
+} from '@/data/resumeData';
 
 const testimonials = [
   {
@@ -55,7 +75,7 @@ export function ResumeDrawer() {
       {/* Backdrop scrim */}
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-md"
-        onClick={() => { toggleDrawer(); roomStore.setActiveStation('none'); }}
+        onClick={handleClose}
       />
 
       {/* Radical Glassmorphic Slide-out Sheet (VisionOS / Dark Glass) */}
@@ -76,8 +96,13 @@ export function ResumeDrawer() {
             <h2 className="text-2xl sm:text-3xl font-primary font-bold mt-1 text-white tracking-tight">
               {personalInfo.name}
             </h2>
-            <p className="text-xs sm:text-sm text-slate-300/80 mt-0.5 font-secondary font-medium">
-              {personalInfo.role} • {personalInfo.experienceYears} Years Experience
+            <p className="text-xs sm:text-sm text-sky-300 font-secondary font-semibold mt-0.5">
+              {personalInfo.role}
+            </p>
+            <p className="text-[11px] text-slate-400 mt-1 flex flex-wrap items-center gap-2">
+              <span>{personalInfo.location}</span>
+              <span>•</span>
+              <span className="text-emerald-400 font-medium">{personalInfo.availability}</span>
             </p>
           </div>
 
@@ -99,18 +124,15 @@ export function ResumeDrawer() {
           </div>
         </div>
 
-        {/* 1. Who Am I */}
+        {/* 1. Professional Summary */}
         <div className="relative mt-8">
           <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
             <Briefcase size={15} className="text-amber-400" />
             <span>Professional Summary</span>
           </h3>
-          <div className="glass-tile p-5 rounded-2xl border border-white/[0.08]">
+          <div className="glass-tile p-5 rounded-2xl border border-white/[0.08] space-y-2">
             <p className="text-xs sm:text-sm text-slate-200 leading-relaxed font-paragraph">
-              Full-stack web developer and experienced software engineer with over{' '}
-              <strong className="text-amber-400 font-bold">9 years</strong> of hands-on experience.
-              Specializing in high-performance web systems, reactive architectures, cloud integrations,
-              and optimized computational modules.
+              {personalInfo.bio}
             </p>
           </div>
         </div>
@@ -119,7 +141,7 @@ export function ResumeDrawer() {
         <div className="relative mt-8">
           <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
             <Award size={15} className="text-amber-400" />
-            <span>Key Achievements</span>
+            <span>Key Career Achievements</span>
           </h3>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {achievements.map((item, idx) => (
@@ -138,7 +160,69 @@ export function ResumeDrawer() {
           </div>
         </div>
 
-        {/* 3. Core Tech Skills */}
+        {/* 3. Work Experience */}
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <Briefcase size={15} className="text-sky-400" />
+            <span>Work Experience</span>
+          </h3>
+          <div className="space-y-4">
+            {workExperience.map((exp, idx) => (
+              <div
+                key={idx}
+                className="p-5 rounded-2xl glass-tile space-y-3 transition-all hover:border-white/[0.18]"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 border-b border-white/[0.06] pb-2.5">
+                  <div>
+                    <h4 className="text-sm sm:text-base font-bold text-white tracking-wide">
+                      {exp.role} <span className="text-sky-400 font-normal">| {exp.company}</span>
+                    </h4>
+                    <p className="text-[11px] text-slate-400">{exp.location} • {exp.type}</p>
+                  </div>
+                  <span className="text-xs font-bold text-amber-400/90 whitespace-nowrap">
+                    {exp.period}
+                  </span>
+                </div>
+
+                <ul className="space-y-1.5 pt-1">
+                  {exp.highlights.map((h, i) => (
+                    <li key={i} className="text-xs text-slate-300 leading-relaxed flex items-start gap-2">
+                      <span className="text-sky-400 font-bold shrink-0 mt-0.5">•</span>
+                      <span>{h}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 4. Education */}
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <GraduationCap size={15} className="text-emerald-400" />
+            <span>Education</span>
+          </h3>
+          <div className="p-5 rounded-2xl glass-tile space-y-2 border border-white/[0.08]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <h4 className="text-sm font-bold text-white">
+                {education.degree}
+              </h4>
+              <span className="text-xs text-amber-400 font-bold">
+                {education.period}
+              </span>
+            </div>
+            <p className="text-xs text-slate-300">
+              {education.institution} • {education.location}
+            </p>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold mt-2 border border-emerald-500/30">
+              <Sparkles size={12} />
+              <span>{education.honors}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 5. Core Tech Skills */}
         <div className="relative mt-8">
           <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
             <Code2 size={15} className="text-sky-400" />
@@ -173,11 +257,28 @@ export function ResumeDrawer() {
           </div>
         </div>
 
-        {/* 4. Highlighted Projects */}
+        {/* 6. Languages */}
+        <div className="relative mt-8">
+          <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
+            <Globe size={15} className="text-amber-400" />
+            <span>Languages</span>
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            {languages.map((lang) => (
+              <div key={lang.name} className="p-3.5 rounded-2xl glass-tile text-center">
+                <div className="text-sm font-bold text-white">{lang.name}</div>
+                <div className="text-[10px] text-sky-400 mt-0.5 font-semibold">{lang.nativeName}</div>
+                <div className="text-[11px] text-slate-300 mt-1 font-medium">{lang.fluency}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 7. Highlighted Projects */}
         <div className="relative mt-8">
           <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
             <Briefcase size={15} className="text-amber-400" />
-            <span>Featured Production Projects</span>
+            <span>Featured Production Systems</span>
           </h3>
           <div className="space-y-4">
             {Object.values(cartridgeProjects).map((proj) => (
@@ -225,7 +326,7 @@ export function ResumeDrawer() {
           </div>
         </div>
 
-        {/* 5. Client Testimonials */}
+        {/* 8. Client Testimonials */}
         <div className="relative mt-8">
           <h3 className="text-xs uppercase font-bold tracking-wider text-slate-300 mb-3 flex items-center gap-2">
             <MessageSquareQuote size={15} className="text-amber-400" />
