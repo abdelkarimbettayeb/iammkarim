@@ -13,7 +13,7 @@ export const metadata: Metadata = {
     title: 'Abdelkarim - Software developer',
     description: 'A simple descriptive portfolio website for ABDELKARIM BETTAYEB.',
     icons: 'favicon.ico',
-    verification: { google: '6mKxUSRolcNT34_bEIukWyXcNkeMywO1EA0yh_vHvHU' }
+    verification: { google: 'nbU0dg4qMqGMY-D2AMLv6hsAxz4ZU9terrFUF8Ba6RM' }
 };
 
 const myColor: MantineColorsTuple = [
