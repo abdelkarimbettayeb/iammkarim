@@ -4,7 +4,8 @@ import React, { useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { BOY, CharacterBoy, CharacterBoyHandle } from './CharacterBoy';
-import { useCharacterBrain, type ActionPose } from './useCharacterBrain';
+import { useCharacterBrain, WALK_SPEED, type ActionPose } from './useCharacterBrain';
+import { sampleGait } from './gait';
 import { playSound } from '@/lib/audioEngine';
 import { SEAT_HEIGHT } from '../layout';
 import type { ActiveStation } from '@/types/room';
@@ -29,12 +30,21 @@ function seatedLegs(hipHeight: number) {
 
 const BACKPACK_HIDDEN_POSES: ActionPose[] = ['typing', 'sitting'];
 
+/** Seconds to ease from the previous pose into a new one */
+const BLEND_TIME = 0.22;
+const clamp = (x: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, x));
+
 export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
   const boyRef = useRef<CharacterBoyHandle>(null);
   const { walker, flags, update } = useCharacterBrain(onStationArrival);
 
   const strumSoundTimer = useRef(0);
   const lastFlags = useRef({ chilly: false, guitar: false, dart: false, backpack: true });
+  // Pose blending: last frame's joint values, the values we are easing away from
+  const lastPose = useRef<ActionPose | null>(null);
+  const lastJoints = useRef<number[] | null>(null);
+  const blendFrom = useRef<number[] | null>(null);
+  const blendLeft = useRef(0);
 
   useFrame((state, delta) => {
     update(delta);
@@ -76,23 +86,39 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
     leftKnee.rotation.set(0, 0, 0);
     rightKnee.rotation.set(0, 0, 0);
 
+    const joints = [spine, head, leftArm, rightArm, leftElbow, rightElbow, leftLeg, rightLeg, leftKnee, rightKnee];
+
+    if (lastPose.current !== null && lastPose.current !== w.pose && lastJoints.current) {
+      blendFrom.current = lastJoints.current;
+      blendLeft.current = BLEND_TIME;
+    }
+    lastPose.current = w.pose;
+
     switch (w.pose) {
       case 'walking': {
-        // Gait phase advances with distance, so the feet match the ground speed
-        const p = w.gait;
-        const swing = Math.sin(p);
-        const bend = (phase: number) => 0.1 + 0.75 * Math.pow(Math.max(0, Math.cos(phase)), 2);
-        leftLeg.rotation.x = -swing * 0.55;
-        rightLeg.rotation.x = swing * 0.55;
-        leftKnee.rotation.x = bend(p);
-        rightKnee.rotation.x = bend(p + Math.PI);
-        leftArm.rotation.x = swing * 0.5;
-        rightArm.rotation.x = -swing * 0.5;
-        leftElbow.rotation.x = -0.2 - Math.max(0, -swing) * 0.4;
-        rightElbow.rotation.x = -0.2 - Math.max(0, swing) * 0.4;
-        spine.rotation.x = 0.06;
-        spine.rotation.y = Math.sin(p) * 0.06;
-        root.position.y = Math.abs(Math.sin(p)) * 0.018;
+        // Feet are placed explicitly (see gait.ts); the pelvis height falls out of the IK
+        const g = sampleGait(w.gait, w.stride, BOY);
+        const speedFrac = clamp(w.speed / WALK_SPEED, 0, 1);
+        leftLeg.rotation.x = g.left.hip;
+        rightLeg.rotation.x = g.right.hip;
+        leftKnee.rotation.x = g.left.knee;
+        rightKnee.rotation.x = g.right.knee;
+        root.position.y = g.hipHeight - BOY.hipY;
+
+        // Arms counter-swing the legs; elbows fold as the hand comes forward
+        const swing = g.armPhase * 0.55 * w.stride;
+        leftArm.rotation.x = swing;
+        rightArm.rotation.x = -swing;
+        leftElbow.rotation.x = -0.25 - Math.max(0, -swing) * 0.9;
+        rightElbow.rotation.x = -0.25 - Math.max(0, swing) * 0.9;
+
+        // Lean into the walk, counter-twist the shoulders, and tilt into turns
+        const turnLean = clamp(w.turnRate * 0.022, -0.12, 0.12) * speedFrac;
+        spine.rotation.x = 0.03 + 0.1 * speedFrac;
+        spine.rotation.y = -g.armPhase * 0.07 * w.stride;
+        spine.rotation.z = g.sway * 0.03 * w.stride - turnLean;
+        head.rotation.x = -0.05 - 0.04 * speedFrac;
+        head.rotation.y = clamp(w.turnRate * 0.05, -0.3, 0.3);
         break;
       }
 
@@ -250,6 +276,24 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
         break;
       }
     }
+
+    // Ease out of the previous pose so legs and arms don't snap
+    const from = blendFrom.current;
+    if (from && blendLeft.current > 0) {
+      blendLeft.current = Math.max(0, blendLeft.current - delta);
+      const k = blendLeft.current / BLEND_TIME;
+      const weight = k * k * (3 - 2 * k);
+      joints.forEach((j, i) => {
+        j.rotation.x += (from[i * 3] - j.rotation.x) * weight;
+        j.rotation.y += (from[i * 3 + 1] - j.rotation.y) * weight;
+        j.rotation.z += (from[i * 3 + 2] - j.rotation.z) * weight;
+      });
+      root.position.y += (from[joints.length * 3] - root.position.y) * weight;
+    }
+    lastJoints.current = [
+      ...joints.flatMap((j) => [j.rotation.x, j.rotation.y, j.rotation.z]),
+      root.position.y,
+    ];
   });
 
   return <CharacterBoy ref={boyRef} />;

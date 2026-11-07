@@ -24,6 +24,7 @@ import {
   WallSconce,
 } from '@/components/room/items';
 import { VintageMailbox } from '@/components/room/VintageMailbox';
+import { CharacterBoy } from '@/components/room/character/CharacterBoy';
 import { useRoomStore } from '@/store/useRoomStore';
 
 type ItemId =
@@ -40,6 +41,7 @@ type ItemId =
   | 'volleyball'
   | 'racket'
   | 'mailbox'
+  | 'character'
   | 'window'
   | 'sconce';
 
@@ -163,6 +165,15 @@ const ITEMS: ItemMeta[] = [
     targetPos: [0, 1.05, 0],
   },
   {
+    id: 'character',
+    name: 'Resident Character',
+    icon: '🧍',
+    category: 'Props',
+    notes: 'The portfolio resident in a neutral stance: sculpted face, short textured quiff, orange hoodie, jeans and sneakers.',
+    cameraPos: [1.1, 1.2, 2.7],
+    targetPos: [0, 0.8, 0],
+  },
+  {
     id: 'window',
     name: 'Venetian Blinds',
     icon: '🪟',
@@ -270,6 +281,7 @@ function StudioScene({
         {activeItem === 'volleyball' && <Volleyball position={[0, 0, 0]} />}
         {activeItem === 'racket' && <TennisRacket position={[0, 0, 0]} />}
         {activeItem === 'mailbox' && <VintageMailbox position={[0, 0, 0]} />}
+        {activeItem === 'character' && <CharacterBoy position={[0, 0, 0]} />}
         {activeItem === 'window' && <VenetianWindow position={[0, 0, 0]} />}
         {activeItem === 'sconce' && <WallSconce position={[0, 0.55, 0]} />}
       </group>
@@ -281,7 +293,7 @@ function StudioScene({
         dampingFactor={0.06}
         autoRotate={autoRotate}
         autoRotateSpeed={1.8}
-        minDistance={1.2}
+        minDistance={0.5}
         maxDistance={12}
         target={meta.targetPos}
       />

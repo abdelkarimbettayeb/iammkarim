@@ -177,6 +177,7 @@ export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
       <VintageMailbox
         position={[OUTDOOR.mailbox.x, 0, OUTDOOR.mailbox.z]}
         rotation={[0, OUTDOOR.mailbox.yaw, 0]}
+        scale={0.62}
       />
     </group>
   );

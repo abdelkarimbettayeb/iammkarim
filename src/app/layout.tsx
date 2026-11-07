@@ -12,7 +12,8 @@ import { josefinSans, signika, padauk } from './helpers/fonts';
 export const metadata: Metadata = {
     title: 'Abdelkarim - Software developer',
     description: 'A simple descriptive portfolio website for ABDELKARIM BETTAYEB.',
-    icons: 'favicon.ico'
+    icons: 'favicon.ico',
+    verification: { google: '6mKxUSRolcNT34_bEIukWyXcNkeMywO1EA0yh_vHvHU' }
 };
 
 const myColor: MantineColorsTuple = [
