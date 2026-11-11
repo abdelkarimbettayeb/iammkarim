@@ -9,6 +9,7 @@ import { cartridgeProjects, languages } from '@/data/resumeData';
 import { WavingFlag } from '../WavingFlag';
 import type { CartridgeProject } from '@/types/room';
 import { DeskLamp } from '../DeskLamp';
+import { exploreStore } from '@/store/exploreStore';
 
 interface WorkstationDeskProps {
   position?: [number, number, number];
@@ -757,6 +758,15 @@ export function WorkstationDesk({
             e.stopPropagation();
             setActiveStation('flags');
           }}
+          onPointerOver={(e) => {
+            e.stopPropagation();
+            document.body.style.cursor = 'pointer';
+            exploreStore.setHover({ title: 'Languages', action: 'Arabic · English · French' });
+          }}
+          onPointerOut={() => {
+            document.body.style.cursor = 'auto';
+            exploreStore.setHover(null);
+          }}
         >
           {languages.map((flag, idx) => (
             <WavingFlag
@@ -823,10 +833,12 @@ export function WorkstationDesk({
           e.stopPropagation();
           setScreenHovered(true);
           if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+          exploreStore.setHover({ title: 'Workstation', action: 'Sit down & browse projects' });
         }}
         onPointerOut={() => {
           setScreenHovered(false);
           if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+          exploreStore.setHover(null);
         }}
       >
         {/* Aluminum Stand Base (Sleek Rectangular) */}

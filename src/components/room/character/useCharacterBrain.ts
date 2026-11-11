@@ -7,6 +7,8 @@ import { NODES, STOPS, planPath, segmentClear, type StopKey } from '../walkmap';
 import { forward, type Vec2 } from '../layout';
 import { ballBus, dartboardBus } from '../items/propBus';
 import { playSound } from '@/lib/audioEngine';
+import { exploreStore } from '@/store/exploreStore';
+import { personalInfo } from '@/data/resumeData';
 import { GAIT } from './gait';
 
 export type ActionPose =
@@ -99,6 +101,35 @@ export interface CharacterFlags {
   guitar: boolean;
   dart: boolean;
 }
+
+/** Header status line: what he's up to */
+const POSE_ACTIVITY: Partial<Record<ActionPose, string>> = {
+  waving: 'Saying hello',
+  idle: 'Hanging out',
+  typing: 'Coding at the desk',
+  sitting: 'Reading in the armchair',
+  strumming: 'Playing guitar',
+  bumping: 'Playing volleyball',
+  window: 'At the window',
+  throwing: 'Throwing darts',
+  retrieving: 'Collecting darts',
+  thinking: 'Thinking on the lawn',
+  shivering: 'Feeling the chill',
+  fiddling_flags: 'Straightening the flags',
+  reaching: 'Grabbing the guitar',
+  pickup: 'Picking up the ball',
+};
+const STOP_ACTIVITY: Partial<Record<StopKey, string>> = {
+  rest: 'Heading back inside',
+  workstation: 'Going to the desk',
+  couch: 'Going to the armchair',
+  guitar: 'Going for the guitar',
+  window: 'Going to the window',
+  dartboard: 'Going to the oche',
+  volleyball: 'Heading out to the lawn',
+  flags: 'Going to the desk',
+  thinking_outdoor: 'Going for a stroll',
+};
 
 function wrapAngle(a: number): number {
   return Math.atan2(Math.sin(a), Math.cos(a));
@@ -307,7 +338,13 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
   useEffect(() => {
     setQueue([
       { kind: 'go', stop: 'rest' },
-      { kind: 'do', pose: 'waving', duration: 1.6 },
+      {
+        kind: 'do',
+        pose: 'waving',
+        duration: 1.6,
+        enter: () =>
+          exploreStore.say(`Hey, I'm ${personalInfo.name.split(' ')[0]}! Click around, everything in here does something.`),
+      },
       { kind: 'do', pose: 'idle', duration: null },
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -445,6 +482,8 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
         w.pose = step.pose;
         w.blend = step.blend ?? POSE_BLEND;
         w.throwPhase = 0;
+        const doing = POSE_ACTIVITY[step.pose];
+        if (doing) exploreStore.setActivity(doing);
         step.enter?.();
       }
       stepTimer.current += dt;
@@ -476,6 +515,9 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
         leaveIgnores.current = [];
         pathIndex.current = path.current.length > 1 ? 1 : 0;
         currentStop.current = step.stop;
+        const going =
+          step.stop === 'guitar' && flags.current.guitar ? 'Putting the guitar back' : STOP_ACTIVITY[step.stop];
+        if (going) exploreStore.setActivity(going);
       }
 
       const target = path.current[pathIndex.current];

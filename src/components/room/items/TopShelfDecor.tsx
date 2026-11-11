@@ -3,7 +3,7 @@
 import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
-import { roomStore } from '@/store/useRoomStore';
+import { exploreStore } from '@/store/exploreStore';
 import { playSound } from '@/lib/audioEngine';
 
 /**
@@ -12,10 +12,12 @@ import { playSound } from '@/lib/audioEngine';
  */
 function ShelfItem({
   position,
+  label,
   onActivate,
   children,
 }: {
   position: [number, number, number];
+  label: { title: string; action: string };
   onActivate?: () => void;
   children: React.ReactNode;
 }) {
@@ -49,10 +51,12 @@ function ShelfItem({
         e.stopPropagation();
         wobble.current.hover = true;
         document.body.style.cursor = 'pointer';
+        exploreStore.setHover(label);
       }}
       onPointerOut={() => {
         wobble.current.hover = false;
         document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {children}
@@ -60,11 +64,14 @@ function ShelfItem({
   );
 }
 
-/** The framed portrait opens the full resume */
+/** The framed portrait opens the resume at the education section */
 const openResume = () => {
   playSound('cartridge');
-  if (!roomStore.getState().isDrawerOpen) roomStore.toggleDrawer();
+  exploreStore.discover('portrait');
+  exploreStore.openDrawer('education');
 };
+const PORTRAIT = { title: 'Graduation photo', action: 'Education & achievements' };
+const PLANT = { title: 'House plant', action: 'Give it a nudge' };
 const rustle = () => playSound('chime');
 
 interface TopShelfDecorProps {
@@ -246,7 +253,7 @@ export function TopShelfDecor({
       {/* =========================================
           2. Framed Portrait Photo (Center Shelf)
          ========================================= */}
-      <ShelfItem position={[0.04, 0.04, 0.05]} onActivate={openResume}>
+      <ShelfItem position={[0.04, 0.04, 0.05]} label={PORTRAIT} onActivate={openResume}>
       <group position={[0, 0.4, 0]} rotation={[0, 0.18, -0.06]}>
         {/* Dark Walnut Picture Frame */}
         <mesh castShadow>
@@ -269,7 +276,7 @@ export function TopShelfDecor({
       {/* =========================================
           3. Small Middle Houseplant (Spade Leaves)
          ========================================= */}
-      <ShelfItem position={[0.04, 0.04, 0.72]} onActivate={rustle}>
+      <ShelfItem position={[0.04, 0.04, 0.72]} label={PLANT} onActivate={rustle}>
         {/* Two-Tone Ceramic Pot: Charcoal Lower Base */}
         <mesh position={[0, 0.06, 0]} castShadow>
           <cylinderGeometry args={[0.13, 0.115, 0.12, 24]} />
@@ -305,7 +312,7 @@ export function TopShelfDecor({
       {/* =========================================
           4. Lush Cascading Boston Fern (Right Shelf)
          ========================================= */}
-      <ShelfItem position={[0.04, 0.04, 1.52]} onActivate={rustle}>
+      <ShelfItem position={[0.04, 0.04, 1.52]} label={PLANT} onActivate={rustle}>
         {/* Two-Tone Ceramic Pot: Charcoal Lower Base */}
         <mesh position={[0, 0.07, 0]} castShadow>
           <cylinderGeometry args={[0.165, 0.145, 0.14, 24]} />

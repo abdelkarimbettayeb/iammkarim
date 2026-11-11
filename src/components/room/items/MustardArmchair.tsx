@@ -4,6 +4,7 @@ import { useRoomStore } from '@/store/useRoomStore';
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { exploreStore } from '@/store/exploreStore';
 
 interface MustardArmchairProps {
   position?: [number, number, number];
@@ -101,9 +102,11 @@ export function MustardArmchair({
       onPointerOver={(e) => {
         e.stopPropagation();
         if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Reading chair', action: 'Sit down & open the resume' });
       }}
       onPointerOut={() => {
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {/* ========================================================

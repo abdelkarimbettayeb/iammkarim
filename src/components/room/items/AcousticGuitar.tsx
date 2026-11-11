@@ -3,6 +3,7 @@
 import { useRoomStore } from '@/store/useRoomStore';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
+import { exploreStore } from '@/store/exploreStore';
 
 interface AcousticGuitarProps extends React.ComponentProps<'group'> {
   isLeaning?: boolean;
@@ -85,9 +86,11 @@ export function AcousticGuitar({ isLeaning = false, interactive = true, ...props
         onPointerOver: (e: { stopPropagation: () => void }) => {
           e.stopPropagation();
           document.body.style.cursor = 'pointer';
+          exploreStore.setHover({ title: 'Guitar', action: 'Play a tune' });
         },
         onPointerOut: () => {
           document.body.style.cursor = 'auto';
+          exploreStore.setHover(null);
         },
       }
     : {};

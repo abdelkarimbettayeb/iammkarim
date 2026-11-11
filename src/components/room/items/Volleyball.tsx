@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { playSound, playVolleyballBounceSound } from '@/lib/audioEngine';
 import { useRoomStore } from '@/store/useRoomStore';
 import { ballBus } from './propBus';
+import { exploreStore } from '@/store/exploreStore';
 
 interface VolleyballProps {
   position?: [number, number, number];
@@ -169,6 +170,7 @@ export function Volleyball({
   useEffect(() => {
     return () => {
       if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
     };
   }, []);
 
@@ -352,9 +354,11 @@ export function Volleyball({
         onPointerOver={(e) => {
           e.stopPropagation();
           if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Volleyball', action: 'Play keep-ups' });
         }}
         onPointerOut={() => {
           if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
         }}
       >
         <sphereGeometry args={[ballRadius, 32, 32]} />
@@ -372,9 +376,11 @@ export function Volleyball({
         onPointerOver={(e) => {
           e.stopPropagation();
           if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Volleyball', action: 'Play keep-ups' });
         }}
         onPointerOut={() => {
           if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
         }}
       >
         <sphereGeometry args={[0.55, 16, 16]} />

@@ -3,6 +3,9 @@
 import React, { useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
+import { exploreStore, hoverable, useExplore } from '@/store/exploreStore';
+import { FUN_FACTS } from '@/data/discoveries';
 import { BOY, CharacterBoy, CharacterBoyHandle } from './CharacterBoy';
 import { useCharacterBrain, WALK_SPEED, THROW, type ActionPose } from './useCharacterBrain';
 import { sampleGait } from './gait';
@@ -133,8 +136,35 @@ const BOARD = v(ROOM.minX + 0.05, WALL_ITEMS.dartboard.y, WALL_ITEMS.dartboard.z
 const BUMP_UP = 4.2;
 const G = 9.81;
 
+/** How long a speech bubble stays up */
+const SPEECH_MS = 4800;
+
+/** Comic speech bubble that follows his head */
+function SpeechBubble() {
+  const speech = useExplore((s) => s.speech);
+  const [now, setNow] = React.useState(0);
+  React.useEffect(() => {
+    if (!speech) return;
+    setNow(Date.now());
+    const id = window.setTimeout(() => setNow(Date.now()), SPEECH_MS);
+    return () => window.clearTimeout(id);
+  }, [speech]);
+  if (!speech || now - speech.at > SPEECH_MS) return null;
+  return (
+    <Html center position={[0, 0, 0]} pointerEvents="none" zIndexRange={[20, 0]}>
+      <div key={speech.at} className="speech-bubble">
+        {speech.text}
+      </div>
+    </Html>
+  );
+}
+
+const hoverMe = hoverable('Abdelkarim', 'Click me for a fun fact');
+let factIndex = Math.floor(Math.random() * FUN_FACTS.length);
+
 export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
   const boyRef = useRef<CharacterBoyHandle>(null);
+  const bubbleRef = useRef<THREE.Group>(null);
   const { walker, flags, update } = useCharacterBrain(onStationArrival);
 
   const strumSoundTimer = useRef(0);
@@ -177,6 +207,7 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
 
     root.position.set(w.x, 0, w.z);
     root.rotation.set(0, w.yaw, 0);
+    bubbleRef.current?.position.set(w.x, 1.95, w.z);
 
     // Neutral stance; each pose overrides what it needs
     spine.rotation.set(0, 0, 0);
@@ -520,5 +551,23 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
     }
   });
 
-  return <CharacterBoy ref={boyRef} />;
+  return (
+    <>
+      <group
+        {...hoverMe}
+        onClick={(e) => {
+          e.stopPropagation();
+          exploreStore.discover('me');
+          factIndex = (factIndex + 1) % FUN_FACTS.length;
+          exploreStore.say(FUN_FACTS[factIndex]);
+          playSound('chime');
+        }}
+      >
+        <CharacterBoy ref={boyRef} />
+      </group>
+      <group ref={bubbleRef}>
+        <SpeechBubble />
+      </group>
+    </>
+  );
 }

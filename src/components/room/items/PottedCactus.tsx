@@ -3,6 +3,7 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
+import { exploreStore } from '@/store/exploreStore';
 
 interface PottedCactusProps {
   position?: [number, number, number];
@@ -31,6 +32,8 @@ export function PottedCactus({
   const handleCactusClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
     cactusWobbleRef.current = 1;
+    exploreStore.discover('cactus');
+    exploreStore.say('Low maintenance, high uptime. Like good infrastructure.');
   };
 
   // Smooth curved geometries for left and right cactus arms
@@ -66,9 +69,11 @@ export function PottedCactus({
       onPointerOver={(e) => {
         e.stopPropagation();
         if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Office cactus', action: 'Poke it' });
       }}
       onPointerOut={() => {
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {/* 1. Ceramic Pot with Terracotta Rim */}

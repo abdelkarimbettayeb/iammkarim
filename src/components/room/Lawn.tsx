@@ -2,13 +2,13 @@
 
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
-import { useFrame } from '@react-three/fiber';
 import { CURB_Z, OUTDOOR, PATH_X } from './layout';
 
 // Slab outline (see RoomStructure): the ledge around the open sides of the house
 const SLAB = { minX: -2.65, maxX: 2.8, minZ: -2.35, maxZ: 2.75 };
 
-const CLUMPS = 18000;
+/** A light scatter of tufts over the lawn texture, not a carpet */
+const CLUMPS = 4500;
 const BLADES_PER_CLUMP = 3;
 
 /** A clump of three tapered, slightly curved blades; y runs 0 (root) .. 1 (tip) */
@@ -68,30 +68,13 @@ function grassAllowed(x: number, z: number): boolean {
 }
 
 /**
- * Dense instanced grass around the house: thousands of blade clumps with
- * colour variation, denser near the house and thinning out with distance,
- * swaying in a slow wind (vertex shader, so it costs nothing on the CPU).
+ * Static instanced grass tufts around the house, with colour variation,
+ * denser near the house and thinning out with distance.
  */
 function GrassField() {
-  const { mesh, material } = useMemo(() => {
+  const mesh = useMemo(() => {
     const geometry = createClumpGeometry();
     const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
-    const uniforms = { uTime: { value: 0 } };
-    material.onBeforeCompile = (shader) => {
-      shader.uniforms.uTime = uniforms.uTime;
-      shader.vertexShader = shader.vertexShader
-        .replace('#include <common>', '#include <common>\nuniform float uTime;')
-        .replace(
-          '#include <begin_vertex>',
-          `#include <begin_vertex>
-          vec4 rootW = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-          float gust = sin(uTime * 1.6 + rootW.x * 0.45 + rootW.z * 0.3) * 0.6 + sin(uTime * 3.3 + rootW.x * 1.7) * 0.25;
-          float k = transformed.y * transformed.y;
-          transformed.x += gust * 0.12 * k;
-          transformed.z += gust * 0.06 * k;`
-        );
-    };
-    material.userData.uniforms = uniforms;
 
     const mesh = new THREE.InstancedMesh(geometry, material, CLUMPS);
     const m = new THREE.Matrix4();
@@ -127,12 +110,8 @@ function GrassField() {
     mesh.count = n;
     mesh.receiveShadow = true;
     mesh.frustumCulled = false;
-    return { mesh, material };
+    return mesh;
   }, []);
-
-  useFrame((state) => {
-    material.userData.uniforms.uTime.value = state.clock.getElapsedTime();
-  });
 
   return <primitive object={mesh} />;
 }

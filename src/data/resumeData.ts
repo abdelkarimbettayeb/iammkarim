@@ -156,7 +156,7 @@ export const techSkills: TechSkillItem[] = [
   {
     name: 'React Native (Expo)',
     level: 88,
-    color: '#000020',
+    color: '#61DAFB',
     iconPath: '/skills/react-native.svg',
     category: 'frontend',
     description: 'Cross-platform mobile applications for iOS & Android.',

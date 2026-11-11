@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { playSound } from '@/lib/audioEngine';
 import { useRoomStore } from '@/store/useRoomStore';
 import { dartboardBus } from './propBus';
+import { exploreStore } from '@/store/exploreStore';
 
 interface Dart {
   id: number;
@@ -201,6 +202,7 @@ export function TournamentDartboard({
       dartboardBus.clear = null;
       if (badgeTimerRef.current) clearTimeout(badgeTimerRef.current);
       if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
     };
   }, []);
 
@@ -227,9 +229,11 @@ export function TournamentDartboard({
       onPointerOver={(e) => {
         e.stopPropagation();
         if (typeof document !== 'undefined') document.body.style.cursor = 'crosshair';
+        exploreStore.setHover(activeStation === 'dartboard' ? { title: 'Dartboard', action: 'Click where the next dart should land' } : { title: 'Dartboard', action: 'Play darts' });
       }}
       onPointerOut={() => {
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {/* 1. Outer Dark Teak / Walnut Rim Cabinet */}
@@ -292,8 +296,8 @@ export function TournamentDartboard({
       {/* 5. Celebratory Hit Badge on Click */}
       {showHitBadge && (
         <Html position={[0, 0.55, 0.08]} center pointerEvents="none">
-          <div className="bg-amber-500/95 text-slate-950 font-black text-xs px-2.5 py-1 rounded shadow-lg shadow-amber-500/50 border border-amber-300 animate-bounce whitespace-nowrap select-none">
-            🎯 Bullseye! +50
+          <div className="pane-in glass-panel-master px-3 py-1.5 text-[12px] font-semibold text-amber-200 whitespace-nowrap select-none">
+            Bullseye!
           </div>
         </Html>
       )}

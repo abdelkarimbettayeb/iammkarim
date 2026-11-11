@@ -7,6 +7,7 @@ import { TallHighwayLampPost } from './TallHighwayLampPost';
 import { PathwayLampPost } from './PathwayLampPost';
 import { Volleyball } from './items/Volleyball';
 import { Lawn } from './Lawn';
+import { Critters } from './Critters';
 import { CURB_Z, OUTDOOR, PATH_X, ROAD, ROOM } from './layout';
 
 interface OutdoorPathwayProps {
@@ -52,6 +53,9 @@ export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
     <group name="outdoor-pathway" position={position}>
       {/* 1. Lawn that fades into the horizon haze */}
       <Lawn />
+
+      {/* Flowers, butterflies by day, fireflies at night */}
+      <Critters />
 
       {/* 2. Road with curb in front of the garden */}
       <group position={[0, 0.01, ROAD.centerZ]} name="main-road">

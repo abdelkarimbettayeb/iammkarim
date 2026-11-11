@@ -2,10 +2,10 @@
 
 import React, { useRef, useState, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
+import { exploreStore } from '@/store/exploreStore';
 
 interface VintageMailboxProps {
   position?: [number, number, number];
@@ -125,6 +125,7 @@ export function VintageMailbox({
   useEffect(() => {
     return () => {
       if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
     };
   }, []);
 
@@ -154,6 +155,7 @@ export function VintageMailbox({
     e.stopPropagation();
     playSound('chime');
     toggleContact();
+    exploreStore.discover('mailbox');
   };
 
   return (
@@ -166,10 +168,12 @@ export function VintageMailbox({
         e.stopPropagation();
         setHovered(true);
         if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Mailbox', action: 'Send me a message' });
       }}
       onPointerOut={() => {
         setHovered(false);
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {/* ========================================================
@@ -331,22 +335,6 @@ export function VintageMailbox({
         </mesh>
       </group>
 
-      {/* ========================================================
-          6. FLOATING VISIONOS GLASS TOOLTIP ON HOVER
-          ======================================================== */}
-      {hovered && (
-        <Html position={[0, 1.85, 0.25]} center distanceFactor={7} pointerEvents="none">
-          <div className="glass-panel-subtle px-4 py-2 rounded whitespace-nowrap text-center animate-in fade-in zoom-in-95 duration-150 shadow-2xl">
-            <div className="text-xs font-bold text-white flex items-center gap-2 justify-center">
-              <span>📮</span>
-              <span>Send Message & Connect</span>
-            </div>
-            <div className="text-[10px] text-amber-300 font-semibold mt-0.5">
-              Click to open direct contact & resume
-            </div>
-          </div>
-        </Html>
-      )}
     </group>
   );
 }

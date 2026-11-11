@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, Suspense } from 'react';
-import { Float, Html, useTexture } from '@react-three/drei';
+import { Float, useTexture } from '@react-three/drei';
+import { exploreStore } from '@/store/exploreStore';
+import { playSound } from '@/lib/audioEngine';
 import type { TechSkillItem } from '@/types/room';
 
 interface TechEmblemProps {
@@ -49,8 +51,20 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
           onPointerOver={(e) => {
             e.stopPropagation();
             setHovered(true);
+            document.body.style.cursor = 'pointer';
+            exploreStore.setHover({ title: `${skill.name} · ${skill.level}%`, action: skill.description ?? 'See my skills' });
           }}
-          onPointerOut={() => setHovered(false)}
+          onPointerOut={() => {
+            setHovered(false);
+            document.body.style.cursor = 'auto';
+            exploreStore.setHover(null);
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            playSound('cartridge');
+            exploreStore.discover('skills');
+            exploreStore.openDrawer('skills');
+          }}
         >
           {/* 1. Outer Hexagonal Badge Body */}
           <mesh rotation={[Math.PI / 2, 0, 0]} castShadow>
@@ -91,29 +105,6 @@ export function TechEmblem({ skill, position }: TechEmblemProps) {
             </Suspense>
           </IconBoundary>
 
-          {/* 5. Hover Tooltip Badge */}
-          {hovered && (
-            <Html position={[0, 0.26, 0.06]} center distanceFactor={7} pointerEvents="none">
-              <div className="bg-[#0B0F19]/95 backdrop-blur-md border border-slate-700 shadow-xl px-3 py-1.5 rounded text-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-150">
-                <div className="flex items-center gap-2 justify-center">
-                  <span className="font-bold text-xs text-white tracking-wide">
-                    {skill.name}
-                  </span>
-                  <span
-                    className="text-[10px] font-black px-1.5 py-0.2 rounded"
-                    style={{ backgroundColor: `${skill.color}25`, color: skill.color }}
-                  >
-                    {skill.level}%
-                  </span>
-                </div>
-                {skill.description && (
-                  <p className="text-[9px] text-slate-400 mt-0.5 max-w-[150px] line-clamp-1">
-                    {skill.description}
-                  </p>
-                )}
-              </div>
-            </Html>
-          )}
         </group>
       </Float>
     </group>

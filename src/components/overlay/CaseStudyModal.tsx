@@ -1,10 +1,12 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { X, ExternalLink, Sparkles, CheckCircle2 } from 'lucide-react';
+import { X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import { cartridgeProjects } from '@/data/resumeData';
+import type { CartridgeId } from '@/types/room';
+
+const ORDER = Object.keys(cartridgeProjects) as CartridgeId[];
 
 export function CaseStudyModal() {
   const activeCartridge = useRoomStore((state) => state.activeCartridge);
@@ -17,145 +19,129 @@ export function CaseStudyModal() {
     roomStore.setActiveStation('none');
   }, [setActiveCartridge, setActiveZone]);
 
+  const step = React.useCallback(
+    (dir: 1 | -1) => {
+      if (!activeCartridge) return;
+      const i = ORDER.indexOf(activeCartridge);
+      setActiveCartridge(ORDER[(i + dir + ORDER.length) % ORDER.length]);
+    },
+    [activeCartridge, setActiveCartridge]
+  );
+
   React.useEffect(() => {
     if (!activeCartridge) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose();
-      }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose();
+      if (e.key === 'ArrowRight') step(1);
+      if (e.key === 'ArrowLeft') step(-1);
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeCartridge, handleClose]);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [activeCartridge, handleClose, step]);
 
   if (!activeCartridge) return null;
-
   const project = cartridgeProjects[activeCartridge];
   if (!project) return null;
+  const index = ORDER.indexOf(activeCartridge);
 
   return (
-    <div className="fixed inset-0 z-40 pointer-events-none flex items-center justify-end p-4 md:p-8">
-      {/* Subtle backdrop scrim on mobile */}
-      <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm md:hidden pointer-events-auto"
-        onClick={handleClose}
-      />
+    <div className="hud fixed inset-0 z-40 pointer-events-none flex items-end sm:items-center justify-center sm:justify-end p-3 sm:p-6 md:p-8">
+      {/* Phones get a scrim; on larger screens the room stays visible beside the pane */}
+      <div className="scrim-in fixed inset-0 bg-[rgb(3_7_18/0.45)] sm:hidden pointer-events-auto" onClick={handleClose} />
 
-      {/* Radical Glassmorphic Case Study Panel (VisionOS / Refined Dark Glass) */}
-      <div className="relative pointer-events-auto w-full max-w-lg glass-panel-master rounded p-6 sm:p-8 text-white animate-in slide-in-from-right duration-300 overflow-hidden">
-
-        {/* Header Section */}
-        <div className="relative flex items-start justify-between gap-4">
-          <div>
-            {/* Glass Status Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded glass-pill mb-2">
-              <span className="relative flex h-2 w-2">
-                <span
-                  className="animate-ping absolute inline-flex h-full w-full rounded opacity-75"
-                  style={{ backgroundColor: project.color }}
-                />
-                <span
-                  className="relative inline-flex rounded h-2 w-2"
-                  style={{ backgroundColor: project.color }}
-                />
-              </span>
-              <span className="text-[10px] uppercase font-bold tracking-widest text-sky-300">
-                Active Cartridge
-              </span>
-            </div>
-
-            <h2 className="text-2xl sm:text-3xl font-primary font-bold text-white tracking-tight drop-shadow-sm">
-              {project.title}
-            </h2>
-            <p className="text-xs text-slate-300/90 mt-0.5 font-secondary font-medium">
-              {project.subtitle}
-            </p>
-          </div>
-
-          <button
-            onClick={handleClose}
-            className="p-2.5 rounded glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center shrink-0"
-            title="Close modal"
-          >
-            <X size={18} />
-          </button>
+      <section
+        aria-labelledby="case-title"
+        className="sheet-in pointer-events-auto glass-panel-master w-full sm:w-[440px] max-h-[86vh] sm:max-h-[calc(100vh-180px)] flex flex-col overflow-hidden"
+        style={{ '--a1': project.color, '--a2': '#8b7cff', '--a3': project.color } as React.CSSProperties}
+      >
+        <div className="aurora" aria-hidden>
+          <span />
+          <span />
+          <span />
         </div>
 
-        {/* Highlighted Metric Banner (Glass Tile with Colored Accents) */}
-        <div
-          className="relative mt-5 p-3.5 rounded glass-tile flex items-center gap-3 border transition-all"
-          style={{
-            borderColor: `${project.color}35`,
-          }}
-        >
-          <div
-            className="w-8 h-8 rounded flex items-center justify-center shrink-0 shadow-sm"
-            style={{
-              backgroundColor: `${project.color}25`,
-              color: project.color,
-            }}
-          >
-            <Sparkles size={16} />
-          </div>
-          <span className="text-xs sm:text-sm font-primary font-semibold tracking-wide text-white">
-            {project.metrics}
-          </span>
-        </div>
-
-        {/* Description Section (Inner Glass Cards) */}
-        <div className="relative mt-5 space-y-2.5">
-          {project.description.map((bullet, idx) => (
-            <div
-              key={idx}
-              className="glass-tile rounded p-3.5 flex items-start gap-3 text-xs sm:text-sm text-slate-200 transition-all"
+        {/* Screenshot, framed like a pane in a window */}
+        {project.image && (
+          <div className="relative h-40 sm:h-44 shrink-0 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={project.id}
+              src={project.image}
+              alt=""
+              className="absolute inset-0 w-full h-full object-cover scale-105 animate-in fade-in zoom-in-105 duration-700"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(14,23,38,0.15)_0%,rgba(14,23,38,0.55)_45%,rgba(14,23,38,0.96)_85%)]" />
+            <button
+              onClick={handleClose}
+              aria-label="Close"
+              className="absolute top-3 right-3 h-9 w-9 glass-btn-secondary backdrop-blur-md bg-black/25 text-white flex items-center justify-center"
             >
-              <div className="w-5 h-5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center shrink-0 mt-0.5">
-                <CheckCircle2 size={13} />
-              </div>
-              <span className="leading-relaxed font-paragraph text-slate-200">{bullet}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Tech Stack Architecture Pills */}
-        <div className="relative mt-5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-slate-400 mb-2.5 flex items-center gap-1.5">
-            <span>Tech Stack Architecture</span>
+              <X size={17} />
+            </button>
           </div>
-          <div className="flex flex-wrap gap-2">
+        )}
+
+        {!project.image && (
+          <button onClick={handleClose} aria-label="Close" className="absolute top-3 right-3 z-[3] h-9 w-9 glass-btn-secondary text-white flex items-center justify-center">
+            <X size={17} />
+          </button>
+        )}
+
+        <div
+          key={project.id}
+          className={`relative px-5 sm:px-6 pb-5 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-500 ${project.image ? '-mt-10' : 'pt-6'}`}
+        >
+          <p className="text-[12px] text-slate-300 flex items-center gap-2">
+            <span className="h-2 w-2 rounded shrink-0" style={{ background: project.color, boxShadow: `0 0 12px ${project.color}` }} />
+            {project.subtitle}
+          </p>
+          <h2 id="case-title" className="font-primary font-bold text-[26px] leading-[1.1] tracking-[-0.02em] text-white mt-1.5">
+            {project.title}
+          </h2>
+          <p className="mt-3 text-[14px] leading-relaxed text-white/90">{project.metrics}</p>
+
+          <ul className="mt-4 space-y-2.5">
+            {project.description.map((line, i) => (
+              <li key={i} className="flex gap-3 text-[13px] leading-relaxed text-slate-300">
+                <span className="mt-[9px] h-px w-3 shrink-0" style={{ background: project.color }} />
+                <span>{line}</span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-4 flex flex-wrap gap-1.5" aria-label="Tech stack">
             {project.stack.map((tech) => (
-              <span
-                key={tech}
-                className="px-3 py-1.5 rounded glass-pill text-[11px] font-bold uppercase text-slate-200 tracking-wide transition-all"
-              >
+              <span key={tech} className="px-2.5 py-1 glass-pill text-[11.5px] text-slate-200">
                 {tech}
               </span>
             ))}
           </div>
         </div>
 
-        {/* Actions Footer */}
-        <div className="relative mt-7 pt-4 border-t border-white/[0.08] flex items-center justify-between gap-3">
-          <button
-            onClick={handleClose}
-            className="px-4 py-2.5 rounded glass-btn-secondary text-slate-300 font-bold text-xs transition-all hover:text-white"
-          >
-            ← Back to Room
+        {/* Footer: browse the other projects without leaving the pane */}
+        <div className="relative shrink-0 border-t border-white/10 px-3 sm:px-4 py-3 flex items-center gap-2">
+          <button onClick={() => step(-1)} aria-label="Previous project" className="h-10 w-10 glass-btn-secondary text-slate-200 flex items-center justify-center">
+            <ChevronLeft size={18} />
           </button>
-
+          <span className="text-[12px] text-slate-400 tabular-nums w-10 text-center">
+            {index + 1} of {ORDER.length}
+          </span>
+          <button onClick={() => step(1)} aria-label="Next project" className="h-10 w-10 glass-btn-secondary text-slate-200 flex items-center justify-center">
+            <ChevronRight size={18} />
+          </button>
           {project.url && (
-            <Link
+            <a
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-5 py-2.5 rounded glass-btn-primary text-white font-bold text-xs flex items-center gap-2 transition-all"
+              className="ml-auto h-10 px-4 glass-btn-primary text-[13px] font-semibold flex items-center gap-2"
             >
-              <span>Visit Live Project</span>
+              Open project
               <ExternalLink size={14} />
-            </Link>
+            </a>
           )}
         </div>
-      </div>
+      </section>
     </div>
   );
 }

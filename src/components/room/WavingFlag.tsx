@@ -2,10 +2,10 @@
 
 import React, { useRef, useState, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { useRoomStore } from '@/store/useRoomStore';
 import type { FlagItem } from '@/types/room';
+import { exploreStore } from '@/store/exploreStore';
 
 interface WavingFlagProps {
   flag: FlagItem;
@@ -156,8 +156,14 @@ export function WavingFlag({ flag, position, rotation }: WavingFlagProps) {
       onPointerOver={(e) => {
         e.stopPropagation();
         setHovered(true);
+        document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: `${flag.name} (${flag.nativeName})`, action: flag.fluency });
       }}
-      onPointerOut={() => setHovered(false)}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
+      }}
     >
       {/* 1. Stand Base */}
       <mesh position={[0, 0.02, 0]} castShadow>
@@ -192,25 +198,6 @@ export function WavingFlag({ flag, position, rotation }: WavingFlagProps) {
         />
       </mesh>
 
-      {/* 5. Floating Hover Tooltip */}
-      {hovered && (
-        <Html
-          position={[0.19, 0.78, 0]}
-          center
-          distanceFactor={7}
-          pointerEvents="none"
-        >
-          <div className="bg-[#121620]/95 backdrop-blur-md border border-sky-500/40 shadow-xl shadow-black/60 px-3 py-1.5 rounded flex flex-col items-center whitespace-nowrap animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-xs text-white tracking-wide">{flag.name}</span>
-              <span className="text-[10px] text-sky-400 font-semibold">{flag.nativeName}</span>
-            </div>
-            <div className="text-[10px] uppercase font-bold tracking-wider text-emerald-400 mt-0.5">
-              {flag.fluency}
-            </div>
-          </div>
-        </Html>
-      )}
     </group>
   );
 }

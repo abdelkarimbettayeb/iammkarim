@@ -1,8 +1,8 @@
 'use client';
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { ContactShadows, Sparkles } from '@react-three/drei';
+import { ContactShadows, PerformanceMonitor } from '@react-three/drei';
 import { RoomStructure } from './RoomStructure';
 import { LightingRig } from './LightingRig';
 import { CameraRig } from './CameraRig';
@@ -10,12 +10,16 @@ import { DayNightDriver } from './DayNightDriver';
 import { DynamicSkyAndWeather } from './DynamicSkyAndWeather';
 import { CharacterManager } from './character/CharacterManager';
 import { WalkMapDebug } from './WalkMapDebug';
+import { TopShelf } from './TopShelf';
+import { WallDecor } from './WallDecor';
+import { Bookcase } from './Bookcase';
+import { Workstation } from './Workstation';
+import { ForegroundLounge } from './ForegroundLounge';
+import { OutdoorPathway } from './OutdoorPathway';
 import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import type { ActiveStation } from '@/types/room';
-
-interface RoomCanvasProps {
-  children?: React.ReactNode;
-}
+import { exploreStore } from '@/store/exploreStore';
+import { DISCOVERY_BY_ID, STATION_DISCOVERY } from '@/data/discoveries';
 
 /** True when a modal or drawer is covering the scene */
 function isOverlayOpen(): boolean {
@@ -30,10 +34,14 @@ function releaseStation() {
   }
 }
 
-export function RoomCanvas({ children }: RoomCanvasProps) {
+export function RoomCanvas() {
   const isNightMode = useRoomStore((state) => state.isNightMode);
+  // Retina screens get 1.5x at most; drop to 1x if the device can't hold the frame rate
+  const [dpr, setDpr] = useState(1.5);
 
   const handleStationArrival = (station: ActiveStation) => {
+    const line = DISCOVERY_BY_ID[STATION_DISCOVERY[station] ?? '']?.line;
+    if (line) exploreStore.say(line);
     if (station === 'workstation') {
       roomStore.setActiveCartridge('alnurayn');
     } else if (station === 'couch') {
@@ -60,7 +68,7 @@ export function RoomCanvas({ children }: RoomCanvasProps) {
     >
       <Canvas
         shadows
-        dpr={[1, 2]}
+        dpr={[1, dpr]}
         camera={{
           position: [7.8, 7.2, 8.5],
           fov: 38,
@@ -73,6 +81,7 @@ export function RoomCanvas({ children }: RoomCanvasProps) {
         }}
         onPointerMissed={releaseStation}
       >
+        <PerformanceMonitor onDecline={() => setDpr(1)} />
         <Suspense fallback={null}>
           {/* 0. Shared day/night blend (smooth transition between modes) */}
           <DayNightDriver />
@@ -99,19 +108,19 @@ export function RoomCanvas({ children }: RoomCanvasProps) {
             color="#0B0D13"
           />
 
-          {/* 6. Floating dust motes inside the room */}
-          <group position={[0, 1.3, 0]}>
-            <Sparkles count={28} scale={[4.6, 2.4, 4]} size={1.8} speed={0.3} opacity={0.3} color="#FDE68A" />
-          </group>
-
           {/* 7. Autonomous character */}
           <CharacterManager onStationArrival={handleStationArrival} />
 
           {/* 8. Dev aid: ?debug=walkmap draws the lanes and keep-out zones */}
           <WalkMapDebug />
 
-          {/* 9. Injected interior props & outdoors */}
-          {children}
+          {/* 9. Interior props & outdoors */}
+          <TopShelf />
+          <WallDecor />
+          <Bookcase />
+          <Workstation />
+          <ForegroundLounge />
+          <OutdoorPathway />
         </Suspense>
       </Canvas>
     </div>

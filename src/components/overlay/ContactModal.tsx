@@ -1,11 +1,26 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
-import { X, Mail, MessageSquare, Download, Linkedin, Github, Send, CheckCircle2 } from 'lucide-react';
+import { X, Mail, MessageSquare, Download, Linkedin, Github, Send, CheckCircle2, Copy, Check, MapPin } from 'lucide-react';
 import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import { personalInfo } from '@/data/resumeData';
 import { sendEmail } from '@/app/actions';
+
+const CHANNELS = [
+  { label: 'WhatsApp', href: personalInfo.whatsappUrl, icon: MessageSquare, tint: 'text-emerald-300' },
+  { label: 'LinkedIn', href: personalInfo.linkedinUrl, icon: Linkedin, tint: 'text-sky-300' },
+  { label: 'GitHub', href: personalInfo.githubUrl, icon: Github, tint: 'text-white' },
+  { label: 'CV (PDF)', href: personalInfo.resumePdfUrl, icon: Download, tint: 'text-amber-300' },
+];
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="block text-[12px] text-slate-300 mb-1.5">{label}</span>
+      {children}
+    </label>
+  );
+}
 
 export function ContactModal() {
   const isContactOpen = useRoomStore((state) => state.isContactOpen);
@@ -18,19 +33,16 @@ export function ContactModal() {
 
   React.useEffect(() => {
     if (!isContactOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        handleClose();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && handleClose();
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [isContactOpen, handleClose]);
 
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [copied, setCopied] = useState(false);
 
   if (!isContactOpen) return null;
 
@@ -38,182 +50,157 @@ export function ContactModal() {
     e.preventDefault();
     setSubmitting(true);
     setErrorMessage('');
-
     try {
       const res = await sendEmail(null, formData);
       if (res && (res.name?.length || res.email?.length)) {
-        setErrorMessage('Please check the entered fields.');
+        setErrorMessage('Check your name and email address, then send again.');
       } else {
         setSubmitted(true);
       }
     } catch {
-      setErrorMessage('Something went wrong. Please reach out via email directly.');
+      setErrorMessage(`The message didn't go through. You can email me directly at ${personalInfo.email}.`);
     } finally {
       setSubmitting(false);
     }
   };
 
+  const copyEmail = async () => {
+    try {
+      await navigator.clipboard.writeText(personalInfo.email);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1800);
+    } catch {
+      window.location.href = `mailto:${personalInfo.email}`;
+    }
+  };
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
-      onClick={() => { toggleContact(); roomStore.setActiveStation('none'); }}
-    >
-      {/* Radical Glassmorphic Dialog Panel */}
+    <div className="hud fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3 sm:p-6">
       <div
-        className="relative w-full max-w-lg glass-panel-master rounded p-6 sm:p-8 text-white animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto overflow-x-hidden"
-        onClick={(e) => e.stopPropagation()}
+        className="scrim-in absolute inset-0 bg-[radial-gradient(ellipse_at_50%_40%,rgb(14_23_38/0.35),rgb(3_7_18/0.7))] backdrop-blur-[3px]"
+        onClick={handleClose}
+      />
+
+      <section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="contact-title"
+        className="dialog-in relative glass-panel-master w-full max-w-[480px] max-h-[90vh] overflow-y-auto overflow-x-hidden"
+        style={{ '--a1': '#ffb547', '--a2': '#5cc8ff', '--a3': '#8b7cff' } as React.CSSProperties}
       >
-
-        {/* Header */}
-        <div className="relative flex items-start justify-between">
-          <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded glass-pill mb-2">
-              <span className="w-2 h-2 rounded bg-amber-400 animate-pulse" />
-              <span className="text-[10px] uppercase font-bold tracking-widest text-amber-300">
-                Direct Contact
-              </span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-primary font-bold text-white tracking-tight">
-              Get in Touch
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-300/80 mt-1 font-paragraph leading-relaxed">
-              Have an exciting project, contract, or full-time role? Let&apos;s talk.
-            </p>
-          </div>
-
-          <button
-            onClick={handleClose}
-            className="p-2.5 rounded glass-btn-secondary text-slate-300 hover:text-white transition-all flex items-center justify-center shrink-0"
-          >
-            <X size={18} />
-          </button>
+        <div className="aurora" aria-hidden>
+          <span />
+          <span />
+          <span />
         </div>
 
-        {/* Quick Social & Resume Glass Tiles */}
-        <div className="relative grid grid-cols-2 sm:grid-cols-4 gap-2.5 mt-6">
-          <Link
-            href={`mailto:${personalInfo.email}`}
-            className="p-3 rounded glass-tile flex flex-col items-center text-center gap-1.5 transition-all"
-          >
-            <Mail size={17} className="text-sky-400" />
-            <span className="text-[11px] font-bold text-slate-200">Email</span>
-          </Link>
-
-          <Link
-            href={personalInfo.whatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 rounded glass-tile flex flex-col items-center text-center gap-1.5 transition-all"
-          >
-            <MessageSquare size={17} className="text-emerald-400" />
-            <span className="text-[11px] font-bold text-slate-200">WhatsApp</span>
-          </Link>
-
-          <Link
-            href={personalInfo.linkedinUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 rounded glass-tile flex flex-col items-center text-center gap-1.5 transition-all"
-          >
-            <Linkedin size={17} className="text-blue-400" />
-            <span className="text-[11px] font-bold text-slate-200">LinkedIn</span>
-          </Link>
-
-          <Link
-            href={personalInfo.githubUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-3 rounded glass-tile flex flex-col items-center text-center gap-1.5 transition-all"
-          >
-            <Github size={17} className="text-slate-200" />
-            <span className="text-[11px] font-bold text-slate-200">GitHub</span>
-          </Link>
-        </div>
-
-        {/* PDF Resume Download Glass Banner */}
-        <div className="relative mt-5 p-4 rounded glass-tile border border-sky-500/30 flex items-center justify-between gap-3 shadow-md">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/30">
-              <Download size={17} />
-            </div>
+        <div className="relative p-5 sm:p-7">
+          <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-xs font-bold text-white tracking-wide">Curriculum Vitae (PDF)</div>
-              <div className="text-[10px] text-slate-300">Complete verified resume</div>
+              <h2 id="contact-title" className="font-primary font-bold text-[28px] sm:text-[32px] leading-[1.05] tracking-[-0.02em] text-white">
+                Let&apos;s build something
+              </h2>
+              <p className="mt-2 text-[13px] text-slate-300 flex items-center gap-1.5">
+                <MapPin size={13} className="text-amber-300 shrink-0" />
+                {personalInfo.location}, {personalInfo.availability.toLowerCase()}
+              </p>
             </div>
+            <button onClick={handleClose} aria-label="Close" className="h-9 w-9 shrink-0 glass-btn-secondary text-slate-200 flex items-center justify-center">
+              <X size={17} />
+            </button>
           </div>
-          <Link
-            href={personalInfo.resumePdfUrl}
-            target="_blank"
-            className="px-4 py-2 rounded glass-btn-primary text-white font-bold text-xs transition-all shrink-0"
-          >
-            Download
-          </Link>
-        </div>
 
-        {/* Send Direct Message Glass Form */}
-        <div className="relative mt-6 pt-5 border-t border-white/[0.08]">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 mb-3.5">
-            Send a Direct Message
-          </h3>
+          {/* Email first: it's what most people want */}
+          <div className="mt-5 glass-tile flex items-center gap-3 p-1.5 pl-3">
+            <Mail size={16} className="text-sky-300 shrink-0" />
+            <a href={`mailto:${personalInfo.email}`} className="text-[13.5px] text-white truncate hover:underline underline-offset-4">
+              {personalInfo.email}
+            </a>
+            <button
+              onClick={copyEmail}
+              className="ml-auto h-8 px-3 glass-btn-secondary text-[12px] text-slate-200 flex items-center gap-1.5 shrink-0"
+            >
+              {copied ? <Check size={13} className="text-emerald-300" /> : <Copy size={13} />}
+              {copied ? 'Copied' : 'Copy'}
+            </button>
+          </div>
 
-          {submitted ? (
-            <div className="p-4 rounded glass-tile border border-emerald-500/40 flex items-center gap-3 text-emerald-300 text-xs">
-              <CheckCircle2 size={20} className="shrink-0 text-emerald-400" />
-              <span>Thank you! Your message has been sent successfully.</span>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-3">
-              <div>
-                <input
-                  type="text"
-                  required
-                  placeholder="Your Name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-3 rounded glass-input text-xs text-white placeholder-slate-400 focus:outline-none transition-all"
-                />
-              </div>
-
-              <div>
-                <input
-                  type="email"
-                  required
-                  placeholder="Your Email Address"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-3 rounded glass-input text-xs text-white placeholder-slate-400 focus:outline-none transition-all"
-                />
-              </div>
-
-              <div>
-                <textarea
-                  required
-                  rows={4}
-                  placeholder="Tell me about your project or inquiry..."
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  className="w-full px-4 py-3 rounded glass-input text-xs text-white placeholder-slate-400 focus:outline-none transition-all resize-none"
-                />
-              </div>
-
-              {errorMessage && (
-                <div className="text-xs text-rose-400 font-semibold p-2 rounded bg-rose-500/10 border border-rose-500/20">
-                  {errorMessage}
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-3 rounded glass-btn-primary text-white font-bold text-xs flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+          <div className="mt-2 grid grid-cols-4 gap-2">
+            {CHANNELS.map(({ label, href, icon: Icon, tint }) => (
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="glass-tile hover:-translate-y-0.5 py-3 flex flex-col items-center gap-1.5 text-[11.5px] text-slate-200"
               >
-                <Send size={14} />
-                <span>{submitting ? 'Sending Transmission...' : 'Send Message'}</span>
-              </button>
-            </form>
-          )}
+                <Icon size={17} className={tint} />
+                {label}
+              </a>
+            ))}
+          </div>
+
+          <div className="mt-6 pt-5 border-t border-white/10">
+            {submitted ? (
+              <div className="pane-in flex items-start gap-3 text-[13.5px] text-emerald-200" role="status">
+                <CheckCircle2 size={20} className="shrink-0 text-emerald-300 mt-0.5" />
+                <span>
+                  Message sent. I&apos;ll reply to <span className="text-white">{formData.email}</span>.
+                </span>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Field label="Your name">
+                    <input
+                      type="text"
+                      required
+                      autoComplete="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="w-full px-3.5 py-2.5 glass-input text-[13.5px] text-white"
+                    />
+                  </Field>
+                  <Field label="Your email">
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="w-full px-3.5 py-2.5 glass-input text-[13.5px] text-white"
+                    />
+                  </Field>
+                </div>
+                <Field label="What are you working on?">
+                  <textarea
+                    required
+                    rows={4}
+                    value={formData.message}
+                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                    className="w-full px-3.5 py-2.5 glass-input text-[13.5px] text-white resize-none"
+                  />
+                </Field>
+
+                {errorMessage && (
+                  <p role="alert" className="text-[12.5px] text-rose-300">
+                    {errorMessage}
+                  </p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full h-11 glass-btn-primary text-[14px] font-semibold flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  <Send size={15} className={submitting ? 'animate-pulse' : ''} />
+                  {submitting ? 'Sending…' : 'Send message'}
+                </button>
+              </form>
+            )}
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }

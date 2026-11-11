@@ -6,6 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRoomStore } from '@/store/useRoomStore';
 import { dayNight } from '@/store/dayNight';
 import { SASH_TRAVEL, SLAT_CLOSED_ANGLE, blindAngle, blindSpacing } from './windowMotion';
+import { exploreStore } from '@/store/exploreStore';
 
 const GLASS_DAY = new THREE.Color('#BFE3F5');
 const GLASS_NIGHT = new THREE.Color('#0B1226');
@@ -120,9 +121,11 @@ export function VenetianWindow({
       onPointerOver={(e) => {
         e.stopPropagation();
         if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Window', action: 'Open / close the blind' });
       }}
       onPointerOut={() => {
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {/* Invisible hit area covering the whole opening so any click on it counts */}

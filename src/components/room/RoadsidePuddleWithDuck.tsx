@@ -7,6 +7,7 @@ import { Text } from '@react-three/drei';
 import { playSound } from '@/lib/audioEngine';
 import { dayNight } from '@/store/dayNight';
 import { duckHeading, duckPosition, puddleControlPoints } from './puddleMath';
+import { exploreStore } from '@/store/exploreStore';
 
 interface RoadsidePuddleWithDuckProps {
   position?: [number, number, number];
@@ -107,6 +108,7 @@ export function RoadsidePuddleWithDuck({
     e.stopPropagation();
     playSound('chime');
     setQuacked(true);
+    exploreStore.discover('duck');
     setTimeout(() => setQuacked(false), 1200);
   };
 
@@ -167,9 +169,11 @@ export function RoadsidePuddleWithDuck({
         onPointerOver={(e) => {
           e.stopPropagation();
           if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Rubber duck', action: 'Quack' });
         }}
         onPointerOut={() => {
           if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
         }}
       >
         {/* Body */}

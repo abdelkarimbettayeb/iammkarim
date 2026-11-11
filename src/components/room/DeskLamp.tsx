@@ -7,6 +7,7 @@ import { dayNight, lerp } from '@/store/dayNight';
 import { useTheme } from 'next-themes';
 import { useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
+import { exploreStore } from '@/store/exploreStore';
 
 interface DeskLampProps {
   position: [number, number, number];
@@ -30,6 +31,7 @@ export function DeskLamp({ position, rotation }: DeskLampProps) {
   useEffect(() => {
     return () => {
       if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
     };
   }, []);
 
@@ -37,6 +39,7 @@ export function DeskLamp({ position, rotation }: DeskLampProps) {
     e.stopPropagation();
     playSound('lamp');
     toggleNightMode();
+    exploreStore.discover('lamp');
 
     if (setTheme) {
       setTheme(theme === 'dark' ? 'light' : 'dark');
@@ -52,10 +55,12 @@ export function DeskLamp({ position, rotation }: DeskLampProps) {
         e.stopPropagation();
         setHovered(true);
         if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: 'Desk lamp', action: 'Switch day / night' });
       }}
       onPointerOut={() => {
         setHovered(false);
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {/* 1. Lamp Weighted Base */}

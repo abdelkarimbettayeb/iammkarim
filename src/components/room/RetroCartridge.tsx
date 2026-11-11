@@ -2,11 +2,11 @@
 
 import React, { useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import type { CartridgeProject } from '@/types/room';
 import { useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
+import { exploreStore } from '@/store/exploreStore';
 
 interface RetroCartridgeProps {
   project: CartridgeProject;
@@ -26,6 +26,7 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
   React.useEffect(() => {
     return () => {
       if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
     };
   }, []);
 
@@ -45,6 +46,7 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
     e.stopPropagation();
     playSound('cartridge');
     setActiveCartridge(project.id);
+    exploreStore.discover('cartridges');
     setActiveZone('workstation');
   };
 
@@ -57,10 +59,12 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
         e.stopPropagation();
         setHovered(true);
         if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
+        exploreStore.setHover({ title: project.title, action: 'Open the case study' });
       }}
       onPointerOut={() => {
         setHovered(false);
         if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
+        exploreStore.setHover(null);
       }}
     >
       {/* 1. Main Cartridge Plastic Body */}
@@ -95,25 +99,6 @@ export function RetroCartridge({ project, position }: RetroCartridgeProps) {
         <meshStandardMaterial color={project.color} />
       </mesh>
 
-      {/* 5. Tooltip Preview on Hover */}
-      {(hovered || isSelected) && (
-        <Html position={[0, 0.32, 0.06]} center distanceFactor={7} pointerEvents="none">
-          <div className="bg-[#0F172A]/95 backdrop-blur-md border border-sky-400/50 shadow-2xl px-3 py-2 rounded text-left whitespace-nowrap min-w-[190px]">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[11px] font-bold text-white tracking-wide">
-                {project.title}
-              </span>
-              <span className="text-[9px] px-1.5 py-0.5 rounded bg-sky-500/20 text-sky-300 font-semibold uppercase">
-                Cartridge
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-300 mt-1 line-clamp-1">{project.subtitle}</p>
-            <div className="mt-1.5 pt-1 border-t border-slate-700/60 flex items-center gap-1 text-[9px] text-amber-300 font-bold">
-              <span>▶</span> Click to slot into console & view
-            </div>
-          </div>
-        </Html>
-      )}
     </group>
   );
 }

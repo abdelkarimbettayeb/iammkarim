@@ -141,7 +141,10 @@ export function CameraRig() {
     o[1] = THREE.MathUtils.damp(o[1], orbit.current[1], 10, delta);
 
     // Camera sits on the orbit ray through the target; zoom just slides along it
-    offset.current.set(...viewDirection(o[0], o[1])).multiplyScalar(BASE_DISTANCE * zoomSmooth.current);
+    // Portrait screens see less sideways: back off so the whole house still fits
+    const aspect = (camera as THREE.PerspectiveCamera).aspect || 1;
+    const fit = Math.max(1, 0.8 / aspect);
+    offset.current.set(...viewDirection(o[0], o[1])).multiplyScalar(BASE_DISTANCE * fit * zoomSmooth.current);
     camera.position.copy(t).add(offset.current);
     camera.lookAt(t);
   });
