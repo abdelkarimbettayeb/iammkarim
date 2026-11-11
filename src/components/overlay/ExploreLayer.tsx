@@ -17,9 +17,15 @@ function HoverLabel() {
   const [pos, setPos] = useState({ x: -999, y: -999 });
 
   useEffect(() => {
-    const onMove = (e: PointerEvent) => setPos({ x: e.clientX, y: e.clientY });
+    // A finger never "leaves" what it tapped, so on touch the label would stick: hide it
+    const onMove = (e: PointerEvent) =>
+      setPos(e.pointerType === 'touch' ? { x: -999, y: -999 } : { x: e.clientX, y: e.clientY });
     window.addEventListener('pointermove', onMove);
-    return () => window.removeEventListener('pointermove', onMove);
+    window.addEventListener('pointerdown', onMove);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerdown', onMove);
+    };
   }, []);
 
   // Touch screens have no hover; the label would just get stuck
@@ -46,6 +52,8 @@ function DiscoveryToast() {
   const lastFind = useExplore((s) => s.lastFind);
   const count = useExplore((s) => s.discovered.length);
   const [visible, setVisible] = useState(false);
+  /** Swipe-up in progress: where the finger went down and how far up it has gone */
+  const [swipe, setSwipe] = useState<{ start: number; y: number } | null>(null);
 
   useEffect(() => {
     if (!lastFind) return;
@@ -57,21 +65,50 @@ function DiscoveryToast() {
 
   const d = lastFind ? DISCOVERY_BY_ID[lastFind.id] : null;
   if (!visible || !d) return null;
+  const y = swipe?.y ?? 0;
   return (
+    // Outer box owns the entrance animation's transform; the inner one follows the finger
     <div
       key={lastFind?.at}
       role="status"
-      className="toast-in fixed top-20 left-1/2 z-40 glass-panel-master px-4 py-3 flex items-start gap-3 w-[min(92vw,380px)] font-secondary"
+      className="toast-in fixed top-3 sm:top-20 left-1/2 z-40 w-[min(92vw,380px)] font-secondary"
     >
-      <div className="text-2xl leading-none mt-0.5" aria-hidden>
-        {d.emoji}
-      </div>
-      <div className="min-w-0">
-        <div className="text-[11.5px] font-medium text-amber-200">
-          Found {count} of {TOTAL}
+      <div
+        className="glass-panel-master pl-3 pr-2 py-2.5 sm:pl-4 sm:py-3 flex items-start gap-3 touch-none select-none"
+        style={{
+          transform: `translateY(${y}px)`,
+          opacity: Math.max(0, 1 + y / 100),
+          transition: swipe ? 'none' : 'transform 200ms ease, opacity 200ms ease',
+        }}
+        onPointerDown={(e) => {
+          if ((e.target as Element).closest('button')) return;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          setSwipe({ start: e.clientY, y: 0 });
+        }}
+        onPointerMove={(e) => swipe && setSwipe({ ...swipe, y: Math.min(0, e.clientY - swipe.start) })}
+        onPointerUp={() => {
+          if (y < -36) setVisible(false);
+          setSwipe(null);
+        }}
+        onPointerCancel={() => setSwipe(null)}
+      >
+        <div className="text-xl sm:text-2xl leading-none mt-0.5" aria-hidden>
+          {d.emoji}
         </div>
-        <div className="text-sm font-semibold text-white">{d.title}</div>
-        <p className="text-xs text-slate-300 leading-snug mt-0.5">{d.fact}</p>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] sm:text-[11.5px] font-medium text-amber-200">
+            Found {count} of {TOTAL}
+          </div>
+          <div className="text-[13px] sm:text-sm font-semibold text-white leading-tight">{d.title}</div>
+          <p className="text-[11.5px] sm:text-xs text-slate-300 leading-snug mt-0.5">{d.fact}</p>
+        </div>
+        <button
+          onClick={() => setVisible(false)}
+          aria-label="Dismiss"
+          className="shrink-0 text-slate-400 hover:text-white h-8 w-8 -mt-1 flex items-center justify-center"
+        >
+          <X size={15} />
+        </button>
       </div>
     </div>
   );
@@ -291,6 +328,8 @@ function ControlsHint() {
     }
   };
   if (!show) return null;
+  // Only rendered after mount, so window is safe here
+  const touch = window.matchMedia('(pointer: coarse)').matches;
   return (
     <div className="toast-in fixed bottom-24 left-1/2 z-30 glass-panel-master px-4 py-3 font-secondary w-[min(92vw,340px)]">
       <div className="flex items-start justify-between gap-3">
@@ -300,9 +339,19 @@ function ControlsHint() {
         </button>
       </div>
       <ul className="mt-2 space-y-1.5 text-xs text-slate-300">
-        <HintRow icon={MousePointerClick} text="Click anything: he walks over and uses it" />
-        <HintRow icon={Move3d} text="Drag to look around the house" />
-        <HintRow icon={ZoomIn} text="Scroll or pinch to zoom, double-click to reset" />
+        {touch ? (
+          <>
+            <HintRow icon={MousePointerClick} text="Tap anything: he walks over and uses it" />
+            <HintRow icon={Move3d} text="Drag to look around, two fingers to move" />
+            <HintRow icon={ZoomIn} text="Pinch to zoom, double-tap to reset" />
+          </>
+        ) : (
+          <>
+            <HintRow icon={MousePointerClick} text="Click anything: he walks over and uses it" />
+            <HintRow icon={Move3d} text="Drag to look around, right-drag to move" />
+            <HintRow icon={ZoomIn} text="Scroll or pinch to zoom, double-click to reset" />
+          </>
+        )}
       </ul>
     </div>
   );

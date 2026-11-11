@@ -168,3 +168,14 @@ test('camera orbit: drag rotates around the room within limits', async () => {
   assert.ok(Math.abs(Math.hypot(...d) - 1) < 1e-9, 'unit vector');
   assert.ok(Math.abs(d[0] - d[2]) < 1e-9 && d[1] > 0, 'diagonal and above the floor');
 });
+
+test('camera pan and portrait fit', async () => {
+  const { panFromDrag, portraitFit, PAN_LIMIT } = await import('../src/components/room/cameraMath.ts');
+  // Camera at azimuth 0 looks down -z: dragging right pulls the target left, dragging down pushes it away
+  const [x, z] = panFromDrag([0, 0], 0, Math.PI / 2, 10, 0, 0.1);
+  assert.ok(x < 0 && Math.abs(z) < 1e-9, 'drag right moves target -x');
+  assert.ok(panFromDrag([0, 0], 0, Math.PI / 2, 0, 10, 0.1)[1] < 0, 'drag down moves target away from camera');
+  assert.ok(Math.abs(Math.hypot(...panFromDrag([0, 0], 1, 0.6, 1e6, 1e6, 1)) - PAN_LIMIT) < 1e-9, 'clamped');
+  assert.equal(portraitFit(16 / 9), 1, 'desktop unchanged');
+  assert.ok(portraitFit(0.46) > 2.2, 'phones back off enough to fit the house width');
+});

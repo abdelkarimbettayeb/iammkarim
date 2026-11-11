@@ -31,6 +31,40 @@ export function orbitFromDrag(azimuth: number, elevation: number, dx: number, dy
   return [azimuth - dx * ORBIT_SPEED, el];
 }
 
+/** How far (world units) the view may slide away from the house, so nobody gets lost */
+export const PAN_LIMIT = 6;
+
+/**
+ * Slide the ground-plane target so the scene follows a (dx, dy) pixel drag.
+ * unitsPerPixel is the world size of one pixel at the target; vertical drags
+ * are stretched by the camera tilt so the ground keeps up with the finger.
+ */
+export function panFromDrag(
+  pan: [number, number],
+  azimuth: number,
+  elevation: number,
+  dx: number,
+  dy: number,
+  unitsPerPixel: number
+): [number, number] {
+  const c = Math.cos(azimuth);
+  const s = Math.sin(azimuth);
+  const v = dy / Math.max(0.3, Math.sin(elevation));
+  let x = pan[0] - (c * dx + s * v) * unitsPerPixel;
+  let z = pan[1] + (s * dx - c * v) * unitsPerPixel;
+  const len = Math.hypot(x, z);
+  if (len > PAN_LIMIT) {
+    x *= PAN_LIMIT / len;
+    z *= PAN_LIMIT / len;
+  }
+  return [x, z];
+}
+
+/** Distance multiplier so the whole house fits narrow (portrait) screens; measured, 1.04 = house width at home angle */
+export function portraitFit(aspect: number): number {
+  return Math.max(1, 1.04 / aspect);
+}
+
 /** Unit view direction (target -> camera) for an azimuth around y and an elevation above the floor */
 export function viewDirection(azimuth: number, elevation: number): [number, number, number] {
   const c = Math.cos(elevation);
