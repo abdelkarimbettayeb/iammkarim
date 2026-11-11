@@ -22,6 +22,10 @@ interface RoomStoreValues {
   isDrawerOpen: boolean;
   isContactOpen: boolean;
   isNightMode: boolean;
+  /** Bumped on every station request, so re-selecting the same station can repeat its action */
+  stationNonce: number;
+  /** The boy has the guitar in his hands (the one on the wall stand is hidden) */
+  isGuitarHeld: boolean;
 }
 
 let state: RoomStoreValues = {
@@ -36,6 +40,8 @@ let state: RoomStoreValues = {
   isDrawerOpen: false,
   isContactOpen: false,
   isNightMode: false,
+  stationNonce: 0,
+  isGuitarHeld: false,
 };
 
 const listeners = new Set<Listener>();
@@ -67,7 +73,9 @@ export const roomStore = {
   },
   setActiveZone: (zone: RoomZone) => setState({ activeZone: zone }),
   setActiveCartridge: (id: CartridgeId | null) => setState({ activeCartridge: id }),
-  setActiveStation: (station: ActiveStation) => setState({ activeStation: station }),
+  setActiveStation: (station: ActiveStation) =>
+    setState((s) => ({ activeStation: station, stationNonce: s.stationNonce + 1 })),
+  setGuitarHeld: (held: boolean) => setState({ isGuitarHeld: held }),
   setCharacterState: (charState: CharacterState) => setState({ characterState: charState }),
   setWeatherState: (weather: WeatherState) => setState({ weatherState: weather }),
   decrementDarts: () => setState((s) => ({ dartsLeft: Math.max(0, s.dartsLeft - 1) })),
@@ -94,6 +102,7 @@ export function useRoomStore<T>(selector?: (state: RoomState) => T): T | RoomSta
     setActiveZone: roomStore.setActiveZone,
     setActiveCartridge: roomStore.setActiveCartridge,
     setActiveStation: roomStore.setActiveStation,
+    setGuitarHeld: roomStore.setGuitarHeld,
     setCharacterState: roomStore.setCharacterState,
     setWeatherState: roomStore.setWeatherState,
     decrementDarts: roomStore.decrementDarts,

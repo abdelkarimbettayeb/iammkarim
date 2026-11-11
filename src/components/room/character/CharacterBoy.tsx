@@ -5,6 +5,18 @@ import * as THREE from 'three';
 import { RoundedBox } from '@react-three/drei';
 import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ChillyBreathPuff } from './ChillyBreathPuff';
+import { AcousticGuitar } from '../items/AcousticGuitar';
+import { PLACEMENTS, scaleToNumber } from '../layout';
+
+/**
+ * Where the held guitar sits on his body (spine frame, metres). Same model and
+ * scale as the one on the wall stand, so picking it up doesn't swap guitars.
+ */
+export const HELD_GUITAR = {
+  position: [0.07, 0.93, 0.2] as [number, number, number],
+  rotation: [-0.12, 0.18, 1.15] as [number, number, number],
+  scale: scaleToNumber(PLACEMENTS.guitar.scale),
+};
 
 /**
  * Body proportions in metres (the boy is ~1.5 m tall, about 7 heads).
@@ -34,6 +46,8 @@ export interface CharacterBoyHandle {
   rightLeg: THREE.Group | null;
   leftKnee: THREE.Group | null;
   rightKnee: THREE.Group | null;
+  /** Held guitar (in the spine frame, same parent as the arms) */
+  guitar: THREE.Group | null;
   setChillyBreath: (active: boolean) => void;
   setGuitarVisible: (visible: boolean) => void;
   setDartVisible: (visible: boolean) => void;
@@ -491,6 +505,7 @@ export const CharacterBoy = forwardRef<CharacterBoyHandle, CharacterBoyProps>(
       rightLeg: rightLegRef.current,
       leftKnee: leftKneeRef.current,
       rightKnee: rightKneeRef.current,
+      guitar: guitarHolderRef.current,
       setChillyBreath: (active: boolean) => setIsChilly(active),
       setGuitarVisible: (visible: boolean) => {
         if (guitarHolderRef.current) guitarHolderRef.current.visible = visible;
@@ -619,6 +634,17 @@ export const CharacterBoy = forwardRef<CharacterBoyHandle, CharacterBoyProps>(
               </group>
             </group>
 
+            {/* Held guitar: the same model as the one on the stand, slung across the body */}
+            <group
+              ref={guitarHolderRef}
+              position={HELD_GUITAR.position}
+              rotation={HELD_GUITAR.rotation}
+              scale={HELD_GUITAR.scale}
+              visible={false}
+            >
+              <AcousticGuitar interactive={false} />
+            </group>
+
             {/* Arms (named by stage side: right = +x) */}
             <Arm side={-1} armRef={leftArmRef} elbowRef={leftElbowRef} />
             <Arm side={1} armRef={rightArmRef} elbowRef={rightElbowRef}>
@@ -635,30 +661,6 @@ export const CharacterBoy = forwardRef<CharacterBoyHandle, CharacterBoyProps>(
               </group>
             </Arm>
           </group>
-        </group>
-
-        {/* Held acoustic guitar (simplified, ~1 m long) */}
-        <group ref={guitarHolderRef} position={[0.02, 0.88, 0.2]} rotation={[0.15, 0.0, 1.0]} visible={false}>
-          <mesh position={[0, -0.08, 0]} scale={[1, 1, 0.3]} castShadow>
-            <sphereGeometry args={[0.2, 20, 14]} />
-            <meshStandardMaterial color="#B45309" roughness={0.4} />
-          </mesh>
-          <mesh position={[0, 0.1, 0]} scale={[1, 1, 0.3]} castShadow>
-            <sphereGeometry args={[0.15, 20, 14]} />
-            <meshStandardMaterial color="#B45309" roughness={0.4} />
-          </mesh>
-          <mesh position={[0, 0.0, 0.03]}>
-            <circleGeometry args={[0.04, 20]} />
-            <meshBasicMaterial color="#1C1917" />
-          </mesh>
-          <mesh position={[0, 0.5, 0]} castShadow>
-            <boxGeometry args={[0.045, 0.5, 0.03]} />
-            <meshStandardMaterial color="#451A03" roughness={0.5} />
-          </mesh>
-          <mesh position={[0, 0.8, 0]} castShadow>
-            <boxGeometry args={[0.06, 0.12, 0.02]} />
-            <meshStandardMaterial color="#451A03" roughness={0.5} />
-          </mesh>
         </group>
 
         {/* Legs */}

@@ -2,9 +2,140 @@
 
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { CURB_Z, OUTDOOR, PATH_X } from './layout';
 
 // Slab outline (see RoomStructure): the ledge around the open sides of the house
 const SLAB = { minX: -2.65, maxX: 2.8, minZ: -2.35, maxZ: 2.75 };
+
+const CLUMPS = 18000;
+const BLADES_PER_CLUMP = 3;
+
+/** A clump of three tapered, slightly curved blades; y runs 0 (root) .. 1 (tip) */
+function createClumpGeometry(): THREE.BufferGeometry {
+  const SEG = 3;
+  const positions: number[] = [];
+  const colors: number[] = [];
+  const indices: number[] = [];
+  // Brightness gradient only; the per-clump instance colour carries the hue
+  const root = new THREE.Color(0.55, 0.6, 0.5);
+  const tip = new THREE.Color(1, 1, 0.9);
+  const c = new THREE.Color();
+  for (let b = 0; b < BLADES_PER_CLUMP; b++) {
+    const yaw = (b / BLADES_PER_CLUMP) * Math.PI * 2 + b * 0.4;
+    const lean = 0.18 + b * 0.08;
+    const ox = Math.cos(yaw) * 0.012;
+    const oz = Math.sin(yaw) * 0.012;
+    const base = positions.length / 3;
+    for (let i = 0; i <= SEG; i++) {
+      const y = i / SEG;
+      const half = 0.5 * (1 - y * 0.92);
+      // Curves outwards as it rises
+      const bend = lean * y * y;
+      for (const side of [-1, 1]) {
+        const px = side * half;
+        positions.push(
+          ox + Math.cos(yaw + Math.PI / 2) * px * 0.014 + Math.cos(yaw) * bend * 0.3,
+          y,
+          oz + Math.sin(yaw + Math.PI / 2) * px * 0.014 + Math.sin(yaw) * bend * 0.3
+        );
+        c.copy(root).lerp(tip, Math.pow(y, 0.8));
+        colors.push(c.r, c.g, c.b);
+      }
+      if (i < SEG) {
+        const a = base + i * 2;
+        indices.push(a, a + 1, a + 2, a + 1, a + 3, a + 2);
+      }
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+  geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+/** Keep grass off the house slab, the walkway, the pond, the props and the road */
+function grassAllowed(x: number, z: number): boolean {
+  if (distToSlab(x, z) < 0.08) return false;
+  if (z > CURB_Z - 0.12) return false;
+  if (Math.abs(x - PATH_X) < 0.62 && z > SLAB.maxZ - 0.2) return false;
+  if (Math.hypot((x - OUTDOOR.puddle.x) / 1.15, (z - OUTDOOR.puddle.z) / 0.85) < 1) return false;
+  if (Math.hypot(x - OUTDOOR.mailbox.x, z - OUTDOOR.mailbox.z) < 0.25) return false;
+  if (Math.hypot(x - OUTDOOR.bush.x, z - OUTDOOR.bush.z) < 0.3) return false;
+  return true;
+}
+
+/**
+ * Dense instanced grass around the house: thousands of blade clumps with
+ * colour variation, denser near the house and thinning out with distance,
+ * swaying in a slow wind (vertex shader, so it costs nothing on the CPU).
+ */
+function GrassField() {
+  const { mesh, material } = useMemo(() => {
+    const geometry = createClumpGeometry();
+    const material = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
+    const uniforms = { uTime: { value: 0 } };
+    material.onBeforeCompile = (shader) => {
+      shader.uniforms.uTime = uniforms.uTime;
+      shader.vertexShader = shader.vertexShader
+        .replace('#include <common>', '#include <common>\nuniform float uTime;')
+        .replace(
+          '#include <begin_vertex>',
+          `#include <begin_vertex>
+          vec4 rootW = modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0);
+          float gust = sin(uTime * 1.6 + rootW.x * 0.45 + rootW.z * 0.3) * 0.6 + sin(uTime * 3.3 + rootW.x * 1.7) * 0.25;
+          float k = transformed.y * transformed.y;
+          transformed.x += gust * 0.12 * k;
+          transformed.z += gust * 0.06 * k;`
+        );
+    };
+    material.userData.uniforms = uniforms;
+
+    const mesh = new THREE.InstancedMesh(geometry, material, CLUMPS);
+    const m = new THREE.Matrix4();
+    const q = new THREE.Quaternion();
+    const e = new THREE.Euler();
+    const p = new THREE.Vector3();
+    const s = new THREE.Vector3();
+    const col = new THREE.Color();
+    let n = 0;
+    let seed = 0;
+    while (n < CLUMPS && seed < CLUMPS * 6) {
+      seed++;
+      // Denser near the house: radius biased towards the centre
+      const r = 1.5 + Math.pow(hash(seed, 1.3), 1.6) * 13;
+      const a = hash(seed, 7.7) * Math.PI * 2;
+      const x = Math.cos(a) * r * 1.2;
+      const z = 1.5 + Math.sin(a) * r;
+      if (!grassAllowed(x, z)) continue;
+      // Short mown lawn: 3-8 cm blades, a bit longer in the shaggier patches
+      const height = 0.03 + hash(seed, 3.1) * 0.035 + fbm(x * 0.8, z * 0.8) * 0.02;
+      const width = 0.7 + hash(seed, 5.3) * 0.7;
+      p.set(x, -0.05, z);
+      e.set((hash(seed, 2.2) - 0.5) * 0.25, hash(seed, 4.4) * Math.PI * 2, (hash(seed, 6.6) - 0.5) * 0.25);
+      q.setFromEuler(e);
+      s.set(width, height, width);
+      mesh.setMatrixAt(n, m.compose(p, q, s));
+      // Patchy colour: lush and dry patches plus per-clump jitter
+      const patch = fbm(x * 0.5 + 3, z * 0.5);
+      col.setHSL(0.27 + (patch - 0.5) * 0.05 + (hash(seed, 8.8) - 0.5) * 0.02, 0.55, 0.44 + (hash(seed, 9.9) - 0.5) * 0.08);
+      mesh.setColorAt(n, col);
+      n++;
+    }
+    mesh.count = n;
+    mesh.receiveShadow = true;
+    mesh.frustumCulled = false;
+    return { mesh, material };
+  }, []);
+
+  useFrame((state) => {
+    material.userData.uniforms.uTime.value = state.clock.getElapsedTime();
+  });
+
+  return <primitive object={mesh} />;
+}
 
 const GRASS_A = new THREE.Color('#3E8E3B');
 const GRASS_B = new THREE.Color('#4FA346');
@@ -103,6 +234,7 @@ export function Lawn() {
       <mesh geometry={geometry} receiveShadow renderOrder={-2}>
         <meshStandardMaterial vertexColors transparent roughness={0.95} metalness={0} />
       </mesh>
+      <GrassField />
     </group>
   );
 }

@@ -5,7 +5,6 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useRoomStore } from '@/store/useRoomStore';
 import { dayNight } from '@/store/dayNight';
-import { playSound } from '@/lib/audioEngine';
 import { SASH_TRAVEL, SLAT_CLOSED_ANGLE, blindAngle, blindSpacing } from './windowMotion';
 
 const GLASS_DAY = new THREE.Color('#BFE3F5');
@@ -99,11 +98,10 @@ export function VenetianWindow({
     }
   });
 
+  // He walks over and pulls the blind himself; the toggle happens when his hand gets there
   const handleClick = (e: { stopPropagation: () => void }) => {
     e.stopPropagation();
-    playSound('window');
     setActiveStation('window');
-    toggleWindow();
   };
 
   const registerGlass = (index: number) => (m: THREE.MeshStandardMaterial | null) => {

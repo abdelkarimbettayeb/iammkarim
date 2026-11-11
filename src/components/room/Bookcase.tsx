@@ -10,7 +10,8 @@ const GUITAR_BOTTOM = 0.56;
 
 export function Bookcase() {
   const { bookcase, guitar, mat } = PLACEMENTS;
-  const activeStation = useRoomStore((state) => state.activeStation);
+  // Hidden only once he has actually lifted it off the stand
+  const isGuitarHeld = useRoomStore((state) => state.isGuitarHeld);
   const guitarScale = scaleToNumber(guitar.scale);
 
   return (
@@ -27,7 +28,7 @@ export function Bookcase() {
       <group position={[guitar.x, 0, guitar.z]} rotation={[-GUITAR_LEAN, 0, 0]}>
         <AcousticGuitar
           isLeaning
-          visible={activeStation !== 'guitar'}
+          visible={!isGuitarHeld}
           position={[0, GUITAR_BOTTOM * guitarScale, 0]}
           scale={guitarScale}
         />

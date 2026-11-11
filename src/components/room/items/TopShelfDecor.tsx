@@ -1,7 +1,71 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { roomStore } from '@/store/useRoomStore';
+import { playSound } from '@/lib/audioEngine';
+
+/**
+ * Makes a shelf item clickable: it lifts a touch on hover and wobbles on a
+ * damped spring when clicked, like nudging a real pot or frame.
+ */
+function ShelfItem({
+  position,
+  onActivate,
+  children,
+}: {
+  position: [number, number, number];
+  onActivate?: () => void;
+  children: React.ReactNode;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const wobble = useRef({ angle: 0, vel: 0, lift: 0, hover: false });
+
+  useFrame((_, delta) => {
+    const w = wobble.current;
+    const dt = Math.min(delta, 0.05);
+    // Damped spring back to rest
+    w.vel += (-w.angle * 120 - w.vel * 7) * dt;
+    w.angle += w.vel * dt;
+    w.lift = THREE.MathUtils.damp(w.lift, w.hover ? 0.03 : 0, 12, dt);
+    if (ref.current) {
+      ref.current.rotation.z = w.angle;
+      ref.current.rotation.x = w.angle * 0.5;
+      ref.current.position.y = position[1] + w.lift;
+    }
+  });
+
+  return (
+    <group
+      ref={ref}
+      position={position}
+      onClick={(e) => {
+        e.stopPropagation();
+        wobble.current.vel += 2.6;
+        onActivate?.();
+      }}
+      onPointerOver={(e) => {
+        e.stopPropagation();
+        wobble.current.hover = true;
+        document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        wobble.current.hover = false;
+        document.body.style.cursor = 'auto';
+      }}
+    >
+      {children}
+    </group>
+  );
+}
+
+/** The framed portrait opens the full resume */
+const openResume = () => {
+  playSound('cartridge');
+  if (!roomStore.getState().isDrawerOpen) roomStore.toggleDrawer();
+};
+const rustle = () => playSound('chime');
 
 interface TopShelfDecorProps {
   position?: [number, number, number];
@@ -182,7 +246,8 @@ export function TopShelfDecor({
       {/* =========================================
           2. Framed Portrait Photo (Center Shelf)
          ========================================= */}
-      <group position={[0.04, 0.44, 0.05]} rotation={[0, 0.18, -0.06]}>
+      <ShelfItem position={[0.04, 0.04, 0.05]} onActivate={openResume}>
+      <group position={[0, 0.4, 0]} rotation={[0, 0.18, -0.06]}>
         {/* Dark Walnut Picture Frame */}
         <mesh castShadow>
           <boxGeometry args={[0.04, 0.78, 0.6]} />
@@ -199,11 +264,12 @@ export function TopShelfDecor({
           <meshStandardMaterial color="#292524" roughness={0.7} />
         </mesh>
       </group>
+      </ShelfItem>
 
       {/* =========================================
           3. Small Middle Houseplant (Spade Leaves)
          ========================================= */}
-      <group position={[0.04, 0.04, 0.72]}>
+      <ShelfItem position={[0.04, 0.04, 0.72]} onActivate={rustle}>
         {/* Two-Tone Ceramic Pot: Charcoal Lower Base */}
         <mesh position={[0, 0.06, 0]} castShadow>
           <cylinderGeometry args={[0.13, 0.115, 0.12, 24]} />
@@ -234,12 +300,12 @@ export function TopShelfDecor({
             </group>
           );
         })}
-      </group>
+      </ShelfItem>
 
       {/* =========================================
           4. Lush Cascading Boston Fern (Right Shelf)
          ========================================= */}
-      <group position={[0.04, 0.04, 1.52]}>
+      <ShelfItem position={[0.04, 0.04, 1.52]} onActivate={rustle}>
         {/* Two-Tone Ceramic Pot: Charcoal Lower Base */}
         <mesh position={[0, 0.07, 0]} castShadow>
           <cylinderGeometry args={[0.165, 0.145, 0.14, 24]} />
@@ -279,7 +345,7 @@ export function TopShelfDecor({
             </group>
           </group>
         ))}
-      </group>
+      </ShelfItem>
     </group>
   );
 }

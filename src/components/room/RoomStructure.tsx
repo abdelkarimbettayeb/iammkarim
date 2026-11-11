@@ -166,6 +166,55 @@ export function RoomStructure() {
         {trimMat}
       </mesh>
 
+      {/* 7b. Crown molding where the walls meet the (cut-away) ceiling */}
+      <mesh position={[minX + 0.02, H - 0.035, centerZ]}>
+        <boxGeometry args={[0.04, 0.07, depth]} />
+        {trimMat}
+      </mesh>
+      <mesh position={[centerX, H - 0.035, minZ + 0.02]}>
+        <boxGeometry args={[width, 0.07, 0.04]} />
+        {trimMat}
+      </mesh>
+
+      {/* 7c. Cut-away caps: dark tops show the wall thickness like an architectural model */}
+      <mesh position={[minX - T / 2, H + 0.012, centerZ - T / 2]} castShadow>
+        <boxGeometry args={[T + 0.02, 0.024, depth + T + 0.02]} />
+        <meshStandardMaterial color="#334155" roughness={0.6} />
+      </mesh>
+      <mesh position={[(backMinX + maxX) / 2, H + 0.012, backZ]} castShadow>
+        <boxGeometry args={[maxX - backMinX + 0.02, 0.024, T + 0.02]} />
+        <meshStandardMaterial color="#334155" roughness={0.6} />
+      </mesh>
+      {/* Wall ends on the open sides get the same dark edge */}
+      <mesh position={[minX - T / 2, H / 2, maxZ + 0.006]}>
+        <boxGeometry args={[T + 0.02, H + 0.02, 0.012]} />
+        <meshStandardMaterial color="#334155" roughness={0.6} />
+      </mesh>
+      <mesh position={[maxX + 0.006, H / 2, backZ]}>
+        <boxGeometry args={[0.012, H + 0.02, T + 0.02]} />
+        <meshStandardMaterial color="#334155" roughness={0.6} />
+      </mesh>
+
+      {/* 7d. Finished floor edge along the open sides (walnut nosing over the slab) */}
+      <mesh position={[centerX, -0.06, maxZ + 0.008]} receiveShadow>
+        <boxGeometry args={[width, 0.12, 0.016]} />
+        <meshStandardMaterial color="#6B4426" roughness={0.6} />
+      </mesh>
+      <mesh position={[maxX + 0.008, -0.06, centerZ]} receiveShadow>
+        <boxGeometry args={[0.016, 0.12, depth + 0.016]} />
+        <meshStandardMaterial color="#6B4426" roughness={0.6} />
+      </mesh>
+
+      {/* 7e. Stone plinth around the outside foot of the walls */}
+      <mesh position={[minX - T - 0.02, 0.12, centerZ - T / 2]} castShadow receiveShadow>
+        <boxGeometry args={[0.04, 0.3, depth + T + 0.04]} />
+        <meshStandardMaterial color="#9CA3AF" roughness={0.9} />
+      </mesh>
+      <mesh position={[(backMinX + maxX) / 2, 0.12, minZ - T - 0.02]} castShadow receiveShadow>
+        <boxGeometry args={[maxX - backMinX + 0.04, 0.3, 0.04]} />
+        <meshStandardMaterial color="#9CA3AF" roughness={0.9} />
+      </mesh>
+
       {/* 8. Window frame, sash and venetian blind (centred in the opening) */}
       <VenetianWindow
         position={[WINDOW.cx, WINDOW.sill + WINDOW.height / 2, minZ - T / 2]}

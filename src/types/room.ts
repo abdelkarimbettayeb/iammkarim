@@ -72,9 +72,12 @@ export interface RoomState {
   isDrawerOpen: boolean;
   isContactOpen: boolean;
   isNightMode: boolean;
+  stationNonce: number;
+  isGuitarHeld: boolean;
   setActiveZone: (zone: RoomZone) => void;
   setActiveCartridge: (id: CartridgeId | null) => void;
   setActiveStation: (station: ActiveStation) => void;
+  setGuitarHeld: (held: boolean) => void;
   setCharacterState: (state: CharacterState) => void;
   setWeatherState: (weather: WeatherState) => void;
   decrementDarts: () => void;

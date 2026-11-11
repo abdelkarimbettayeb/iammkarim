@@ -28,25 +28,211 @@ function randomOutsideHouse(span: number): [number, number] {
   return [span / 2, span / 2];
 }
 
-function makeParticleGeometry(count: number, height: number) {
-  const positions = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    const [x, z] = randomOutsideHouse(36);
-    positions[i * 3] = x;
-    positions[i * 3 + 1] = Math.random() * height;
-    positions[i * 3 + 2] = z;
+/** Weather only needs to fill what the camera sees around the house */
+const WEATHER_SPAN = 26;
+const WEATHER_TOP = 12;
+/** Light wind pushes rain and snow towards -x, +z */
+const WIND: [number, number] = [-1.2, 0.5];
+
+const RAIN_DROPS = 1400;
+const RAIN_SPEED = 9; // m/s, about terminal velocity for a raindrop
+const RAIN_STREAK = 0.38; // metres of motion blur per drop
+const SPLASHES = 90;
+const SPLASH_LIFE = 0.32;
+
+/** Falling streaks (motion-blurred drops) plus little rings where they land */
+function Rain() {
+  const splashRef = useRef<THREE.InstancedMesh>(null);
+  const { geometry, drops } = useMemo(() => {
+    const drops = new Float32Array(RAIN_DROPS * 3);
+    for (let i = 0; i < RAIN_DROPS; i++) {
+      const [x, z] = randomOutsideHouse(WEATHER_SPAN);
+      drops[i * 3] = x;
+      drops[i * 3 + 1] = Math.random() * WEATHER_TOP;
+      drops[i * 3 + 2] = z;
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array(RAIN_DROPS * 6), 3));
+    return { geometry, drops };
+  }, []);
+  const splashes = useMemo(() => Array.from({ length: SPLASHES }, () => ({ x: 0, z: 0, age: SPLASH_LIFE })), []);
+  const nextSplash = useRef(0);
+  const tmp = useMemo(
+    () => ({
+      m: new THREE.Matrix4(),
+      q: new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2, 0, 0)),
+      p: new THREE.Vector3(),
+      s: new THREE.Vector3(),
+    }),
+    []
+  );
+
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.05);
+    const line = geometry.attributes.position.array as Float32Array;
+    const speed = Math.hypot(WIND[0], RAIN_SPEED, WIND[1]);
+    const dx = WIND[0] / speed;
+    const dy = -RAIN_SPEED / speed;
+    const dz = WIND[1] / speed;
+    for (let i = 0; i < RAIN_DROPS; i++) {
+      const o = i * 3;
+      drops[o] += WIND[0] * dt;
+      drops[o + 1] -= RAIN_SPEED * dt;
+      drops[o + 2] += WIND[1] * dt;
+      const landed = drops[o + 1] < 0;
+      if (landed || isOverHouse(drops[o], drops[o + 2])) {
+        // Splash where it landed (every 4th drop is plenty)
+        if (landed && i % 4 === 0) {
+          const sp = splashes[nextSplash.current];
+          sp.x = drops[o];
+          sp.z = drops[o + 2];
+          sp.age = 0;
+          nextSplash.current = (nextSplash.current + 1) % SPLASHES;
+        }
+        const [x, z] = randomOutsideHouse(WEATHER_SPAN);
+        drops[o] = x;
+        drops[o + 1] = WEATHER_TOP + Math.random() * 2;
+        drops[o + 2] = z;
+      }
+      // Streak from the drop back along its path
+      const l = i * 6;
+      line[l] = drops[o];
+      line[l + 1] = drops[o + 1];
+      line[l + 2] = drops[o + 2];
+      line[l + 3] = drops[o] - dx * RAIN_STREAK;
+      line[l + 4] = drops[o + 1] - dy * RAIN_STREAK;
+      line[l + 5] = drops[o + 2] - dz * RAIN_STREAK;
+    }
+    geometry.attributes.position.needsUpdate = true;
+
+    const mesh = splashRef.current;
+    if (!mesh) return;
+    splashes.forEach((sp, i) => {
+      sp.age += dt;
+      const k = sp.age / SPLASH_LIFE;
+      const r = k < 1 ? 0.02 + k * 0.11 : 0;
+      tmp.p.set(sp.x, 0.01, sp.z);
+      tmp.s.set(r, r, r);
+      mesh.setMatrixAt(i, tmp.m.compose(tmp.p, tmp.q, tmp.s));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+
+  return (
+    <group name="rain">
+      <lineSegments geometry={geometry} frustumCulled={false}>
+        <lineBasicMaterial color="#B6CCE0" transparent opacity={0.55} depthWrite={false} />
+      </lineSegments>
+      <instancedMesh ref={splashRef} args={[undefined, undefined, SPLASHES]} frustumCulled={false}>
+        <ringGeometry args={[0.8, 1, 16]} />
+        <meshBasicMaterial color="#DCEBFA" transparent opacity={0.45} depthWrite={false} />
+      </instancedMesh>
+    </group>
+  );
+}
+
+/** Soft round flake sprite */
+function createFlakeTexture(): THREE.Texture {
+  const c = document.createElement('canvas');
+  c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  if (ctx) {
+    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,255,1)');
+    g.addColorStop(0.45, 'rgba(255,255,255,0.85)');
+    g.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, 64, 64);
   }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  return geo;
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
+}
+
+/** Two layers of flakes (fine and fat) */
+const FLAKE_LAYERS = [
+  { count: 1100, size: 0.09, fall: 0.9 },
+  { count: 320, size: 0.17, fall: 1.3 },
+];
+
+/** Flakes that flutter on their own little loops while drifting downwind */
+function Snow() {
+  const texture = useMemo(() => createFlakeTexture(), []);
+  const layers = useMemo(
+    () =>
+      FLAKE_LAYERS.map(({ count, size, fall }) => {
+        const positions = new Float32Array(count * 3);
+        const phase = new Float32Array(count);
+        for (let i = 0; i < count; i++) {
+          const [x, z] = randomOutsideHouse(WEATHER_SPAN);
+          positions[i * 3] = x;
+          positions[i * 3 + 1] = Math.random() * WEATHER_TOP;
+          positions[i * 3 + 2] = z;
+          phase[i] = Math.random() * Math.PI * 2;
+        }
+        const geometry = new THREE.BufferGeometry();
+        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        return { geometry, phase, size, fall };
+      }),
+    []
+  );
+
+  useFrame((state, delta) => {
+    const dt = Math.min(delta, 0.05);
+    const t = state.clock.getElapsedTime();
+    for (const { geometry, phase, fall } of layers) {
+      const p = geometry.attributes.position.array as Float32Array;
+      for (let i = 0; i < phase.length; i++) {
+        const o = i * 3;
+        const ph = phase[i];
+        p[o] += (WIND[0] * 0.35 + Math.sin(t * 1.3 + ph) * 0.35) * dt;
+        p[o + 1] -= fall * (0.8 + 0.4 * Math.sin(ph * 3.1)) * dt;
+        p[o + 2] += (WIND[1] * 0.35 + Math.cos(t * 1.1 + ph * 1.7) * 0.3) * dt;
+        if (p[o + 1] < 0 || isOverHouse(p[o], p[o + 2])) {
+          const [x, z] = randomOutsideHouse(WEATHER_SPAN);
+          p[o] = x;
+          p[o + 1] = WEATHER_TOP + Math.random();
+          p[o + 2] = z;
+        }
+      }
+      geometry.attributes.position.needsUpdate = true;
+    }
+  });
+
+  return (
+    <group name="snow">
+      {layers.map(({ geometry, size }, i) => (
+        <points key={i} geometry={geometry} frustumCulled={false}>
+          <pointsMaterial map={texture} size={size} sizeAttenuation transparent depthWrite={false} opacity={0.95} />
+        </points>
+      ))}
+    </group>
+  );
+}
+
+/** Snow settles on the lawn while it snows and melts away afterwards */
+function SnowCover({ snowing }: { snowing: boolean }) {
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
+  const cover = useRef(0);
+  useFrame((_, delta) => {
+    cover.current = THREE.MathUtils.clamp(cover.current + (snowing ? delta / 25 : -delta / 12), 0, 1);
+    if (matRef.current) {
+      matRef.current.opacity = cover.current * 0.85;
+      matRef.current.visible = cover.current > 0.001;
+    }
+  });
+  return (
+    <mesh position={[0, -0.03, 2]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow renderOrder={-1}>
+      <circleGeometry args={[30, 48]} />
+      <meshStandardMaterial ref={matRef} color="#F1F5F9" roughness={0.9} transparent opacity={0} depthWrite={false} />
+    </mesh>
+  );
 }
 
 export function DynamicSkyAndWeather() {
   const weatherState = useRoomStore((state) => state.weatherState);
 
   const cloudsRef = useRef<THREE.Group>(null);
-  const rainRef = useRef<THREE.Points>(null);
-  const snowRef = useRef<THREE.Points>(null);
 
   const skyMatRef = useRef<THREE.MeshBasicMaterial>(null);
   const hazeMatRef = useRef<THREE.MeshBasicMaterial>(null);
@@ -60,9 +246,6 @@ export function DynamicSkyAndWeather() {
     () => new THREE.MeshStandardMaterial({ color: '#FFFFFF', roughness: 0.4, transparent: true }),
     []
   );
-
-  const rainGeo = useMemo(() => makeParticleGeometry(220, 18), []);
-  const snowGeo = useMemo(() => makeParticleGeometry(180, 16), []);
 
   // Stars scattered over the upper hemisphere of the sky dome
   const starGeo = useMemo(() => {
@@ -81,7 +264,7 @@ export function DynamicSkyAndWeather() {
     return geo;
   }, []);
 
-  useFrame((state, delta) => {
+  useFrame((state) => {
     const t = state.clock.getElapsedTime();
     const n = dayNight.blend;
 
@@ -106,37 +289,6 @@ export function DynamicSkyAndWeather() {
 
     // --- Cloud drift ---
     if (cloudsRef.current) cloudsRef.current.position.x = Math.sin(t * 0.04) * 3.5;
-
-    // --- Rain ---
-    if (rainRef.current && weatherState === 'rain') {
-      const positions = rainRef.current.geometry.attributes.position.array as Float32Array;
-      for (let i = 0; i < positions.length; i += 3) {
-        positions[i + 1] -= delta * 24;
-        if (positions[i + 1] < 0) {
-          const [x, z] = randomOutsideHouse(36);
-          positions[i] = x;
-          positions[i + 1] = 16 + Math.random() * 2;
-          positions[i + 2] = z;
-        }
-      }
-      rainRef.current.geometry.attributes.position.needsUpdate = true;
-    }
-
-    // --- Snow ---
-    if (snowRef.current && weatherState === 'snow') {
-      const positions = snowRef.current.geometry.attributes.position.array as Float32Array;
-      for (let i = 0; i < positions.length; i += 3) {
-        positions[i + 1] -= delta * 3.2;
-        positions[i] += Math.sin(t * 2 + i) * 0.015;
-        if (positions[i + 1] < 0 || isOverHouse(positions[i], positions[i + 2])) {
-          const [x, z] = randomOutsideHouse(36);
-          positions[i] = x;
-          positions[i + 1] = 15 + Math.random() * 2;
-          positions[i + 2] = z;
-        }
-      }
-      snowRef.current.geometry.attributes.position.needsUpdate = true;
-    }
   });
 
   return (
@@ -220,19 +372,12 @@ export function DynamicSkyAndWeather() {
         ))}
       </group>
 
-      {/* 5. Rain */}
-      {weatherState === 'rain' && (
-        <points ref={rainRef} geometry={rainGeo}>
-          <pointsMaterial size={0.12} color="#93C5FD" transparent opacity={0.65} />
-        </points>
-      )}
+      {/* 5. Rain: wind-slanted streaks and splashes on the ground */}
+      {weatherState === 'rain' && <Rain />}
 
-      {/* 6. Snow */}
-      {weatherState === 'snow' && (
-        <points ref={snowRef} geometry={snowGeo}>
-          <pointsMaterial size={0.18} color="#FFFFFF" transparent opacity={0.85} />
-        </points>
-      )}
+      {/* 6. Snow: fluttering flakes, and a white cover that builds up on the lawn */}
+      {weatherState === 'snow' && <Snow />}
+      <SnowCover snowing={weatherState === 'snow'} />
     </group>
   );
 }

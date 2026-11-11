@@ -18,3 +18,21 @@ export function zoomFromPinch(current: number, previousDistance: number, newDist
   if (previousDistance <= 0 || newDistance <= 0) return current;
   return clampZoom(current * (previousDistance / newDistance));
 }
+
+/** Orbit limits: never under the floor, never straight down */
+export const ELEVATION_MIN = 0.2;
+export const ELEVATION_MAX = 1.3;
+/** Radians of orbit per pixel dragged */
+export const ORBIT_SPEED = 0.006;
+
+/** Drag by (dx, dy) pixels: right drag swings the view left round the room, down drag raises it */
+export function orbitFromDrag(azimuth: number, elevation: number, dx: number, dy: number): [number, number] {
+  const el = Math.min(ELEVATION_MAX, Math.max(ELEVATION_MIN, elevation + dy * ORBIT_SPEED));
+  return [azimuth - dx * ORBIT_SPEED, el];
+}
+
+/** Unit view direction (target -> camera) for an azimuth around y and an elevation above the floor */
+export function viewDirection(azimuth: number, elevation: number): [number, number, number] {
+  const c = Math.cos(elevation);
+  return [Math.sin(azimuth) * c, Math.sin(elevation), Math.cos(azimuth) * c];
+}

@@ -25,7 +25,7 @@ test('Flags and enlarged desk refinement verification', () => {
 
   // 5. Flags waypoint uses 'fiddling_flags' pose and stands in front of desk
   assert.ok(
-    brain.includes("flags: { stop: 'flags', pose: 'fiddling_flags' }"),
+    brain.includes("{ kind: 'go', stop: 'flags' }") && brain.includes("pose: 'fiddling_flags'"),
     "Flags station must use 'fiddling_flags' pose"
   );
 

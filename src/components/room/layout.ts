@@ -112,16 +112,16 @@ export const PLACEMENTS = {
   /** Mid-century mustard armchair, turned towards the coffee table */
   armchair: {
     id: 'armchair',
-    x: 1.7,
+    x: 1.6,
     z: 0.15,
-    yaw: -1.25,
+    yaw: -1.45,
     scale: ARMCHAIR_SCALE,
     footprint: { shape: 'rect', w: 1.05, d: 0.72 },
   },
-  /** Low round coffee table, 0.3 m in front of the armchair */
+  /** Low round coffee table in front of the armchair */
   coffeeTable: {
     id: 'coffeeTable',
-    x: 0.675,
+    x: 0.55,
     z: 0.49,
     yaw: 0,
     scale: [0.78, 1.05, 0.78],
@@ -150,8 +150,8 @@ export const PLACEMENTS = {
 export const WALL_ITEMS = {
   dartboard: { z: 0.6, y: 1.73, scale: 0.47 },
   sconce: { z: 0.6, y: 2.3, scale: 0.8 },
-  shelf: { z: -1.0, y: 1.75, scale: 0.3 },
-  brand: { z: -1.0, y: 2.35, fontSize: 0.16 },
+  shelf: { z: -1.0, y: 1.48, scale: 0.3 },
+  brand: { z: -1.0, y: 2.2, fontSize: 0.15 },
 } as const;
 
 /** Guitar lean angle (radians, top tilts towards the back wall) */

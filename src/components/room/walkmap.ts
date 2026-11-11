@@ -29,14 +29,20 @@ export const WALKER_RADIUS = 0.22;
 // Nodes
 // ---------------------------------------------------------------------------
 
-const armchairApproach = localToWorld(PLACEMENTS.armchair, 1.05, 0.05);
 const armchairFwd = forward(PLACEMENTS.armchair.yaw);
 const armchairSeat: Vec2 = [
   PLACEMENTS.armchair.x - armchairFwd[0] * 0.04,
   PLACEMENTS.armchair.z - armchairFwd[1] * 0.04,
 ];
+/** Standing in front of the armchair, between it and the coffee table */
+const armchairStand = localToWorld(PLACEMENTS.armchair, 0, 0.45);
+const armchairApproach: Vec2 = [armchairStand[0] + 0.15, armchairStand[1] + 0.75];
 
 const deskSeat: Vec2 = [PLACEMENTS.deskChair.x, PLACEMENTS.deskChair.z];
+/** Beside the desk chair (its back faces the room, so he slides in from the side) */
+const deskStand: Vec2 = [PLACEMENTS.deskChair.x + 0.43, PLACEMENTS.deskChair.z + 0.05];
+/** Close enough to the wall stand to lift the guitar off it */
+const guitarReach: Vec2 = [PLACEMENTS.guitar.x, PLACEMENTS.guitar.z + 0.32];
 
 export const NODES = {
   // Outdoors
@@ -61,8 +67,11 @@ export const NODES = {
   deskApproach: [PLACEMENTS.deskChair.x, -0.45],
   flagsFront: [-0.9, -1.2],
   guitarFront: [1.2, -1.3],
-  windowFront: [1.9, -1.55],
+  windowFront: [1.9, -1.75],
   couchApproach: armchairApproach,
+  // Right-hand aisle between the armchair and the open side of the room
+  east1: [2.3, 0.95],
+  east2: [2.3, -0.8],
 } as const satisfies Record<string, Vec2>;
 
 export type NodeId = keyof typeof NODES;
@@ -94,6 +103,10 @@ export const EDGES: [NodeId, NodeId][] = [
   ['mid0', 'flagsFront'],
   ['mid1', 'guitarFront'],
   ['guitarFront', 'windowFront'],
+  ['entry', 'east1'],
+  ['east1', 'east2'],
+  ['east2', 'windowFront'],
+  ['east2', 'guitarFront'],
 ];
 
 // ---------------------------------------------------------------------------
@@ -106,6 +119,7 @@ export type StopKey =
   | 'workstation'
   | 'couch'
   | 'guitar'
+  | 'guitarPlay'
   | 'window'
   | 'dartboard'
   | 'dartRetrieve'
@@ -118,6 +132,10 @@ export interface Stop {
   /** Optional last move after the node, allowed to touch `dockIgnores` */
   dock?: Vec2;
   dockIgnores?: string[];
+  /** Keep facing `yaw` during the dock move (side-step instead of turning to walk) */
+  strafe?: boolean;
+  /** Where the hips end up when he sits down at this stop */
+  seat?: Vec2;
   /** Facing when the walk finishes */
   yaw: number;
 }
@@ -127,18 +145,25 @@ export const STOPS: Record<StopKey, Stop> = {
   // Arrival / rest spot: just inside the door, facing the camera-ish
   rest: { node: 'entry', yaw: Math.PI * 0.25 },
   workstation: {
-    node: 'deskApproach',
-    dock: deskSeat,
+    node: 'flagsFront',
+    dock: deskStand,
     dockIgnores: ['deskChair', 'desk'],
+    strafe: true,
+    seat: deskSeat,
     yaw: Math.PI,
   },
   couch: {
     node: 'couchApproach',
-    dock: armchairSeat,
-    dockIgnores: ['armchair'],
+    dock: armchairStand,
+    dockIgnores: ['armchair', 'coffeeTable'],
+    seat: armchairSeat,
+    // Facing away from the chair, ready to sit back into it
     yaw: PLACEMENTS.armchair.yaw,
   },
-  guitar: { node: 'guitarFront', yaw: 0.5 },
+  // Facing the wall stand to pick the guitar up / put it back
+  guitar: { node: 'guitarFront', dock: guitarReach, dockIgnores: ['guitar'], yaw: Math.PI },
+  // Turned towards the room while playing
+  guitarPlay: { node: 'guitarFront', yaw: 0.5 },
   window: { node: 'windowFront', yaw: Math.PI },
   dartboard: { node: 'dartLine', yaw: -Math.PI / 2 },
   dartRetrieve: { node: 'dartBoard', yaw: -Math.PI / 2 },

@@ -8,6 +8,6 @@ test('Task 6 TournamentDartboard raycasting and retrieval loop', () => {
   assert.ok(!dartFile.includes('(Math.random() - 0.5) * 0.14'), 'Should remove random dart offset');
   assert.ok(dartFile.includes('useRoomStore'), 'Dartboard should integrate with useRoomStore');
   assert.ok(dartFile.includes('setActiveStation'), 'Dartboard should set active station');
-  assert.ok(dartFile.includes('resetDarts'), 'Dartboard should support resetDarts for retrieval');
+  assert.ok(fs.readFileSync('src/components/room/character/useCharacterBrain.ts', 'utf-8').includes('resetDarts'), 'Retrieval should reset the darts once he has pulled them out');
 });
 

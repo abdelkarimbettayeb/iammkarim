@@ -1,15 +1,16 @@
 'use client';
 
 import { useRoomStore } from '@/store/useRoomStore';
-import { playSound } from '@/lib/audioEngine';
 import React, { useMemo } from 'react';
 import * as THREE from 'three';
 
 interface AcousticGuitarProps extends React.ComponentProps<'group'> {
   isLeaning?: boolean;
+  /** false for the copy in the boy's hands (not clickable) */
+  interactive?: boolean;
 }
 
-export function AcousticGuitar({ isLeaning = false, ...props }: AcousticGuitarProps) {
+export function AcousticGuitar({ isLeaning = false, interactive = true, ...props }: AcousticGuitarProps) {
   const setActiveStation = useRoomStore((state) => state.setActiveStation);
   // 1. Classical Dreadnought Acoustic Guitar Body Profile
   const bodyShape = useMemo(() => {
@@ -74,24 +75,25 @@ export function AcousticGuitar({ isLeaning = false, ...props }: AcousticGuitarPr
   const fretDots = [0.95, 0.83, 0.71, 0.59]; // 3rd, 5th, 7th, 9th frets
   const strings = [-0.022, -0.013, -0.004, 0.005, 0.014, 0.023]; // E, A, D, G, B, E
 
-  const handleGuitarClick = (e: any) => {
-    e.stopPropagation();
-    setActiveStation('guitar');
-    playSound('guitar');
-  };
+  // He walks over and picks it up; the strumming itself makes the sound
+  const handlers = interactive
+    ? {
+        onClick: (e: { stopPropagation: () => void }) => {
+          e.stopPropagation();
+          setActiveStation('guitar');
+        },
+        onPointerOver: (e: { stopPropagation: () => void }) => {
+          e.stopPropagation();
+          document.body.style.cursor = 'pointer';
+        },
+        onPointerOut: () => {
+          document.body.style.cursor = 'auto';
+        },
+      }
+    : {};
 
   return (
-    <group
-      {...props}
-      onClick={handleGuitarClick}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-        if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
-      }}
-      onPointerOut={() => {
-        if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
-      }}
-    >
+    <group {...props} {...handlers}>
       {/* 3D Extruded Mahogany Body Shell (Back & Sides) */}
       <mesh geometry={bodyGeometry} castShadow receiveShadow>
         <meshStandardMaterial color="#5C240E" roughness={0.45} />

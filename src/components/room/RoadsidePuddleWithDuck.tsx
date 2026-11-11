@@ -3,7 +3,9 @@
 import React, { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import { playSound } from '@/lib/audioEngine';
+import { dayNight } from '@/store/dayNight';
 import { duckHeading, duckPosition, puddleControlPoints } from './puddleMath';
 
 interface RoadsidePuddleWithDuckProps {
@@ -12,6 +14,12 @@ interface RoadsidePuddleWithDuckProps {
 }
 
 const BLOB_SEGMENTS = 96;
+/** Real ducks are ~35 cm; the pond is under 2 m across */
+const DUCK_SCALE = 0.72;
+const smoothstep = (a: number, b: number, x: number) => {
+  const t = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+};
 
 /** Closed smooth outline through the control points, as a flat shape */
 function buildBlob(scale: number): { shape: THREE.Shape; outline: THREE.Vector2[] } {
@@ -29,6 +37,11 @@ export function RoadsidePuddleWithDuck({
   const duckRef = useRef<THREE.Group>(null);
   const rippleRef = useRef<THREE.Mesh>(null);
   const rippleMatRef = useRef<THREE.MeshBasicMaterial>(null);
+  const headRef = useRef<THREE.Group>(null);
+  const eyesRef = useRef<THREE.Group>(null);
+  const zzzRef = useRef<THREE.Group>(null);
+  /** Swim clock: slows to a stop as the duck falls asleep */
+  const swimT = useRef(0);
   const [quacked, setQuacked] = useState(false);
 
   const { water, mud, wetGrass, pebbles } = useMemo(() => {
@@ -46,22 +59,46 @@ export function RoadsidePuddleWithDuck({
     return { water, mud, wetGrass, pebbles };
   }, []);
 
-  useFrame((state) => {
+  useFrame((state, delta) => {
     const t = state.clock.getElapsedTime();
+    // Asleep once night has properly fallen
+    const sleep = smoothstep(0.55, 0.95, dayNight.blend);
+    swimT.current += Math.min(delta, 0.1) * (1 - sleep);
+    const st = swimT.current;
 
     if (duckRef.current) {
-      const [x, z] = duckPosition(t);
-      duckRef.current.position.set(x, 0.02 + Math.sin(t * 3.2) * 0.006, z);
+      const [x, z] = duckPosition(st);
+      // Slow breathing bob while asleep, paddling bob while swimming
+      const bob = THREE.MathUtils.lerp(Math.sin(t * 3.2) * 0.006, Math.sin(t * 1.1) * 0.003, sleep);
+      duckRef.current.position.set(x, 0.012 + bob, z);
       // Beak points along the direction of travel, with a gentle waddle roll
-      duckRef.current.rotation.y = duckHeading(t);
-      duckRef.current.rotation.z = Math.sin(t * 3.6) * 0.05;
+      duckRef.current.rotation.y = duckHeading(st);
+      duckRef.current.rotation.z = Math.sin(t * 3.6) * 0.05 * (1 - sleep);
+
+      // Head turns back and tucks onto the back; eyes close
+      if (headRef.current) {
+        headRef.current.rotation.set(0.25 * sleep, 2.7 * sleep, 0);
+        headRef.current.position.y = 0.11 - 0.035 * sleep;
+      }
+      if (eyesRef.current) eyesRef.current.scale.y = 1 - 0.85 * sleep;
+
+      // Little z's drifting up
+      if (zzzRef.current) {
+        zzzRef.current.visible = sleep > 0.5;
+        zzzRef.current.position.set(x, 0.3, z);
+        zzzRef.current.children.forEach((child, i) => {
+          const p = (t * 0.35 + i / 3) % 1;
+          child.position.set(0.05 + p * 0.08, p * 0.35, 0);
+          child.scale.setScalar(Math.sin(p * Math.PI) * (0.6 + i * 0.2));
+        });
+      }
 
       // Expanding ripple that trails the duck
       if (rippleRef.current && rippleMatRef.current) {
         const phase = (t * 0.7) % 1;
         rippleRef.current.position.set(x, 0.018, z);
-        rippleRef.current.scale.setScalar(0.4 + phase * 1.6);
-        rippleMatRef.current.opacity = 0.35 * (1 - phase);
+        rippleRef.current.scale.setScalar((0.4 + phase * 1.6) * DUCK_SCALE);
+        rippleMatRef.current.opacity = 0.35 * (1 - phase) * (1 - sleep * 0.8);
       }
     }
   });
@@ -113,10 +150,19 @@ export function RoadsidePuddleWithDuck({
         </mesh>
       ))}
 
+      {/* Sleeping z's (night only) */}
+      <group ref={zzzRef} visible={false}>
+        {[0, 1, 2].map((i) => (
+          <Text key={i} fontSize={0.09} color="#E0E7FF" anchorX="center" anchorY="middle" outlineWidth={0.004} outlineColor="#312E81">
+            z
+          </Text>
+        ))}
+      </group>
+
       {/* Low-poly duck, ~35 cm long */}
       <group
         ref={duckRef}
-        scale={quacked ? 1.5 : 1.3}
+        scale={quacked ? DUCK_SCALE * 1.15 : DUCK_SCALE}
         onClick={handleDuckClick}
         onPointerOver={(e) => {
           e.stopPropagation();
@@ -138,7 +184,9 @@ export function RoadsidePuddleWithDuck({
           <meshStandardMaterial color="#F59E0B" roughness={0.5} />
         </mesh>
 
-        {/* Head */}
+        {/* Head, beak and eyes pivot at the neck so it can tuck in to sleep */}
+        <group ref={headRef} position={[0, 0.11, 0.07]}>
+        <group position={[0, -0.11, -0.07]}>
         <mesh position={[0, 0.17, 0.1]} castShadow>
           <sphereGeometry args={[0.06, 12, 12]} />
           <meshStandardMaterial color="#FBBF24" roughness={0.5} />
@@ -151,12 +199,16 @@ export function RoadsidePuddleWithDuck({
         </mesh>
 
         {/* Eyes */}
-        {[-0.045, 0.045].map((xEye) => (
-          <mesh key={xEye} position={[xEye, 0.185, 0.125]}>
-            <sphereGeometry args={[0.011, 8, 8]} />
-            <meshBasicMaterial color="#0F172A" />
-          </mesh>
-        ))}
+        <group ref={eyesRef} position={[0, 0.185, 0.125]}>
+          {[-0.045, 0.045].map((xEye) => (
+            <mesh key={xEye} position={[xEye, 0, 0]}>
+              <sphereGeometry args={[0.011, 8, 8]} />
+              <meshBasicMaterial color="#0F172A" />
+            </mesh>
+          ))}
+        </group>
+        </group>
+        </group>
 
         {/* Folded wings */}
         {[-0.078, 0.078].map((xWing, idx) => (

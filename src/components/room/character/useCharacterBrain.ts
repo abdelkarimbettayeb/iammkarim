@@ -4,7 +4,9 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import type { ActiveStation } from '@/types/room';
 import { NODES, STOPS, planPath, segmentClear, type StopKey } from '../walkmap';
-import type { Vec2 } from '../layout';
+import { forward, type Vec2 } from '../layout';
+import { ballBus, dartboardBus } from '../items/propBus';
+import { playSound } from '@/lib/audioEngine';
 import { GAIT } from './gait';
 
 export type ActionPose =
@@ -20,7 +22,9 @@ export type ActionPose =
   | 'retrieving'
   | 'thinking'
   | 'shivering'
-  | 'fiddling_flags';
+  | 'fiddling_flags'
+  | 'reaching'
+  | 'pickup';
 
 type Step =
   | { kind: 'go'; stop: StopKey; speed?: number }
@@ -31,6 +35,15 @@ type Step =
       duration: number | null;
       enter?: () => void;
       exit?: () => void;
+      /** Fire `act` once, `at` seconds into the step (when the hand gets there) */
+      at?: number;
+      act?: () => void;
+      /** Glide the hips here while easing into the pose (sitting down / standing up) */
+      slideTo?: Vec2;
+      /** This step sits him down (remember where to stand back up) */
+      sit?: boolean;
+      /** Seconds to blend into this pose */
+      blend?: number;
     };
 
 export const WALK_SPEED = 2.0;
@@ -51,6 +64,13 @@ const PIVOT_ANGLE = 1.2;
 /** Gait phase gained per radian of in-place turning (shuffling the feet) */
 const PIVOT_STEP = 2.2;
 const CORNER_RADIUS = 0.45;
+/** Default pose cross-fade */
+export const POSE_BLEND = 0.22;
+/** Seconds to sit down or stand up */
+const SIT_TIME = 0.8;
+
+/** Dart throw timeline (seconds within one throw) */
+export const THROW = { aimEnd: 0.9, drawEnd: 1.2, release: 1.27, followEnd: 1.8, reload: 2.2, cycle: 2.8 } as const;
 
 export interface Walker {
   x: number;
@@ -66,6 +86,12 @@ export interface Walker {
   stride: number;
   /** Current turn rate in rad/s (+ = towards his left-hand x axis) */
   turnRate: number;
+  /** Seconds since the current pose started */
+  poseTime: number;
+  /** Cross-fade time into the current pose */
+  blend: number;
+  /** Seconds into the current dart throw */
+  throwPhase: number;
 }
 
 export interface CharacterFlags {
@@ -74,26 +100,22 @@ export interface CharacterFlags {
   dart: boolean;
 }
 
-/** Station the user can select -> where he goes and what he does when he gets there */
-const STATION_PLANS: Record<
-  Exclude<ActiveStation, 'none'>,
-  { stop: StopKey; pose: ActionPose; flags?: Partial<CharacterFlags> }
-> = {
-  workstation: { stop: 'workstation', pose: 'typing' },
-  couch: { stop: 'couch', pose: 'sitting' },
-  guitar: { stop: 'guitar', pose: 'strumming', flags: { guitar: true } },
-  window: { stop: 'window', pose: 'window' },
-  dartboard: { stop: 'dartboard', pose: 'throwing', flags: { dart: true } },
-  volleyball: { stop: 'volleyball', pose: 'bumping' },
-  flags: { stop: 'flags', pose: 'fiddling_flags' },
-};
-
 function wrapAngle(a: number): number {
   return Math.atan2(Math.sin(a), Math.cos(a));
 }
 
 function approach(value: number, target: number, maxStep: number): number {
   return value < target ? Math.min(target, value + maxStep) : Math.max(target, value - maxStep);
+}
+
+/** Toss the ball away gently if he's holding it, and stop the keep-ups */
+function releaseBall(yaw: number) {
+  ballBus.keeper = null;
+  if (!ballBus.held) return;
+  ballBus.held = false;
+  const f = forward(yaw);
+  ballBus.vel.set(f[0] * 0.7, 2.2, f[1] * 0.7);
+  ballBus.simulating = true;
 }
 
 /**
@@ -142,6 +164,7 @@ function roundCorners(path: Vec2[]): Vec2[] {
 export function useCharacterBrain(onStationArrival?: (station: ActiveStation) => void) {
   const activeStation = useRoomStore((state) => state.activeStation);
   const dartsLeft = useRoomStore((state) => state.dartsLeft);
+  const stationNonce = useRoomStore((state) => state.stationNonce);
 
   const spawn = NODES[STOPS.spawn.node];
   const walker = useRef<Walker>({
@@ -154,6 +177,9 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
     speed: 0,
     stride: 0,
     turnRate: 0,
+    poseTime: 0,
+    blend: POSE_BLEND,
+    throwPhase: 0,
   });
   const yawVel = useRef(0);
   const flags = useRef<CharacterFlags>({ chilly: false, guitar: false, dart: false });
@@ -168,6 +194,10 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
   const idleTime = useRef(0);
   const routineRunning = useRef(false);
   const leaveIgnores = useRef<string[]>([]);
+  /** Where he stood before sitting down; he stands back up to here */
+  const seatExit = useRef<Vec2 | null>(null);
+  const slideFrom = useRef<Vec2>([0, 0]);
+  const acted = useRef(false);
   const onArrivalRef = useRef(onStationArrival);
   onArrivalRef.current = onStationArrival;
   const activeStationRef = useRef(activeStation);
@@ -175,20 +205,102 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
   // Last station we reacted to. Starts at 'none' so the intro walk isn't overridden
   // (also keeps React StrictMode's double effect run harmless).
   const handledStation = useRef<ActiveStation>('none');
+  const handledNonce = useRef(-1);
+
+  const setFlags = (patch: Partial<CharacterFlags>) => {
+    flags.current = { ...flags.current, ...patch };
+    if (patch.guitar !== undefined && roomStore.getState().isGuitarHeld !== patch.guitar) {
+      roomStore.setGuitarHeld(patch.guitar);
+    }
+  };
+
+  /** Walk to the wall stand and lift the guitar off it (or put it back) */
+  const guitarSwap = (pickUp: boolean): Step[] => [
+    { kind: 'go', stop: 'guitar' },
+    { kind: 'do', pose: 'reaching', duration: 0.75, at: 0.4, act: () => setFlags({ guitar: pickUp }) },
+  ];
 
   const setQueue = useCallback((steps: Step[], routine = false) => {
     // Leave the current 'do' cleanly (reset temporary props)
     const cur = queue.current[0];
     if (cur && cur.kind === 'do' && stepStarted.current) cur.exit?.();
-    queue.current = steps;
+    const plays = (pose: ActionPose) => steps.some((s) => s.kind === 'do' && s.pose === pose);
+    if (!plays('bumping')) releaseBall(walker.current.yaw);
+    const prefix: Step[] = [];
+    if (steps[0]?.kind === 'go') {
+      // Get up out of the chair before walking anywhere
+      if (seatExit.current) {
+        prefix.push({ kind: 'do', pose: 'idle', duration: SIT_TIME, slideTo: seatExit.current, blend: SIT_TIME });
+        seatExit.current = null;
+      }
+      // Never wander off with the guitar: put it back on its stand first
+      if (flags.current.guitar && !plays('strumming')) prefix.push(...guitarSwap(false));
+    }
+    queue.current = [...prefix, ...steps];
     stepStarted.current = false;
     stepTimer.current = 0;
     idleTime.current = 0;
     routineRunning.current = routine;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const setFlags = (patch: Partial<CharacterFlags>) => {
-    flags.current = { ...flags.current, ...patch };
+  /** Where he goes and what he does for each station the visitor can pick */
+  const stationSteps = (station: Exclude<ActiveStation, 'none'>): Step[] => {
+    const arrive = () => onArrivalRef.current?.(station);
+    switch (station) {
+      case 'workstation':
+      case 'couch':
+        return [
+          { kind: 'go', stop: station },
+          {
+            kind: 'do',
+            pose: station === 'couch' ? 'sitting' : 'typing',
+            duration: null,
+            slideTo: STOPS[station].seat,
+            sit: true,
+            blend: SIT_TIME,
+            at: SIT_TIME,
+            act: arrive,
+          },
+        ];
+      case 'guitar':
+        return [
+          ...(flags.current.guitar ? [] : guitarSwap(true)),
+          { kind: 'go', stop: 'guitarPlay' },
+          { kind: 'do', pose: 'strumming', duration: null, enter: arrive },
+        ];
+      case 'window':
+        return [
+          { kind: 'go', stop: 'window' },
+          {
+            kind: 'do',
+            pose: 'window',
+            duration: null,
+            at: 0.45,
+            act: () => {
+              roomStore.toggleWindow();
+              playSound('window');
+              arrive();
+            },
+          },
+        ];
+      case 'dartboard':
+        return [
+          { kind: 'go', stop: 'dartboard' },
+          { kind: 'do', pose: 'throwing', duration: null, enter: arrive, exit: () => setFlags({ dart: false }) },
+        ];
+      case 'volleyball':
+        return [
+          { kind: 'go', stop: 'volleyball' },
+          { kind: 'do', pose: 'pickup', duration: 1.0, at: 0.5, act: () => (ballBus.held = true) },
+          { kind: 'do', pose: 'bumping', duration: null, enter: arrive, exit: () => releaseBall(walker.current.yaw) },
+        ];
+      case 'flags':
+        return [
+          { kind: 'go', stop: 'flags' },
+          { kind: 'do', pose: 'fiddling_flags', duration: null, enter: arrive },
+        ];
+    }
   };
 
   // Intro: walk in from the road, wave at the door, then settle
@@ -201,45 +313,43 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // User picked a station
+  // User picked a station (picking the window again opens/closes it again)
   useEffect(() => {
-    if (handledStation.current === activeStation) return;
+    const same = handledStation.current === activeStation;
+    const again = same && handledNonce.current !== stationNonce && activeStation === 'window';
+    handledNonce.current = stationNonce;
+    if (same && !again) return;
     handledStation.current = activeStation;
+    setFlags({ dart: false, chilly: false });
     if (activeStation === 'none') {
-      setFlags({ guitar: false, dart: false, chilly: false });
       setQueue([
         { kind: 'go', stop: 'rest' },
         { kind: 'do', pose: 'idle', duration: null },
       ]);
       return;
     }
-    const plan = STATION_PLANS[activeStation];
-    setFlags({ guitar: false, dart: false, chilly: false });
-    setQueue([
-      { kind: 'go', stop: plan.stop },
-      {
-        kind: 'do',
-        pose: plan.pose,
-        duration: null,
-        enter: () => {
-          if (plan.flags) setFlags(plan.flags);
-          onArrivalRef.current?.(activeStation);
-        },
-        exit: () => setFlags({ guitar: false, dart: false }),
-      },
-    ]);
-  }, [activeStation, setQueue]);
+    setQueue(stationSteps(activeStation));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStation, stationNonce, setQueue]);
 
-  // When the darts run out he walks to the board, collects them and returns
+  // When the darts run out he walks to the board, pulls them out and comes back
   useEffect(() => {
     if (activeStation !== 'dartboard' || dartsLeft !== 0) return;
     setQueue([
-      { kind: 'do', pose: 'throwing', duration: 0.8 },
+      { kind: 'do', pose: 'idle', duration: 0.6 },
       { kind: 'go', stop: 'dartRetrieve' },
-      { kind: 'do', pose: 'retrieving', duration: 1.4, enter: () => setFlags({ dart: false }) },
+      {
+        kind: 'do',
+        pose: 'retrieving',
+        duration: 1.6,
+        at: 0.9,
+        act: () => dartboardBus.clear?.(),
+        exit: () => roomStore.resetDarts(),
+      },
       { kind: 'go', stop: 'dartboard' },
-      { kind: 'do', pose: 'throwing', duration: null, enter: () => setFlags({ dart: true }) },
+      { kind: 'do', pose: 'throwing', duration: null, exit: () => setFlags({ dart: false }) },
     ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeStation, dartsLeft, setQueue]);
 
   const startRoutine = () => {
@@ -251,23 +361,20 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
         { kind: 'go', stop: 'rest' },
         { kind: 'do', pose: 'idle', duration: null },
       ],
-      // A few volleyball bumps
+      // A few volleyball keep-ups
       [
         { kind: 'go', stop: 'volleyball' },
-        { kind: 'do', pose: 'bumping', duration: 4.5 },
+        { kind: 'do', pose: 'pickup', duration: 1.0, at: 0.5, act: () => (ballBus.held = true) },
+        { kind: 'do', pose: 'bumping', duration: 6, exit: () => releaseBall(walker.current.yaw) },
         { kind: 'go', stop: 'rest' },
         { kind: 'do', pose: 'idle', duration: null },
       ],
-      // Play the guitar
+      // Play the guitar, then put it back on its stand
       [
-        { kind: 'go', stop: 'guitar' },
-        {
-          kind: 'do',
-          pose: 'strumming',
-          duration: 6,
-          enter: () => setFlags({ guitar: true }),
-          exit: () => setFlags({ guitar: false }),
-        },
+        ...guitarSwap(true),
+        { kind: 'go', stop: 'guitarPlay' },
+        { kind: 'do', pose: 'strumming', duration: 6 },
+        ...guitarSwap(false),
         { kind: 'go', stop: 'rest' },
         { kind: 'do', pose: 'idle', duration: null },
       ],
@@ -281,12 +388,40 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
           exit: () => setFlags({ chilly: false }),
         },
         { kind: 'go', stop: 'window' },
-        { kind: 'do', pose: 'window', duration: 1.8, enter: () => roomStore.toggleWindow(false) },
+        {
+          kind: 'do',
+          pose: 'window',
+          duration: 1.8,
+          at: 0.45,
+          act: () => {
+            if (!roomStore.getState().isWindowOpen) return;
+            roomStore.toggleWindow(false);
+            playSound('window');
+          },
+        },
         { kind: 'go', stop: 'rest' },
         { kind: 'do', pose: 'idle', duration: null },
       ],
     ];
     setQueue(routines[Math.floor(Math.random() * routines.length)], true);
+  };
+
+  /** One dart per THROW.cycle; the dart lands on the board on the release frame */
+  const throwDarts = (dt: number) => {
+    const w = walker.current;
+    const left = roomStore.getState().dartsLeft;
+    // A click on the board skips the wait for the next throw
+    if (dartboardBus.aim && w.throwPhase > THROW.reload) w.throwPhase = 0.35;
+    const before = w.throwPhase;
+    w.throwPhase += dt;
+    if (left > 0 && before < THROW.release && w.throwPhase >= THROW.release) {
+      dartboardBus.land?.(dartboardBus.aim);
+      dartboardBus.aim = null;
+      roomStore.decrementDarts();
+    }
+    if (w.throwPhase >= THROW.cycle) w.throwPhase = left > 0 ? 0 : THROW.cycle;
+    const holding = left > 0 && (w.throwPhase < THROW.release || w.throwPhase > THROW.reload);
+    if (flags.current.dart !== holding) setFlags({ dart: holding });
   };
 
   /** Advance the simulation. Call from useFrame. */
@@ -304,10 +439,27 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
       if (!stepStarted.current) {
         stepStarted.current = true;
         stepTimer.current = 0;
+        acted.current = false;
+        slideFrom.current = [w.x, w.z];
+        if (step.sit) seatExit.current = [w.x, w.z];
         w.pose = step.pose;
+        w.blend = step.blend ?? POSE_BLEND;
+        w.throwPhase = 0;
         step.enter?.();
       }
       stepTimer.current += dt;
+      w.poseTime = stepTimer.current;
+      if (step.slideTo) {
+        const k = Math.min(1, stepTimer.current / (step.blend ?? POSE_BLEND));
+        const e = k * k * (3 - 2 * k);
+        w.x = slideFrom.current[0] + (step.slideTo[0] - slideFrom.current[0]) * e;
+        w.z = slideFrom.current[1] + (step.slideTo[1] - slideFrom.current[1]) * e;
+      }
+      if (step.act && !acted.current && stepTimer.current >= (step.at ?? 0)) {
+        acted.current = true;
+        step.act();
+      }
+      if (step.pose === 'throwing') throwDarts(dt);
       if (step.duration !== null && stepTimer.current >= step.duration) {
         step.exit?.();
         queue.current.shift();
@@ -332,7 +484,10 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
         targetYaw.current = stop.yaw;
         const left = Math.abs(wrapAngle(stop.yaw - w.yaw));
         // Still turning to face the stop: keep the feet shuffling
-        if (left > 0.12) w.pose = 'walking';
+        if (left > 0.12) {
+          w.pose = 'walking';
+          w.blend = POSE_BLEND;
+        }
         // finish once facing the right way
         if (left < 0.12 && Math.abs(yawVel.current) < 1.5) {
           leaveIgnores.current = stop.dockIgnores ?? [];
@@ -341,13 +496,16 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
         }
       } else {
         w.pose = 'walking';
+        w.blend = POSE_BLEND;
         const dx = target[0] - w.x;
         const dz = target[1] - w.z;
         const d = Math.hypot(dx, dz);
-        if (d > 1e-4) targetYaw.current = Math.atan2(dx, dz);
-
         const isLast = pathIndex.current === path.current.length - 1;
         const isDock = !!stop.dock && isLast;
+        // Side-step into a dock instead of turning round to walk there
+        if (isDock && stop.strafe) targetYaw.current = stop.yaw;
+        else if (d > 1e-4) targetYaw.current = Math.atan2(dx, dz);
+
         const base = step.speed ?? (isDock ? DOCK_SPEED : WALK_SPEED);
         // Facing well away from the lane: pivot first, then set off
         const turn = Math.abs(wrapAngle(targetYaw.current - w.yaw));

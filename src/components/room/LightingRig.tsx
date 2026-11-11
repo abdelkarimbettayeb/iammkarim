@@ -27,9 +27,6 @@ export function LightingRig() {
   const ambientRef = useRef<THREE.AmbientLight>(null);
   const sunRef = useRef<THREE.DirectionalLight>(null);
   const fillRef = useRef<THREE.DirectionalLight>(null);
-  const lampRef = useRef<THREE.PointLight>(null);
-  const rimBlueRef = useRef<THREE.PointLight>(null);
-  const rimPurpleRef = useRef<THREE.PointLight>(null);
   /** Weather changes the day-time sun strength; ease that as well */
   const daySun = useRef(daySunIntensity(weatherState));
 
@@ -50,9 +47,6 @@ export function LightingRig() {
       fillRef.current.color.copy(FILL_DAY).lerp(FILL_NIGHT, n);
       fillRef.current.intensity = lerp(0.65, 0.25, n);
     }
-    if (lampRef.current) lampRef.current.intensity = lerp(0.7, 2.6, n);
-    if (rimBlueRef.current) rimBlueRef.current.intensity = 1.5 * n;
-    if (rimPurpleRef.current) rimPurpleRef.current.intensity = 1.1 * n;
   });
 
   return (
@@ -81,19 +75,8 @@ export function LightingRig() {
       {/* 3. Soft front sky fill */}
       <directionalLight ref={fillRef} position={[6.5, 9, 8.5]} intensity={0.65} color="#E0F2FE" />
 
-      {/* 4. Warm desk-area atmosphere, stronger at night */}
-      <pointLight
-        ref={lampRef}
-        position={[-1.5, 1.7, -1.4]}
-        intensity={0.7}
-        color="#F59E0B"
-        distance={5}
-        decay={2}
-      />
-
-      {/* 5. Night-only rim lights (always mounted so they can fade in) */}
-      <pointLight ref={rimBlueRef} position={[-2.2, 2.4, 1.2]} intensity={0} color="#38BDF8" distance={5} />
-      <pointLight ref={rimPurpleRef} position={[1.8, 1.6, -1.6]} intensity={0} color="#A855F7" distance={4.5} />
+      {/* Interior light at night comes only from real fixtures: the wall sconce,
+          the desk lamp, the monitor and the moon through the window */}
     </group>
   );
 }

@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { dayNight } from '@/store/dayNight';
 
 interface WallSconceProps {
   position?: [number, number, number];
@@ -14,6 +16,10 @@ export function WallSconce({
   rotation = [0, 0, 0],
   scale = 1,
 }: WallSconceProps) {
+  const lightRef = useRef<THREE.PointLight>(null);
+  useFrame(() => {
+    if (lightRef.current) lightRef.current.intensity = THREE.MathUtils.lerp(0.9, 3.2, dayNight.blend);
+  });
   // Graceful looping gooseneck / shepherd's hook arch starting from mounting plate at (0,0,0)
   const { curveGeo } = useMemo(() => {
     const points = [
@@ -59,11 +65,12 @@ export function WallSconce({
         />
       </mesh>
 
-      {/* Atmospheric Ambient Glow Light */}
+      {/* The room's main light after dark */}
       <pointLight
+        ref={lightRef}
         position={[0.33, -0.16, 0.08]}
         intensity={1.2}
-        distance={4}
+        distance={6}
         decay={2}
         color="#FEF3C7"
       />

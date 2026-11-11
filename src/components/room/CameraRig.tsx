@@ -6,10 +6,13 @@ import * as THREE from 'three';
 import { useRoomStore } from '@/store/useRoomStore';
 import type { ActiveStation } from '@/types/room';
 import { PLACEMENTS, WALL_ITEMS, WINDOW, ROOM, OUTDOOR } from './layout';
-import { clampZoom, zoomFromPinch, zoomFromWheel } from './cameraMath';
+import { clampZoom, orbitFromDrag, viewDirection, zoomFromPinch, zoomFromWheel } from './cameraMath';
 
 /** Looking at the room from the front-right, the signature isometric angle */
-const VIEW_DIRECTION = new THREE.Vector3(0.7, 0.58, 0.7).normalize();
+const HOME_AZIMUTH = Math.PI / 4;
+const HOME_ELEVATION = Math.asin(0.58 / Math.hypot(0.7, 0.58, 0.7));
+/** Pixels of pointer travel before a press counts as a drag (and not a click) */
+const DRAG_THRESHOLD = 6;
 const BASE_DISTANCE = 12.5;
 /** How much of the way the camera target moves towards the selected station */
 const STATION_PULL = 0.35;
@@ -36,6 +39,8 @@ export function CameraRig() {
   const currentTarget = useRef(new THREE.Vector3(...OVERVIEW));
   const desiredTarget = useRef(new THREE.Vector3(...OVERVIEW));
   const offset = useRef(new THREE.Vector3());
+  const orbit = useRef<[number, number]>([HOME_AZIMUTH, HOME_ELEVATION]);
+  const orbitSmooth = useRef<[number, number]>([HOME_AZIMUTH, HOME_ELEVATION]);
 
   // Mouse wheel + two-finger pinch zoom on the canvas only (modals live in separate DOM)
   useEffect(() => {
@@ -51,10 +56,27 @@ export function CameraRig() {
       const pts = [...touches.values()];
       return pts.length >= 2 ? Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y) : 0;
     };
+    // Drag (mouse or one finger) orbits the camera around the room
+    let drag: { id: number; x: number; y: number; travelled: number } | null = null;
+    let suppressClick = false;
     const onPointerDown = (e: PointerEvent) => {
       if (e.pointerType === 'touch') touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (e.button === 0 && touches.size <= 1) drag = { id: e.pointerId, x: e.clientX, y: e.clientY, travelled: 0 };
+      else drag = null;
+      suppressClick = false;
     };
     const onPointerMove = (e: PointerEvent) => {
+      if (drag && drag.id === e.pointerId && touches.size <= 1) {
+        const dx = e.clientX - drag.x;
+        const dy = e.clientY - drag.y;
+        drag.travelled += Math.hypot(dx, dy);
+        drag.x = e.clientX;
+        drag.y = e.clientY;
+        if (drag.travelled > DRAG_THRESHOLD) {
+          orbit.current = orbitFromDrag(orbit.current[0], orbit.current[1], dx, dy);
+          el.style.cursor = 'grabbing';
+        }
+      }
       if (e.pointerType !== 'touch' || !touches.has(e.pointerId)) return;
       const before = pinchDistance();
       touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -63,6 +85,21 @@ export function CameraRig() {
     };
     const onPointerEnd = (e: PointerEvent) => {
       touches.delete(e.pointerId);
+      if (drag && drag.id === e.pointerId) {
+        suppressClick = drag.travelled > DRAG_THRESHOLD;
+        if (suppressClick) el.style.cursor = '';
+        drag = null;
+      }
+    };
+    // A drag that ends over an object must not also count as clicking it
+    const onClickCapture = (e: MouseEvent) => {
+      if (!suppressClick) return;
+      suppressClick = false;
+      e.stopPropagation();
+    };
+    // Double-click on empty sky/grass flies back to the signature angle
+    const onDoubleClick = () => {
+      orbit.current = [HOME_AZIMUTH, HOME_ELEVATION];
     };
 
     // Non-passive so preventDefault stops the page from scrolling
@@ -71,6 +108,8 @@ export function CameraRig() {
     el.addEventListener('pointermove', onPointerMove);
     el.addEventListener('pointerup', onPointerEnd);
     el.addEventListener('pointercancel', onPointerEnd);
+    el.addEventListener('dblclick', onDoubleClick);
+    window.addEventListener('click', onClickCapture, true);
     el.style.touchAction = 'none';
     return () => {
       el.removeEventListener('wheel', onWheel);
@@ -78,6 +117,8 @@ export function CameraRig() {
       el.removeEventListener('pointermove', onPointerMove);
       el.removeEventListener('pointerup', onPointerEnd);
       el.removeEventListener('pointercancel', onPointerEnd);
+      el.removeEventListener('dblclick', onDoubleClick);
+      window.removeEventListener('click', onClickCapture, true);
     };
   }, [gl]);
 
@@ -95,9 +136,12 @@ export function CameraRig() {
     t.y = THREE.MathUtils.damp(t.y, desiredTarget.current.y, 3.5, delta);
     t.z = THREE.MathUtils.damp(t.z, desiredTarget.current.z, 3.5, delta);
     zoomSmooth.current = THREE.MathUtils.damp(zoomSmooth.current, clampZoom(zoom.current), 8, delta);
+    const o = orbitSmooth.current;
+    o[0] = THREE.MathUtils.damp(o[0], orbit.current[0], 10, delta);
+    o[1] = THREE.MathUtils.damp(o[1], orbit.current[1], 10, delta);
 
-    // Camera stays on the isometric ray through the target; zoom just slides along it
-    offset.current.copy(VIEW_DIRECTION).multiplyScalar(BASE_DISTANCE * zoomSmooth.current);
+    // Camera sits on the orbit ray through the target; zoom just slides along it
+    offset.current.set(...viewDirection(o[0], o[1])).multiplyScalar(BASE_DISTANCE * zoomSmooth.current);
     camera.position.copy(t).add(offset.current);
     camera.lookAt(t);
   });

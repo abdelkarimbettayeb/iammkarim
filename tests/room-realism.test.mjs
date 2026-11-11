@@ -157,3 +157,14 @@ test('weather has a control and no precipitation falls through the roofless hous
   assert.ok(read('src/components/overlay/TopHeader.tsx').includes('setWeatherState'), 'weather selector exists');
   assert.ok(read('src/components/room/DynamicSkyAndWeather.tsx').includes('randomOutsideHouse'), 'particles avoid the house');
 });
+
+test('camera orbit: drag rotates around the room within limits', async () => {
+  const { orbitFromDrag, viewDirection, ELEVATION_MIN, ELEVATION_MAX } = await import('../src/components/room/cameraMath.ts');
+  const [az, el] = orbitFromDrag(0.5, 0.6, 100, 0);
+  assert.ok(az < 0.5 && el === 0.6, 'horizontal drag only changes azimuth');
+  assert.equal(orbitFromDrag(0, 0.6, 0, 1e6)[1], ELEVATION_MAX);
+  assert.equal(orbitFromDrag(0, 0.6, 0, -1e6)[1], ELEVATION_MIN);
+  const d = viewDirection(Math.PI / 4, 0.5);
+  assert.ok(Math.abs(Math.hypot(...d) - 1) < 1e-9, 'unit vector');
+  assert.ok(Math.abs(d[0] - d[2]) < 1e-9 && d[1] > 0, 'diagonal and above the floor');
+});

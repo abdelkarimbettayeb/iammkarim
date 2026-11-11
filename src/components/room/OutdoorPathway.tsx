@@ -15,6 +15,8 @@ interface OutdoorPathwayProps {
 
 const PAVER_COLORS = ['#8B8F96', '#9CA3AF', '#A8A29E', '#94A3B8', '#868B94'];
 const PATH_WIDTH = 1.0;
+/** Front edge of the entrance step (see RoomStructure) */
+const WALK_START = ROOM.maxZ + 0.59;
 
 /** Flagstones from the doorstep to the curb, with small per-stone jitter */
 const PAVERS = Array.from({ length: 8 }, (_, i) => ({
@@ -32,25 +34,6 @@ function hash(i: number, salt: number): number {
 }
 
 export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
-  // Grass tufts scattered on the lawn, kept clear of the path, puddle, house and road
-  const tufts = useMemo(() => {
-    const out: { x: number; z: number; scale: number; rot: number }[] = [];
-    for (let i = 0; i < 120 && out.length < 46; i++) {
-      const x = -9 + hash(i, 1) * 18;
-      const z = 0.5 + hash(i, 2) * (CURB_Z - 0.9);
-      const insideHouse = x > ROOM.minX - 0.4 && x < ROOM.maxX + 0.5 && z < ROOM.maxZ + 0.7;
-      const onPath = Math.abs(x - PATH_X) < PATH_WIDTH / 2 + 0.25;
-      const inPuddle = Math.hypot(x - OUTDOOR.puddle.x, z - OUTDOOR.puddle.z) < OUTDOOR.puddle.r + 0.25;
-      const nearProp =
-        Math.hypot(x - OUTDOOR.mailbox.x, z - OUTDOOR.mailbox.z) < 0.6 ||
-        Math.hypot(x - OUTDOOR.bush.x, z - OUTDOOR.bush.z) < 0.6 ||
-        Math.hypot(x - OUTDOOR.volleyball.x, z - OUTDOOR.volleyball.z) < 0.5;
-      if (insideHouse || onPath || inPuddle || nearProp) continue;
-      out.push({ x, z, scale: 0.8 + hash(i, 3) * 0.6, rot: hash(i, 4) * Math.PI });
-    }
-    return out;
-  }, []);
-
   // River pebbles hugging both sides of the walkway
   const pebbles = useMemo(
     () =>
@@ -105,9 +88,10 @@ export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
         <meshStandardMaterial color="#F59E0B" metalness={0.92} roughness={0.15} />
       </mesh>
 
-      {/* 5. Paved walkway (1 m wide) from the doorstep to the curb */}
-      <mesh position={[PATH_X, -0.02, (ROOM.maxZ + CURB_Z) / 2 + 0.2]} receiveShadow>
-        <boxGeometry args={[PATH_WIDTH + 0.14, 0.04, CURB_Z - ROOM.maxZ - 0.2]} />
+      {/* 5. Paved walkway (1 m wide) from the front of the entrance step to the curb.
+          Starts where the step ends so the two top faces never overlap (z-fighting). */}
+      <mesh position={[PATH_X, -0.024, (WALK_START + CURB_Z) / 2]} receiveShadow>
+        <boxGeometry args={[PATH_WIDTH + 0.14, 0.04, CURB_Z - WALK_START]} />
         <meshStandardMaterial color="#57534E" roughness={0.94} />
       </mesh>
       {PAVERS.map((p, i) => (
@@ -121,24 +105,6 @@ export function OutdoorPathway({ position = [0, 0, 0] }: OutdoorPathwayProps) {
       {OUTDOOR.pathLamps.map((l, i) => (
         <group key={i} position={[l.x, 0, l.z]} scale={0.8}>
           <PathwayLampPost />
-        </group>
-      ))}
-
-      {/* 7. Grass tufts */}
-      {tufts.map((g, i) => (
-        <group key={i} position={[g.x, -0.03, g.z]} rotation={[0, g.rot, 0]} scale={g.scale}>
-          <mesh position={[-0.03, 0.08, 0]} rotation={[0, 0, 0.22]} castShadow>
-            <coneGeometry args={[0.02, 0.16, 4]} />
-            <meshStandardMaterial color="#4ADE80" roughness={0.7} />
-          </mesh>
-          <mesh position={[0.03, 0.09, 0]} rotation={[0, 0, -0.24]} castShadow>
-            <coneGeometry args={[0.022, 0.18, 4]} />
-            <meshStandardMaterial color="#22C55E" roughness={0.7} />
-          </mesh>
-          <mesh position={[0, 0.1, 0.02]} rotation={[0.2, 0, 0]} castShadow>
-            <coneGeometry args={[0.018, 0.2, 4]} />
-            <meshStandardMaterial color="#16A34A" roughness={0.7} />
-          </mesh>
         </group>
       ))}
 

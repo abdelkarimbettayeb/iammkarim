@@ -5,6 +5,7 @@ import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { playSound } from '@/lib/audioEngine';
 import { useRoomStore } from '@/store/useRoomStore';
+import { dartboardBus } from './propBus';
 
 interface Dart {
   id: number;
@@ -171,64 +172,49 @@ export function TournamentDartboard({
   const boardGroupRef = useRef<THREE.Group>(null);
   const activeStation = useRoomStore((state) => state.activeStation);
   const setActiveStation = useRoomStore((state) => state.setActiveStation);
-  const dartsLeft = useRoomStore((state) => state.dartsLeft);
-  const decrementDarts = useRoomStore((state) => state.decrementDarts);
-  const resetDarts = useRoomStore((state) => state.resetDarts);
-
-  useEffect(() => {
-    if (dartsLeft === 0) {
-      // Darts run out -> character collects them from board and resets
-      const timer = setTimeout(() => {
-        setDarts([]);
-        resetDarts();
-      }, 3200);
-      return () => clearTimeout(timer);
-    }
-  }, [dartsLeft, resetDarts]);
 
   const dartboardTexture = useMemo(() => createDartboardTexture(), []);
 
+  // The boy's throw lands darts here on its release frame, and pulls them out when he collects them
   useEffect(() => {
-    return () => {
-      if (badgeTimerRef.current) clearTimeout(badgeTimerRef.current);
-      if (typeof document !== 'undefined') {
-        document.body.style.cursor = 'auto';
+    dartboardBus.land = (aim) => {
+      // A decent club player: scatter around the aim point (or the treble-20 area)
+      const spread = 0.09;
+      const ax = aim ? aim.x : 0;
+      const ay = aim ? aim.y : 0.12;
+      const hitX = ax + (Math.random() - 0.5) * spread;
+      const hitY = ay + (Math.random() - 0.5) * spread;
+      playSound('dart');
+      setDarts((prev) => [
+        ...prev.slice(-4),
+        { id: Date.now(), offsetY: hitY, offsetZ: hitX, rotationZ: (Math.random() - 0.5) * 0.35 },
+      ]);
+      if (Math.hypot(hitX, hitY) < 0.06) {
+        setShowHitBadge(true);
+        if (badgeTimerRef.current) clearTimeout(badgeTimerRef.current);
+        badgeTimerRef.current = setTimeout(() => setShowHitBadge(false), 1800);
       }
+    };
+    dartboardBus.clear = () => setDarts([]);
+    return () => {
+      dartboardBus.land = null;
+      dartboardBus.clear = null;
+      if (badgeTimerRef.current) clearTimeout(badgeTimerRef.current);
+      if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
     };
   }, []);
 
-    const handleDartboardClick = (e: any) => {
+  // First click sends him to the oche; once he's there a click picks where the next dart goes
+  const handleDartboardClick = (e: any) => {
     e.stopPropagation();
-    setActiveStation('dartboard');
-    playSound('dart');
-
-    let hitX = (Math.random() - 0.5) * 0.05;
-    let hitY = (Math.random() - 0.5) * 0.05;
-
+    if (activeStation !== 'dartboard') {
+      setActiveStation('dartboard');
+      return;
+    }
     if (e.point && boardGroupRef.current) {
       const local = boardGroupRef.current.worldToLocal(e.point.clone());
-      const dist = Math.hypot(local.x, local.y);
-      if (dist < 0.45) {
-        hitX = local.x;
-        hitY = local.y;
-      }
+      if (Math.hypot(local.x, local.y) < 0.45) dartboardBus.aim = { x: local.x, y: local.y };
     }
-
-    const newDart: Dart = {
-      id: Date.now(),
-      offsetY: hitY,
-      offsetZ: hitX,
-      rotationZ: (Math.random() - 0.5) * 0.35,
-    };
-
-    setDarts((prev) => [...prev.slice(-4), newDart]);
-    decrementDarts();
-    setShowHitBadge(true);
-
-    if (badgeTimerRef.current) clearTimeout(badgeTimerRef.current);
-    badgeTimerRef.current = setTimeout(() => {
-      setShowHitBadge(false);
-    }, 1800);
   };
 
   return (

@@ -5,6 +5,7 @@ import { useFrame, ThreeEvent } from '@react-three/fiber';
 import * as THREE from 'three';
 import { playSound, playVolleyballBounceSound } from '@/lib/audioEngine';
 import { useRoomStore } from '@/store/useRoomStore';
+import { ballBus } from './propBus';
 
 interface VolleyballProps {
   position?: [number, number, number];
@@ -155,27 +156,15 @@ export function Volleyball({
   const shadowMeshRef = useRef<THREE.Mesh>(null);
   const shadowMatRef = useRef<THREE.MeshBasicMaterial>(null);
 
-  // Physics Simulation State
-  const pos = useRef(new THREE.Vector3(homeX, floorY + ballRadius, homeZ));
-  const vel = useRef(new THREE.Vector3(0, 0, 0));
+  // Physics state lives in ballBus so the boy can carry and bump the ball
+  const pos = useRef(ballBus.pos);
+  const vel = useRef(ballBus.vel);
   const angVel = useRef(new THREE.Vector3(0, 0, 0));
   const ballRot = useRef(new THREE.Euler(0.3, 0.4, 0.2));
   const squashScale = useRef(new THREE.Vector3(1, 1, 1));
-  const isSimulating = useRef(false);
+  useMemo(() => ballBus.pos.set(homeX, floorY + ballRadius, homeZ), [homeX, homeZ, floorY]);
 
-  // Hover state
-  const isHovered = useRef(false);
-  const activeStation = useRoomStore((state) => state.activeStation);
   const setActiveStation = useRoomStore((state) => state.setActiveStation);
-
-  useEffect(() => {
-    if (activeStation === 'volleyball') {
-      const timer = setTimeout(() => {
-        triggerHitImpulse();
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [activeStation]);
 
   useEffect(() => {
     return () => {
@@ -183,52 +172,51 @@ export function Volleyball({
     };
   }, []);
 
-  // Physics impulse trigger when clicked directly or clicked near
-  const triggerHitImpulse = (clickPoint?: THREE.Vector3) => {
-    playSound('volleyball');
-    if (onBounce) onBounce();
-
-    // Calculate hit vector
-    let pushX = (Math.random() - 0.5) * 0.4;
-    let pushZ = (Math.random() - 0.5) * 0.4;
-
-    if (clickPoint) {
-      // Push ball away from click point for natural deflection
-      const dx = pos.current.x - clickPoint.x;
-      const dz = pos.current.z - clickPoint.z;
-      const dist = Math.sqrt(dx * dx + dz * dz);
-      if (dist > 0.01) {
-        pushX += (dx / dist) * 0.7;
-        pushZ += (dz / dist) * 0.7;
-      }
-    }
-
-    // High vertical bounce impulse (reaches ~0.95m - 1.15m height)
-    vel.current.set(pushX, 4.2 + Math.random() * 0.5, pushZ);
-
-    // Energetic spin (topspin / side-spin)
-    angVel.current.set(
-      (pushZ / ballRadius) * 2.2 + (Math.random() - 0.5) * 8.0,
-      (Math.random() - 0.5) * 10.0,
-      -(pushX / ballRadius) * 2.2 + (Math.random() - 0.5) * 8.0
-    );
-
-    // Initial upward stretch deformation
-    squashScale.current.set(0.92, 1.14, 0.92);
-    isSimulating.current = true;
-  };
-
+  // He walks over and picks it up; the ball only moves when he touches it
   const handleClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
     setActiveStation('volleyball');
-    triggerHitImpulse(e.point);
   };
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     const dt = Math.min(delta, 0.035);
+    const now = state.clock.getElapsedTime();
 
-    if (isSimulating.current) {
-      const g = 15.2; // Realistic gravity in room scale
+    // Carried: glide into his hands and ride along
+    if (ballBus.held) {
+      pos.current.lerp(ballBus.hand, 1 - Math.exp(-18 * dt));
+      vel.current.set(0, 0, 0);
+      angVel.current.multiplyScalar(0.9);
+      ballBus.simulating = false;
+      if (ballMeshRef.current) {
+        ballMeshRef.current.position.copy(pos.current);
+        ballMeshRef.current.scale.set(1, 1, 1);
+      }
+      if (shadowMeshRef.current && shadowMatRef.current) {
+        shadowMeshRef.current.position.set(pos.current.x, floorY + 0.005, pos.current.z);
+        shadowMatRef.current.opacity = 0.25;
+      }
+      return;
+    }
+
+    // Keep-ups: bounce off his forearms when it comes down onto them
+    const k = ballBus.keeper;
+    if (k && ballBus.simulating && vel.current.y < 0 && pos.current.y - ballRadius <= k.y) {
+      const off = Math.hypot(pos.current.x - k.x, pos.current.z - k.z);
+      if (off < 0.5) {
+        pos.current.y = k.y + ballRadius;
+        // Up again, steering back over the platform so the rally keeps going
+        vel.current.set((k.x - pos.current.x) * 1.4, 4.2 + (Math.random() - 0.5) * 0.3, (k.z - pos.current.z) * 1.4);
+        angVel.current.set((Math.random() - 0.5) * 6, (Math.random() - 0.5) * 4, (Math.random() - 0.5) * 6);
+        squashScale.current.set(1.12, 0.86, 1.12);
+        ballBus.lastBumpAt = now;
+        playSound('volleyball');
+        if (onBounce) onBounce();
+      }
+    }
+
+    if (ballBus.simulating) {
+      const g = 9.81;
       const restitution = 0.74; // High elasticity for pressurized volleyball
 
       // 1. Vertical acceleration & velocity
@@ -246,7 +234,7 @@ export function Volleyball({
       // 4. Soft boundary spring pull back towards home area
       // Prevents clipping into bookcase (x < homeX - 0.3) or back wall (z < homeZ - 0.3)
       const distFromHome = Math.hypot(pos.current.x - homeX, pos.current.z - homeZ);
-      if (distFromHome > 0.35) {
+      if (!k && distFromHome > 0.35) {
         vel.current.x += (homeX - pos.current.x) * 2.5 * dt;
         vel.current.z += (homeZ - pos.current.z) * 2.5 * dt;
       }
@@ -294,7 +282,7 @@ export function Volleyball({
           angVel.current.multiplyScalar(0.7);
 
           if (angVel.current.length() < 0.04) {
-            isSimulating.current = false;
+            ballBus.simulating = false;
           }
         }
       }
@@ -363,11 +351,9 @@ export function Volleyball({
         onClick={handleClick}
         onPointerOver={(e) => {
           e.stopPropagation();
-          isHovered.current = true;
           if (typeof document !== 'undefined') document.body.style.cursor = 'pointer';
         }}
         onPointerOut={() => {
-          isHovered.current = false;
           if (typeof document !== 'undefined') document.body.style.cursor = 'auto';
         }}
       >

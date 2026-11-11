@@ -1,7 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import * as THREE from 'three';
+import { useFrame } from '@react-three/fiber';
+import { dayNight } from '@/store/dayNight';
 import { useRoomStore } from '@/store/useRoomStore';
 import { cartridgeProjects, languages } from '@/data/resumeData';
 import { WavingFlag } from '../WavingFlag';
@@ -674,6 +676,14 @@ function createMonitorScreenTexture(
   return texture;
 }
 
+function MonitorGlow() {
+  const ref = useRef<THREE.PointLight>(null);
+  useFrame(() => {
+    if (ref.current) ref.current.intensity = THREE.MathUtils.lerp(0.08, 0.9, dayNight.blend);
+  });
+  return <pointLight ref={ref} position={[0, 0.03, 0.5]} color="#9CC8FF" distance={2.4} decay={2} intensity={0.08} />;
+}
+
 export function WorkstationDesk({
   position = [0, 0, 0],
   rotation = [0, 0, 0],
@@ -840,6 +850,9 @@ export function WorkstationDesk({
           <boxGeometry args={[1.82, 0.06, 0.015]} />
           <meshStandardMaterial color="#E2E8F0" roughness={0.25} metalness={0.85} />
         </mesh>
+
+        {/* Cool spill from the screen onto the desk and the wall (stronger after dark) */}
+        <MonitorGlow />
 
         {/* Realistic High-Res Screen Display Surface */}
         <mesh position={[0, 0.03, 0.022]}>
