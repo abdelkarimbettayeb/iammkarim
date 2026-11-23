@@ -25,9 +25,9 @@
 }
 
 :root {
-    --font-primary: var(--font-josefin);
-    --font-secondary: var(--font-signika);
-    --font-paragraph: var(--font-padauk);
+    --font-primary: var(--font-cv-display);
+    --font-secondary: var(--font-cv-sans);
+    --font-paragraph: var(--font-cv-sans);
     --foreground-rgb: 0, 0, 0;
     --background-start-rgb: 214, 219, 220;
     --background-end-rgb: 255, 255, 255;
@@ -45,7 +45,7 @@ body {
     background-color: #ffffff;
     color: #111113;
     overflow-x: hidden;
-    font-family: var(--font-signika), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: var(--font-cv-sans), system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -55,9 +55,9 @@ body {
     color: #ededf0;
 }
 
-/* Primary Font (Josefin Sans): Headings, Display, Brand, Key Metrics */
+/* Headings & Display */
 h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-josefin), system-ui, sans-serif;
+    font-family: var(--font-cv-display), system-ui, sans-serif;
 }
 
 h1 {
@@ -75,16 +75,16 @@ h3, h4 {
     font-weight: 600;
 }
 
-/* Paragraph Font (Padauk): Body text, reading flow, long descriptions */
+/* Body Text */
 p, article, .text-paragraph {
-    font-family: var(--font-padauk), system-ui, sans-serif;
+    font-family: var(--font-cv-sans), system-ui, sans-serif;
     line-height: 1.6;
     letter-spacing: 0.01em;
 }
 
-/* Secondary Font (Signika): UI controls, buttons, navigation, inputs, badges */
+/* UI Controls & Navigation */
 button, input, textarea, select, label, nav, .font-ui {
-    font-family: var(--font-signika), system-ui, sans-serif;
+    font-family: var(--font-cv-sans), system-ui, sans-serif;
 }
 
 .bg-real-transparent {

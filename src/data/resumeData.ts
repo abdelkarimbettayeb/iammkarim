@@ -53,7 +53,7 @@ export const workExperience: WorkExperienceItem[] = [
     role: 'Lead Software Engineer',
     company: 'Jud (Saudi Arabia)',
     location: 'Remote',
-    period: 'Oct 2025 – Dec 2026',
+    period: 'Oct 2025 – Present',
     type: 'Full-time / Lead',
     highlights: [
       'Directed technical architecture and delivery of core software platforms using TypeScript, React, Node.js, and relational databases.',
@@ -235,7 +235,7 @@ export const cartridgeProjects: Record<CartridgeId, CartridgeProject> = {
   jud: {
     id: 'jud',
     title: 'Lead Software Engineer',
-    subtitle: 'Jud (Saudi Arabia) • Oct 2025 – Dec 2026',
+    subtitle: 'Jud (Saudi Arabia) • Oct 2025 – Present',
     description: [
       'Directed technical architecture and delivery of Jud’s enterprise NestJS 11 + Prisma 7 + React 19 platforms in Saudi Arabia.',
       'Architected a 15-module HR & operations suite (geo-attendance, shifts, leave refunds, violation matrices, payroll pre-processing, and RBAC).',

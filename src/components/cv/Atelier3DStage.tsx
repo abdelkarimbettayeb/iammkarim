@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { ContactShadows, Float } from '@react-three/drei';
 import * as THREE from 'three';
@@ -8,6 +8,18 @@ import { cartridgeProjects, personalInfo } from '@/data/resumeData';
 import { playSound } from '@/lib/audioEngine';
 import type { CartridgeId, CartridgeProject } from '@/types/room';
 import { FoldedPrism3D } from './FoldedPrism3D';
+
+const subscribeCoarsePointer = (cb: () => void) => {
+  if (typeof window === 'undefined' || !window.matchMedia) return () => {};
+  const mq = window.matchMedia('(pointer: coarse)');
+  mq.addEventListener('change', cb);
+  return () => mq.removeEventListener('change', cb);
+};
+
+const getCoarsePointerSnapshot = () => {
+  if (typeof window === 'undefined' || !window.matchMedia) return false;
+  return window.matchMedia('(pointer: coarse)').matches;
+};
 
 export type AtelierMode = 'atelier' | 'core';
 
@@ -1407,6 +1419,7 @@ export function Atelier3DStage({
   const [exploded, setExploded] = useState(false);
   const [selectedLayer, setSelectedLayer] = useState<number>(4);
   const [hoverHint, setHoverHint] = useState<string | null>(null);
+  const isTouch = useSyncExternalStore(subscribeCoarsePointer, getCoarsePointerSnapshot, () => false);
 
   const mouseRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const touchYawRef = useRef(0);
@@ -1471,7 +1484,7 @@ export function Atelier3DStage({
             className="font-cv-mono truncate"
             style={{ color: hoverHint ? 'var(--cv-ink)' : 'var(--cv-ink-muted)' }}
           >
-            {hoverHint || 'Move cursor to orbit · Click lamp for theme'}
+            {hoverHint || (isTouch ? 'Drag to orbit · Tap lamp for theme' : 'Move cursor to orbit · Click lamp for theme')}
           </span>
         </div>
       </div>

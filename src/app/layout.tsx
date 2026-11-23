@@ -5,9 +5,6 @@ import { SITE_URL } from '@/lib/site';
 import { ThemeProvider } from '@/components/ui/themeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import {
-    josefinSans,
-    signika,
-    padauk,
     bricolageGrotesque,
     dmSans,
     jetbrainsMono,
@@ -51,10 +48,10 @@ export default function RootLayout({
     return (
         <html
             lang="en"
-            className={`${josefinSans.variable} ${signika.variable} ${padauk.variable} ${bricolageGrotesque.variable} ${dmSans.variable} ${jetbrainsMono.variable} font-secondary`}
+            className={`${bricolageGrotesque.variable} ${dmSans.variable} ${jetbrainsMono.variable} font-sans`}
             suppressHydrationWarning
         >
-            <body id='app' className='h-screen font-secondary antialiased'>
+            <body id='app' className='h-screen font-sans antialiased'>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"

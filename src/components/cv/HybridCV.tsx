@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
   ArrowUpRight,
@@ -13,6 +14,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Command,
   Copy,
   Download,
   Github,
@@ -50,6 +52,7 @@ import { AlgMathPreview } from './AlgMathPreview';
 import { FloatingModeSwitch } from './FloatingModeSwitch';
 import { BrandLogo } from './BrandLogo';
 import { HeroTooltip } from './HeroTooltip';
+import { CommandPalette } from './CommandPalette';
 import './cv.css';
 
 const Atelier3DStage = dynamic(
@@ -141,6 +144,7 @@ function getSkillTier(level: number): string {
 const emptySubscribe = () => () => { };
 
 export function HybridCV() {
+  const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeIndexRef = useRef<number>(0);
   const snapLockUntilRef = useRef<number>(0);
@@ -155,6 +159,7 @@ export function HybridCV() {
   const [selectedRoleIdx, setSelectedRoleIdx] = useState<number>(0);
   const [spotlightProjectId, setSpotlightProjectId] = useState<CartridgeId>('jud');
   const [modalProjectId, setModalProjectId] = useState<CartridgeId | null>(null);
+  const [cmdOpen, setCmdOpen] = useState(false);
   const [skillFilter, setSkillFilter] = useState<string>('all');
   const [mobileContactTab, setMobileContactTab] = useState<'form' | 'channels'>('form');
 
@@ -177,6 +182,46 @@ export function HybridCV() {
     if (!mounted) return;
     roomStore.setNightMode(isDark);
   }, [isDark, mounted]);
+
+  const openProjectModal = useCallback((id: CartridgeId | null) => {
+    setModalProjectId(id);
+    if (id) {
+      setSpotlightProjectId(id);
+      roomStore.setActiveCartridge(id);
+    }
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (id) url.searchParams.set('project', id);
+      else url.searchParams.delete('project');
+      window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+    }
+  }, []);
+
+  // Support deep links like /?project=mouser directly from social & README shares
+  useEffect(() => {
+    const raf = window.requestAnimationFrame(() => {
+      const param = new URLSearchParams(window.location.search).get('project');
+      if (param && PROJECT_ORDER.includes(param as CartridgeId)) {
+        const id = param as CartridgeId;
+        setSpotlightProjectId(id);
+        roomStore.setActiveCartridge(id);
+        setModalProjectId(id);
+      }
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, []);
+
+  // Global Cmd/Ctrl+K command palette shortcut
+  useEffect(() => {
+    const onGlobalKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setCmdOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', onGlobalKey);
+    return () => window.removeEventListener('keydown', onGlobalKey);
+  }, []);
 
   const snapToIndex = useCallback((idx: number) => {
     const container = scrollContainerRef.current;
@@ -240,7 +285,7 @@ export function HybridCV() {
 
     const handleWheel = (e: WheelEvent) => {
       if (window.innerWidth < 768) return;
-      if (modalProjectId !== null) return;
+      if (modalProjectId !== null || cmdOpen) return;
 
       // Allow inner bounded scroll containers (e.g. skill tiles on short viewports) to scroll naturally before snapping
       const targetEl = e.target as HTMLElement | null;
@@ -267,7 +312,7 @@ export function HybridCV() {
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (modalProjectId !== null) return;
+      if (modalProjectId !== null || cmdOpen) return;
       const tag = (e.target as HTMLElement | null)?.tagName;
       if (tag && ['INPUT', 'TEXTAREA', 'SELECT'].includes(tag)) return;
 
@@ -286,7 +331,7 @@ export function HybridCV() {
       container.removeEventListener('wheel', handleWheel);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [modalProjectId, snapToIndex]);
+  }, [cmdOpen, modalProjectId, snapToIndex]);
 
   const handleToggleTheme = () => {
     setTheme(isDark ? 'light' : 'dark');
@@ -295,7 +340,7 @@ export function HybridCV() {
   const handleLoadOn3DMonitor = (id: CartridgeId) => {
     playSound('cartridge');
     roomStore.setActiveCartridge(id);
-    setModalProjectId(null);
+    openProjectModal(null);
     scrollToSection('hero');
   };
 
@@ -424,8 +469,20 @@ export function HybridCV() {
             })}
           </nav>
 
-          {/* Right Controls: Theme Toggle, Sound, 3D World, Resume PDF */}
+          {/* Right Controls: Command Palette, Theme Toggle, Sound, 3D World, Resume PDF */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setCmdOpen(true)}
+              aria-label="Open command palette"
+              title="Quick Jump & Actions (⌘K / Ctrl+K)"
+              className="cv-btn-secondary h-9 px-2.5 hidden lg:inline-flex items-center gap-1.5 font-cv-mono text-[11px]"
+              style={{ color: 'var(--cv-ink-muted)' }}
+            >
+              <Command size={12} style={{ color: 'var(--cv-accent)' }} />
+              <span>K</span>
+            </button>
+
             <div className="cv-theme-switch" role="group" aria-label="Color appearance">
               <button
                 onClick={() => setTheme('light')}
@@ -697,7 +754,7 @@ export function HybridCV() {
                 <HeroTooltip
                   label="Systems & Native C++"
                   accent="#F43F5E"
-                  description="Embedded Node.js C++ search addons (Alnurayn) and cross-platform C++/Qt6 HID networking daemons (Mouser)."
+                  description="Embedded Node.js C++ search addons (Alnurayn) and the C++/CMake native macOS backend powering Mouser (.NET 8, Avalonia, Kotlin)."
                 >
                   <button type="button" className="cv-inline-term">
                     C++ engines
@@ -821,6 +878,28 @@ export function HybridCV() {
                 </button>
 
                 <div className="flex items-center gap-1.5">
+                  <HeroTooltip
+                    label={copied ? 'Email Copied' : 'Direct Email'}
+                    accent={copied ? '#10B981' : '#EA580C'}
+                    description={
+                      copied
+                        ? 'Copied to clipboard — ready to paste.'
+                        : `Click to copy ${personalInfo.email}`
+                    }
+                  >
+                    <button
+                      type="button"
+                      onClick={handleCopyEmail}
+                      aria-label="Copy email address"
+                      className="cv-icon-btn h-10 w-10 sm:h-11 sm:w-11 flex items-center justify-center"
+                    >
+                      {copied ? (
+                        <Check size={16} style={{ color: 'var(--cv-live)' }} />
+                      ) : (
+                        <Mail size={16} />
+                      )}
+                    </button>
+                  </HeroTooltip>
                   <a
                     href={personalInfo.githubUrl}
                     target="_blank"
@@ -850,7 +929,7 @@ export function HybridCV() {
                 onToggleTheme={handleToggleTheme}
                 activeProjectId={activeCartridge}
                 onSelectProject={(id) => roomStore.setActiveCartridge(id)}
-                onOpenCaseStudy={(id) => setModalProjectId(id)}
+                onOpenCaseStudy={(id) => openProjectModal(id)}
               />
             </div>
           </div>
@@ -1379,7 +1458,7 @@ export function HybridCV() {
                     </div>
 
                     <button
-                      onClick={() => setModalProjectId(spotlightProject.id)}
+                      onClick={() => openProjectModal(spotlightProject.id)}
                       className="cv-btn-primary h-10 px-4 text-[12.5px] font-semibold flex items-center gap-1.5 ml-auto"
                     >
                       <span>Full Case Study</span>
@@ -1928,9 +2007,22 @@ export function HybridCV() {
       {/* Adaptive Light/Dark Case Study Modal */}
       <CVCaseStudyModal
         projectId={modalProjectId}
-        onClose={() => setModalProjectId(null)}
-        onSelectProject={(id) => setModalProjectId(id)}
+        onClose={() => openProjectModal(null)}
+        onSelectProject={(id) => openProjectModal(id)}
         onLoadOn3DMonitor={handleLoadOn3DMonitor}
+      />
+
+      {/* Keyboard Command Palette (⌘K / Ctrl+K) */}
+      <CommandPalette
+        open={cmdOpen}
+        onClose={() => setCmdOpen(false)}
+        onNavigateSection={scrollToSection}
+        onOpenProject={(id) => openProjectModal(id)}
+        onCopyEmail={handleCopyEmail}
+        emailCopied={copied}
+        onToggleTheme={handleToggleTheme}
+        isDark={isDark}
+        onEnterRoom={() => router.push('/room')}
       />
 
       {/* Persistent Floating Mode Switcher (/ <-> /room) */}

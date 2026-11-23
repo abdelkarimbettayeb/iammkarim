@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 interface HeroTooltipProps {
@@ -18,12 +18,57 @@ export function HeroTooltip({
   side = 'top',
   children,
 }: HeroTooltipProps) {
+  const tooltipId = useId();
+  const [open, setOpen] = useState(false);
+  const isTouchRef = useRef(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open || !isTouchRef.current) return;
+
+    const handleOutsidePointer = (e: PointerEvent) => {
+      const target = e.target;
+      if (!(target instanceof Element)) {
+        setOpen(false);
+        return;
+      }
+      if (contentRef.current?.contains(target)) return;
+      if (target.closest(`[data-tooltip-id="${tooltipId}"]`)) return;
+      setOpen(false);
+    };
+
+    document.addEventListener('pointerdown', handleOutsidePointer, true);
+    return () => document.removeEventListener('pointerdown', handleOutsidePointer, true);
+  }, [open, tooltipId]);
+
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{children}</TooltipTrigger>
+    <Tooltip
+      open={open}
+      onOpenChange={(next) => {
+        if (!isTouchRef.current) {
+          setOpen(next);
+        }
+      }}
+    >
+      <TooltipTrigger
+        asChild
+        data-tooltip-id={tooltipId}
+        onPointerDown={(e) => {
+          isTouchRef.current = e.pointerType === 'touch';
+        }}
+        onClick={() => {
+          if (isTouchRef.current) {
+            setOpen((prev) => !prev);
+          }
+        }}
+      >
+        {children}
+      </TooltipTrigger>
       <TooltipContent
+        ref={contentRef}
         side={side}
         sideOffset={8}
+        collisionPadding={12}
         className="z-[90] max-w-[260px] rounded-xl border border-black/10 dark:border-white/15 bg-white dark:bg-[#26262D] px-3.5 py-2.5 text-left text-[#111113] dark:text-[#EDEDF0] shadow-xl"
       >
         <div className="flex items-center gap-1.5 mb-1">

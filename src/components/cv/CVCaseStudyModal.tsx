@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useSyncExternalStore } from 'react';
-import { X, ArrowUpRight, ChevronLeft, ChevronRight, Monitor, Github } from 'lucide-react';
+import React, { useEffect, useState, useSyncExternalStore } from 'react';
+import { X, ArrowUpRight, ChevronLeft, ChevronRight, Monitor, Github, Link2, Check, Star } from 'lucide-react';
 import { cartridgeProjects } from '@/data/resumeData';
 import type { CartridgeId } from '@/types/room';
 import { JudPlatformPreview } from './JudPlatformPreview';
@@ -12,6 +12,13 @@ import { MeubleStorePreview } from './MeubleStorePreview';
 import { AlgMathPreview } from './AlgMathPreview';
 
 const ORDER = Object.keys(cartridgeProjects) as CartridgeId[];
+const githubStarsCache = new Map<string, number>();
+
+function getGithubRepoPath(url?: string): string | null {
+  if (!url) return null;
+  const match = url.match(/^https?:\/\/github\.com\/([^/]+\/[^/?#]+)/i);
+  return match ? match[1].replace(/\.git$/, '') : null;
+}
 
 interface CVCaseStudyModalProps {
   projectId: CartridgeId | null;
@@ -33,6 +40,34 @@ export function CVCaseStudyModal({
     () => true,
     () => false
   );
+
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [starMap, setStarMap] = useState<Record<string, number>>({});
+
+  const repoPath =
+    projectId && cartridgeProjects[projectId]?.isOpenSource
+      ? getGithubRepoPath(cartridgeProjects[projectId]?.url)
+      : null;
+
+  useEffect(() => {
+    if (!repoPath || githubStarsCache.has(repoPath)) return;
+    let cancelled = false;
+    fetch(`https://api.github.com/repos/${repoPath}`, {
+      headers: { Accept: 'application/vnd.github+json' },
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: { stargazers_count?: unknown } | null) => {
+        if (cancelled || !data || typeof data.stargazers_count !== 'number') return;
+        githubStarsCache.set(repoPath, data.stargazers_count);
+        setStarMap((prev) => ({ ...prev, [repoPath]: data.stargazers_count as number }));
+      })
+      .catch(() => {
+        // Silent fallback to static Open Source badge
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [repoPath]);
 
   const step = React.useCallback(
     (dir: 1 | -1) => {
@@ -60,6 +95,19 @@ export function CVCaseStudyModal({
 
   const project = cartridgeProjects[projectId];
   if (!project) return null;
+
+  const starCount = repoPath ? (starMap[repoPath] ?? githubStarsCache.get(repoPath) ?? null) : null;
+
+  const handleCopyCaseLink = async () => {
+    const shareUrl = `${window.location.origin}/?project=${project.id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setLinkCopied(true);
+      window.setTimeout(() => setLinkCopied(false), 1800);
+    } catch {
+      // ignore clipboard errors
+    }
+  };
 
   const index = ORDER.indexOf(projectId);
   const serial = `PRJ—0${index + 1}`;
@@ -108,7 +156,7 @@ export function CVCaseStudyModal({
             </span>
             {project.isOpenSource && (
               <span
-                className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 cv-radius-pill font-cv-mono text-[10px] font-semibold uppercase shrink-0"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2 py-0.5 cv-radius-pill font-cv-mono text-[10px] font-semibold uppercase shrink-0"
                 style={{
                   backgroundColor: 'var(--cv-surface)',
                   color: 'var(--cv-ink)',
@@ -116,7 +164,13 @@ export function CVCaseStudyModal({
                 }}
               >
                 <Github size={11} />
-                <span>Open Source</span>
+                <span>MIT · Open Source</span>
+                {starCount !== null && (
+                  <span className="inline-flex items-center gap-0.5 cv-tabular" style={{ color: '#F59E0B' }}>
+                    <Star size={10} fill="#F59E0B" color="#F59E0B" />
+                    <span>{starCount}</span>
+                  </span>
+                )}
               </span>
             )}
           </div>
@@ -463,6 +517,20 @@ export function CVCaseStudyModal({
           </div>
 
           <div className="flex items-center gap-2 ml-auto">
+            <button
+              type="button"
+              onClick={handleCopyCaseLink}
+              title="Copy direct case study link"
+              className="cv-btn-secondary h-9 px-3 text-[12px] font-medium flex items-center gap-1.5"
+            >
+              {linkCopied ? (
+                <Check size={14} style={{ color: 'var(--cv-live)' }} />
+              ) : (
+                <Link2 size={14} />
+              )}
+              <span className="hidden sm:inline">{linkCopied ? 'Copied' : 'Copy Link'}</span>
+            </button>
+
             <button
               onClick={() => onLoadOn3DMonitor(project.id)}
               className="cv-btn-secondary h-9 px-3.5 text-[12.5px] font-medium flex items-center gap-1.5"
