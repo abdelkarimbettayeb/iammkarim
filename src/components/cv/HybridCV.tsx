@@ -543,7 +543,7 @@ export function HybridCV() {
               <button
                 key={sec.id}
                 onClick={() => scrollToSection(sec.id)}
-                className="flex-1 h-9 px-1.5 rounded-full flex items-center justify-center text-[10.5px] leading-none transition-colors whitespace-nowrap"
+                className="flex-1 h-8 px-1.5 cv-radius-pill flex items-center justify-center text-[10.5px] leading-none transition-colors whitespace-nowrap"
                 style={{
                   backgroundColor: isActive ? 'var(--cv-ink)' : 'transparent',
                   color: isActive ? 'var(--cv-bg)' : 'var(--cv-ink-muted)',
