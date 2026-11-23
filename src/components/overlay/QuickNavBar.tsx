@@ -4,6 +4,7 @@ import React from 'react';
 import { Compass, Code2, Briefcase, Monitor, Mail } from 'lucide-react';
 import { roomStore, useRoomStore } from '@/store/useRoomStore';
 import { exploreStore } from '@/store/exploreStore';
+import { FloatingModeSwitch } from '@/components/cv/FloatingModeSwitch';
 import type { RoomZone } from '@/types/room';
 
 interface NavItem {
@@ -89,13 +90,13 @@ export function QuickNavBar() {
   return (
     <nav
       aria-label="Sections"
-      className="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto bottom-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-6"
+      className="fixed inset-x-3 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 z-30 pointer-events-none bottom-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-6 flex items-center justify-center gap-2"
     >
-      <div className="cv-hud-pill relative p-1.5 flex items-center gap-1">
+      <div className="pointer-events-auto cv-hud-pill relative p-1 sm:p-1.5 flex items-center gap-0.5 sm:gap-1">
         {lens && (
           <span
             aria-hidden
-            className="absolute top-1.5 bottom-1.5 cv-radius-pill transition-[left,width] duration-300 z-0"
+            className="absolute top-1 bottom-1 sm:top-1.5 sm:bottom-1.5 cv-radius-pill transition-[left,width] duration-300 z-0"
             style={{
               left: lens.left,
               width: lens.width,
@@ -118,7 +119,7 @@ export function QuickNavBar() {
               title={label}
               aria-label={label}
               aria-current={isActive ? 'page' : undefined}
-              className="relative z-[3] flex items-center gap-2 h-10 px-3 sm:px-4 cv-radius-pill text-[12.5px] font-medium transition-colors duration-200 select-none"
+              className="relative z-[3] flex items-center justify-center gap-2 h-9 w-9 sm:w-auto sm:h-10 px-0 sm:px-4 cv-radius-pill text-[12.5px] font-medium transition-colors duration-200 select-none"
               style={{
                 color: isActive ? 'var(--cv-bg)' : 'var(--cv-ink-secondary)',
               }}
@@ -132,6 +133,10 @@ export function QuickNavBar() {
             </button>
           );
         })}
+      </div>
+
+      <div className="md:hidden pointer-events-auto shrink-0">
+        <FloatingModeSwitch inline />
       </div>
     </nav>
   );

@@ -193,7 +193,7 @@ function DiscoveryPanel() {
   const c = 2 * Math.PI * r;
 
   return (
-    <div ref={panelRef} className="fixed left-3 sm:left-4 md:left-8 top-[128px] sm:top-[92px] z-30">
+    <div ref={panelRef} className="fixed left-3 sm:left-4 md:left-8 top-[108px] sm:top-[64px] z-30">
       {celebrate && <Confetti />}
       <button
         onClick={() => setOpen((o) => !o)}
@@ -348,7 +348,7 @@ function ControlsHint() {
   if (!show) return null;
   const touch = window.matchMedia('(pointer: coarse)').matches;
   return (
-    <div className="toast-in fixed bottom-28 sm:bottom-24 left-1/2 z-30 cv-hud-panel px-4 py-3.5 w-[min(92vw,340px)]">
+    <div className="toast-in fixed bottom-20 sm:bottom-24 left-1/2 z-30 cv-hud-panel px-4 py-3.5 w-[min(92vw,340px)]">
       <div className="flex items-start justify-between gap-3">
         <div className="font-cv-display text-[14px] font-bold" style={{ color: 'var(--cv-ink)' }}>
           Welcome in!

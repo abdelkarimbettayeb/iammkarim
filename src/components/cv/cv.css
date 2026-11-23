@@ -445,7 +445,7 @@
   -webkit-backdrop-filter: blur(20px) saturate(150%);
   backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid var(--cv-border-strong);
-  border-radius: 16px;
+  border-radius: 9999px;
   box-shadow: var(--cv-shadow-elevated);
 }
 
@@ -496,6 +496,13 @@
   white-space: nowrap;
 }
 
+#app .cv-mode-tab-compact {
+  height: 30px;
+  padding: 0 9px;
+  gap: 4px;
+  font-size: 11px;
+}
+
 #app .cv-mode-tab:hover {
   color: var(--cv-ink);
 }
@@ -531,20 +538,28 @@
   outline-offset: 2px;
 }
 
-/* Strict Full-Viewport Snap Scroll (Zero Middle Scroll) -------------------- */
+/* Strict Full-Viewport Snap Scroll (Desktop) / Natural Flow (Mobile) ------- */
 .cv-snap-container {
-  scroll-snap-type: y mandatory;
   overscroll-behavior-y: contain;
   scroll-behavior: smooth;
 }
 
 .cv-snap-section {
-  height: 100dvh;
   min-height: 100dvh;
-  max-height: 100dvh;
-  overflow: hidden;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
+}
+
+@media (min-width: 768px) {
+  .cv-snap-container {
+    scroll-snap-type: y mandatory;
+  }
+
+  .cv-snap-section {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+  }
 }
 
 /* C++ Search Simulator Preview --------------------------------------------- */

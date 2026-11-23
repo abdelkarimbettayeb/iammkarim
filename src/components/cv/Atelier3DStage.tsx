@@ -1565,22 +1565,12 @@ export function Atelier3DStage({
             </div>
 
             {mode === 'atelier' ? (
-              activeProjectId ? (
-                <button
-                  onClick={() => onOpenCaseStudy(activeProjectId)}
-                  className="cv-btn-accent px-3 py-1 text-[11.5px] font-semibold flex items-center gap-1.5"
-                >
-                  <span>Case Study: {PROJECT_CARD_META[activeProjectId].name}</span>
-                  <span>↗</span>
-                </button>
-              ) : (
-                <span
-                  className="font-cv-mono text-[10.5px] uppercase tracking-wider px-1.5"
-                  style={{ color: 'var(--cv-ink-muted)' }}
-                >
-                  0{PROJECT_ORDER.length} Systems
-                </span>
-              )
+              <span
+                className="font-cv-mono text-[10.5px] uppercase tracking-wider px-1.5"
+                style={{ color: 'var(--cv-ink-muted)' }}
+              >
+                Click to inspect ↗
+              </span>
             ) : (
               <button
                 onClick={() => {
@@ -1603,11 +1593,17 @@ export function Atelier3DStage({
                 return (
                   <button
                     key={id}
+                    onMouseEnter={() => {
+                      if (activeProjectId !== id) {
+                        onSelectProject(id);
+                      }
+                    }}
                     onClick={() => {
                       playSound('cartridge');
-                      onSelectProject(isSelected ? null : id);
+                      onSelectProject(id);
+                      onOpenCaseStudy(id);
                     }}
-                    className="cv-deck-card px-2.5 py-2 cv-radius-sm text-left flex flex-col justify-between gap-1 min-w-0"
+                    className="group cv-deck-card px-2.5 py-2 cv-radius-sm text-left flex flex-col justify-between gap-1 min-w-0"
                     style={{
                       backgroundColor: isSelected ? 'var(--cv-surface-elevated)' : 'var(--cv-surface)',
                       border: `1px solid ${isSelected ? proj.color : 'var(--cv-border)'}`,
@@ -1632,7 +1628,7 @@ export function Atelier3DStage({
                         </span>
                       </div>
 
-                      {isSelected && (
+                      {isSelected ? (
                         <span
                           className="font-cv-mono text-[8.5px] font-semibold uppercase tracking-wider px-1.5 py-0.5 cv-radius-pill leading-none shrink-0"
                           style={{
@@ -1640,7 +1636,15 @@ export function Atelier3DStage({
                             color: proj.color,
                           }}
                         >
-                          Live
+                          Live ↗
+                        </span>
+                      ) : (
+                        <span
+                          className="font-cv-mono text-[10px] leading-none opacity-40 group-hover:opacity-100 transition-opacity shrink-0"
+                          style={{ color: 'var(--cv-ink-muted)' }}
+                          aria-hidden="true"
+                        >
+                          ↗
                         </span>
                       )}
                     </div>

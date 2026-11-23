@@ -7,7 +7,7 @@ import { roomStore, useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
 import type { WeatherState } from '@/types/room';
 import { personalInfo } from '@/data/resumeData';
-import { exploreStore, useExplore } from '@/store/exploreStore';
+import { exploreStore } from '@/store/exploreStore';
 import { BrandLogo } from '@/components/cv/BrandLogo';
 
 const WEATHER_OPTIONS: { id: WeatherState; label: string; icon: React.ComponentType<{ size?: number }> }[] = [
@@ -35,7 +35,7 @@ function IconButton({
       title={label}
       aria-label={label}
       aria-pressed={active}
-      className="h-8 w-8 cv-radius-pill flex items-center justify-center transition-colors duration-200"
+      className="h-7 w-7 sm:h-8 sm:w-8 cv-radius-pill flex items-center justify-center transition-colors duration-200"
       style={{
         backgroundColor: active ? 'var(--cv-surface-elevated)' : 'transparent',
         color: active ? 'var(--cv-ink)' : 'var(--cv-ink-muted)',
@@ -57,7 +57,6 @@ export function TopHeader() {
   const toggleMute = useRoomStore((state) => state.toggleMute);
   const weatherState = useRoomStore((state) => state.weatherState);
   const setWeatherState = useRoomStore((state) => state.setWeatherState);
-  const activity = useExplore((state) => state.activity);
   const { resolvedTheme, setTheme } = useTheme();
 
   const isDark = mounted ? resolvedTheme === 'dark' : false;
@@ -79,39 +78,39 @@ export function TopHeader() {
   };
 
   return (
-    <header className="fixed top-3 sm:top-4 inset-x-3 sm:inset-x-4 md:inset-x-8 z-30 pointer-events-none flex flex-col sm:flex-row items-stretch sm:items-start justify-between gap-2">
-      {/* Brand identity + live room activity */}
-      <div className="pointer-events-auto cv-hud-panel pl-3.5 pr-4 py-2 flex items-center gap-3 select-none self-start">
-        <BrandLogo className="w-9 h-9 sm:w-10 sm:h-10 shrink-0" style={{ color: 'var(--cv-ink)' }} />
-        <div className="min-w-0">
-          <h1
-            className="font-cv-display font-bold text-[14.5px] sm:text-[15.5px] leading-tight tracking-tight"
+    <header className="fixed top-3 sm:top-4 inset-x-3 sm:inset-x-4 md:inset-x-8 z-30 pointer-events-none flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+      {/* Unboxed Brand Identity (Logo + Name only) + Mobile Resume CTA */}
+      <div className="flex items-center justify-between gap-2 w-full sm:w-auto">
+        <div className="pointer-events-auto flex items-center gap-2 select-none min-w-0">
+          <BrandLogo
+            className="w-7 h-7 sm:w-8 sm:h-8 shrink-0 drop-shadow-sm"
             style={{ color: 'var(--cv-ink)' }}
+          />
+          <h1
+            className="font-cv-display font-bold text-[15px] sm:text-[16px] leading-tight tracking-tight truncate"
+            style={{
+              color: 'var(--cv-ink)',
+              textShadow: isDark
+                ? '0 1px 10px rgba(0, 0, 0, 0.7)'
+                : '0 1px 8px rgba(255, 255, 255, 0.85)',
+            }}
           >
             {personalInfo.name}
           </h1>
-          <p className="text-[11px] leading-tight mt-0.5 line-clamp-1" style={{ color: 'var(--cv-ink-muted)' }}>
-            {personalInfo.role}
-          </p>
-          <p
-            className="font-cv-mono text-[10.5px] leading-tight mt-1 flex items-center gap-1.5"
-            style={{ color: 'var(--cv-accent)' }}
-            aria-live="polite"
-          >
-            <span
-              className="h-1.5 w-1.5 shrink-0"
-              style={{ borderRadius: '9999px', backgroundColor: 'var(--cv-live)' }}
-            />
-            <span key={activity} className="line-clamp-1">
-              {activity}
-            </span>
-          </p>
         </div>
+
+        <button
+          onClick={() => exploreStore.openDrawer(null)}
+          aria-label="Open Resume"
+          className="sm:hidden pointer-events-auto cv-btn-primary h-9 w-9 flex items-center justify-center shrink-0"
+        >
+          <FileText size={14} />
+        </button>
       </div>
 
-      {/* Weather, Light/Dark, Sound & Resume trigger */}
-      <div className="pointer-events-auto flex flex-wrap items-center gap-2 self-start sm:self-auto">
-        <div className="cv-hud-pill p-1 flex items-center gap-1">
+      {/* Weather, Sound, Light/Dark & Desktop Resume trigger */}
+      <div className="pointer-events-auto flex items-center gap-2 self-start sm:self-auto">
+        <div className="cv-hud-pill p-1 flex items-center gap-0.5 sm:gap-1">
           <div role="radiogroup" aria-label="Weather" className="flex items-center gap-0.5">
             {WEATHER_OPTIONS.map(({ id, label, icon: Icon }) => {
               const active = weatherState === id;
@@ -123,7 +122,7 @@ export function TopHeader() {
                   aria-label={label}
                   title={label}
                   onClick={() => setWeatherState(id)}
-                  className="h-8 w-8 cv-radius-pill flex items-center justify-center transition-colors duration-200"
+                  className="h-7 w-7 sm:h-8 sm:w-8 cv-radius-pill flex items-center justify-center transition-colors duration-200"
                   style={{
                     backgroundColor: active ? 'var(--cv-surface-elevated)' : 'transparent',
                     color: active ? 'var(--cv-accent)' : 'var(--cv-ink-muted)',
@@ -172,10 +171,10 @@ export function TopHeader() {
 
         <button
           onClick={() => exploreStore.openDrawer(null)}
-          className="cv-btn-primary h-10 px-4 font-semibold text-[12.5px] flex items-center gap-2"
+          className="hidden sm:flex cv-btn-primary h-10 px-4 font-semibold text-[12.5px] items-center gap-2 shrink-0"
         >
           <FileText size={14} />
-          <span className="hidden sm:inline">Resume</span>
+          <span>Resume</span>
         </button>
       </div>
     </header>

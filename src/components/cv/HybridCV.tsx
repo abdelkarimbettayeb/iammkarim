@@ -184,8 +184,9 @@ export function HybridCV() {
     const clamped = Math.max(0, Math.min(SECTIONS.length - 1, idx));
     activeIndexRef.current = clamped;
     setActiveSection(SECTIONS[clamped].id);
+    const targetEl = document.getElementById(SECTIONS[clamped].id);
     container.scrollTo({
-      top: clamped * container.clientHeight,
+      top: targetEl ? targetEl.offsetTop : clamped * container.clientHeight,
       behavior: 'smooth',
     });
   }, []);
@@ -219,7 +220,8 @@ export function HybridCV() {
       },
       {
         root,
-        threshold: [0.6],
+        threshold: [0.2, 0.45, 0.7],
+        rootMargin: '-15% 0px -35% 0px',
       }
     );
 
@@ -231,12 +233,13 @@ export function HybridCV() {
     return () => observer.disconnect();
   }, []);
 
-  // Strict 1-slide-at-a-time wheel snap controller (zero middle scroll)
+  // Strict 1-slide-at-a-time wheel snap controller (Desktop)
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container) return;
 
     const handleWheel = (e: WheelEvent) => {
+      if (window.innerWidth < 768) return;
       if (modalProjectId !== null) return;
 
       // Allow inner bounded scroll containers (e.g. skill tiles on short viewports) to scroll naturally before snapping
@@ -526,38 +529,37 @@ export function HybridCV() {
       </aside>
 
       {/* =====================================================================
-          2b. MOBILE FLOATING BOTTOM SNAP DOCK
+          2b. MOBILE FLOATING BOTTOM SNAP DOCK + INLINE MODE SWITCH
          ===================================================================== */}
-      <nav
-        aria-label="Mobile section navigation"
-        className="md:hidden fixed bottom-2.5 inset-x-3 z-30 pb-[env(safe-area-inset-bottom)]"
-      >
-        <div className="cv-mobile-dock p-1 flex items-center justify-between gap-1">
+      <div className="md:hidden fixed bottom-3 inset-x-2.5 z-30 pb-[env(safe-area-inset-bottom)] flex items-center justify-center gap-1.5 pointer-events-none">
+        <nav
+          aria-label="Mobile section navigation"
+          className="pointer-events-auto cv-mobile-dock p-1 flex-1 min-w-0 flex items-center justify-between gap-0.5"
+        >
           {SECTIONS.map((sec) => {
             const isActive = activeSection === sec.id;
+            const mobileLabel = sec.id === 'experience' ? 'Exp' : sec.label;
             return (
               <button
                 key={sec.id}
                 onClick={() => scrollToSection(sec.id)}
-                className="flex-1 min-h-[44px] py-1 px-1 cv-radius-sm flex flex-col items-center justify-center transition-colors"
+                className="flex-1 h-9 px-1.5 rounded-full flex items-center justify-center text-[10.5px] leading-none transition-colors whitespace-nowrap"
                 style={{
-                  backgroundColor: isActive ? 'var(--cv-surface)' : 'transparent',
-                  color: isActive ? 'var(--cv-accent)' : 'var(--cv-ink-muted)',
-                  boxShadow: isActive ? '0 0 0 1px var(--cv-border)' : 'none',
+                  backgroundColor: isActive ? 'var(--cv-ink)' : 'transparent',
+                  color: isActive ? 'var(--cv-bg)' : 'var(--cv-ink-muted)',
+                  fontWeight: isActive ? 600 : 500,
                 }}
               >
-                <span className="font-cv-mono text-[9.5px] leading-none">{sec.number}</span>
-                <span
-                  className="text-[11px] font-medium leading-tight mt-0.5 truncate"
-                  style={{ color: isActive ? 'var(--cv-ink)' : 'var(--cv-ink-muted)' }}
-                >
-                  {sec.label}
-                </span>
+                {mobileLabel}
               </button>
             );
           })}
+        </nav>
+
+        <div className="pointer-events-auto shrink-0">
+          <FloatingModeSwitch inline />
         </div>
-      </nav>
+      </div>
 
       {/* =====================================================================
           3. STRICT 100% SNAPPY FULL-VIEWPORT CONTAINER (ZERO MIDDLE SCROLL)
@@ -571,7 +573,7 @@ export function HybridCV() {
            =================================================================== */}
         <section
           id="hero"
-          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-20 md:pt-20 md:pb-8 px-4 sm:px-6 lg:px-12"
+          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-24 md:pt-20 md:pb-8 px-4 sm:px-6 lg:px-12"
         >
           <div aria-hidden className="cv-hero-grid pointer-events-none absolute inset-0" />
 
@@ -805,15 +807,15 @@ export function HybridCV() {
               >
                 <button
                   onClick={() => scrollToSection('projects')}
-                  className="cv-btn-primary h-10 sm:h-11 px-4 sm:px-5 text-[13px] sm:text-[13.5px] font-semibold flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+                  className="cv-btn-primary h-10 sm:h-11 px-3.5 sm:px-5 text-[12.5px] sm:text-[13.5px] font-semibold flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0"
                 >
                   <span>Selected Work</span>
-                  <ArrowUpRight size={15} />
+                  <ArrowUpRight size={15} className="shrink-0" />
                 </button>
 
                 <button
                   onClick={() => scrollToSection('contact')}
-                  className="cv-btn-secondary h-10 sm:h-11 px-4 sm:px-5 text-[13px] sm:text-[13.5px] font-medium flex items-center justify-center gap-2 flex-1 sm:flex-initial"
+                  className="cv-btn-secondary h-10 sm:h-11 px-3.5 sm:px-5 text-[12.5px] sm:text-[13.5px] font-medium flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap shrink-0"
                 >
                   <span>Contact</span>
                 </button>
@@ -875,7 +877,7 @@ export function HybridCV() {
            =================================================================== */}
         <section
           id="experience"
-          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-20 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
+          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-24 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
           style={{ borderTop: '1px solid var(--cv-border)' }}
         >
           <div className="max-w-7xl mx-auto w-full my-auto flex flex-col justify-center">
@@ -1015,7 +1017,7 @@ export function HybridCV() {
 
                   <ol
                     data-inner-scroll="true"
-                    className="mt-3.5 sm:mt-4 space-y-2.5 max-h-[calc(100dvh-370px)] lg:max-h-[30dvh] overflow-y-auto pr-1"
+                    className="mt-3.5 sm:mt-4 space-y-2.5 lg:max-h-[30dvh] lg:overflow-y-auto pr-1"
                   >
                     {selectedRole.highlights.map((bullet, i) => (
                       <li
@@ -1133,7 +1135,7 @@ export function HybridCV() {
            =================================================================== */}
         <section
           id="projects"
-          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-20 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
+          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-24 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
           style={{ borderTop: '1px solid var(--cv-border)' }}
         >
           <div className="max-w-7xl mx-auto w-full my-auto">
@@ -1260,31 +1262,31 @@ export function HybridCV() {
                   </div>
 
                   {spotlightProject.visualType === 'jud-platform' ? (
-                    <div className="cv-project-frame h-36 sm:h-52 lg:h-64 w-full">
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <JudPlatformPreview key={spotlightProject.id} variant="spotlight" />
                     </div>
                   ) : spotlightProject.visualType === 'cpp-search' ? (
-                    <div className="cv-project-frame h-36 sm:h-52 lg:h-64 w-full">
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <CppSearchPreview key={spotlightProject.id} variant="spotlight" />
                     </div>
                   ) : spotlightProject.visualType === 'mostaql-reviews' ? (
-                    <div className="cv-project-frame h-36 sm:h-52 lg:h-64 w-full">
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <MostaqlReviewsPreview key={spotlightProject.id} variant="spotlight" />
                     </div>
                   ) : spotlightProject.visualType === 'mouser-kvm' ? (
-                    <div className="cv-project-frame h-36 sm:h-52 lg:h-64 w-full">
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <MouserKvmPreview key={spotlightProject.id} variant="spotlight" />
                     </div>
                   ) : spotlightProject.visualType === 'meuble-store' ? (
-                    <div className="cv-project-frame h-36 sm:h-52 lg:h-64 w-full">
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <MeubleStorePreview key={spotlightProject.id} variant="spotlight" />
                     </div>
                   ) : spotlightProject.visualType === 'alg-math' ? (
-                    <div className="cv-project-frame h-36 sm:h-52 lg:h-64 w-full">
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <AlgMathPreview key={spotlightProject.id} variant="spotlight" />
                     </div>
                   ) : spotlightProject.image ? (
-                    <div className="cv-project-frame h-36 sm:h-52 lg:h-64 w-full">
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={spotlightProject.image}
@@ -1341,7 +1343,7 @@ export function HybridCV() {
 
                     <ol
                       data-inner-scroll="true"
-                      className="mt-3.5 sm:mt-4 space-y-2 max-h-[16dvh] sm:max-h-[24dvh] overflow-y-auto pr-1"
+                      className="mt-3.5 sm:mt-4 space-y-2 md:max-h-[24dvh] md:overflow-y-auto pr-1"
                     >
                       {spotlightProject.description.map((line, i) => (
                         <li
@@ -1395,7 +1397,7 @@ export function HybridCV() {
            =================================================================== */}
         <section
           id="skills"
-          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-20 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
+          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-24 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
           style={{ borderTop: '1px solid var(--cv-border)' }}
         >
           <div className="max-w-7xl mx-auto w-full my-auto">
@@ -1449,7 +1451,7 @@ export function HybridCV() {
             <div
               data-inner-scroll="true"
               className={`${skillFilter === 'reviews' ? 'hidden md:grid' : 'grid'
-                } grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 max-h-[calc(100dvh-250px)] md:max-h-[44dvh] overflow-y-auto pr-1`}
+                } grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 md:max-h-[44dvh] md:overflow-y-auto pr-1`}
             >
               {filteredSkills.map((skill) => {
                 const pips = Math.max(3, Math.min(5, Math.round(skill.level / 20)));
@@ -1552,7 +1554,7 @@ export function HybridCV() {
 
               <div
                 data-inner-scroll="true"
-                className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5 max-h-[calc(100dvh-280px)] md:max-h-none overflow-y-auto md:overflow-visible pr-1"
+                className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5 pr-1"
               >
                 {TESTIMONIALS.map((t) => (
                   <figure
@@ -1592,7 +1594,7 @@ export function HybridCV() {
            =================================================================== */}
         <section
           id="contact"
-          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-20 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
+          className="cv-snap-section relative w-full flex flex-col justify-center pt-16 pb-24 md:pt-20 md:pb-10 px-4 sm:px-6 lg:px-12"
           style={{ borderTop: '1px solid var(--cv-border)' }}
         >
           <div className="max-w-6xl mx-auto w-full my-auto">

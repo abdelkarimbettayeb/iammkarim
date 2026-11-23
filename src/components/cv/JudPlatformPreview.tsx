@@ -141,7 +141,7 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
       {/* Top Command Chrome */}
       <div
         className={`relative z-10 flex items-center justify-between gap-2 shrink-0 ${
-          isModal ? 'px-3.5 py-2.5' : 'px-3 py-1.5'
+          isModal ? 'px-3.5 py-2.5' : 'px-2.5 sm:px-3 py-1.5'
         }`}
         style={{
           backgroundColor: 'var(--cv-surface-elevated)',
@@ -163,7 +163,8 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
             className="font-cv-mono text-[10px] font-semibold uppercase tracking-wider truncate"
             style={{ color: 'var(--cv-ink)' }}
           >
-            JUD PLATFORM · LEAD ARCH
+            JUD PLATFORM
+            <span className={isModal ? 'hidden sm:inline' : 'hidden sm:inline'}> · LEAD ARCH</span>
           </span>
 
           {isModal && (
@@ -192,7 +193,10 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
               className="h-1.5 w-1.5 cv-radius-pill"
               style={{ backgroundColor: LIVE_GREEN }}
             />
-            <span>WS LIVE · NESTJS 11</span>
+            <span>
+              WS LIVE
+              <span className={isModal ? 'inline' : 'hidden sm:inline'}> · NESTJS 11</span>
+            </span>
           </span>
         </div>
       </div>
@@ -200,45 +204,45 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
       {/* Active Enterprise View Stage */}
       <div
         className={`relative z-10 flex-1 min-h-0 flex flex-col justify-between ${
-          isModal ? 'p-3.5 gap-2.5' : 'p-2.5 gap-1.5'
+          isModal ? 'p-3.5 gap-2.5' : 'p-2 sm:p-2.5 gap-1.5'
         }`}
       >
         {activeView.id === 'analytics' && (
           <div
             key="view-analytics"
-            className={`cv-review-enter flex-1 min-h-0 grid gap-2.5 items-stretch ${
-              isModal ? 'grid-cols-1 sm:grid-cols-12' : 'grid-cols-12'
+            className={`cv-review-enter flex-1 min-h-0 grid items-stretch ${
+              isModal ? 'gap-2.5 grid-cols-1 sm:grid-cols-12' : 'gap-2 grid-cols-12'
             }`}
           >
             {/* Bar Chart Panel */}
             <div
               className={`${
                 isModal ? 'sm:col-span-7' : 'col-span-7'
-              } cv-radius-sm p-2.5 sm:p-3 flex flex-col justify-between`}
+              } cv-radius-sm p-2 sm:p-3 flex flex-col justify-between min-w-0`}
               style={{
                 backgroundColor: 'var(--cv-surface-elevated)',
                 border: '1px solid var(--cv-border)',
               }}
             >
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center justify-between gap-1.5 min-w-0">
                 <span
-                  className="inline-flex items-center gap-1.5 font-cv-mono text-[9.5px] font-semibold uppercase tracking-wider"
+                  className="inline-flex items-center gap-1.5 font-cv-mono text-[9.5px] font-semibold uppercase tracking-wider min-w-0"
                   style={{ color: 'var(--cv-ink-muted)' }}
                 >
-                  <BarChart3 size={11} style={{ color: JUD_VIOLET }} />
-                  <span>Multi-Brand Analytics</span>
+                  <BarChart3 size={11} style={{ color: JUD_VIOLET }} className="shrink-0" />
+                  <span className="truncate">Multi-Brand Analytics</span>
                 </span>
                 <span
-                  className="font-cv-mono text-[9.5px] font-semibold cv-tabular"
+                  className="font-cv-mono text-[9.5px] font-semibold cv-tabular shrink-0 whitespace-nowrap"
                   style={{ color: LIVE_GREEN }}
                 >
-                  +42% Velocity
+                  +42%<span className={isModal ? 'inline' : 'hidden sm:inline'}> Velocity</span>
                 </span>
               </div>
 
               <div
                 className={`flex items-end justify-between gap-1.5 sm:gap-2 pt-2 ${
-                  isModal ? 'h-24 sm:h-28' : 'h-16 sm:h-24'
+                  isModal ? 'h-24 sm:h-28' : 'flex-1 min-h-[64px]'
                 }`}
               >
                 {ANALYTICS_BARS.map((bar, bIdx) => {
@@ -285,7 +289,7 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
             <div
               className={`${
                 isModal ? 'sm:col-span-5' : 'col-span-5'
-              } flex flex-col justify-between gap-1.5 sm:gap-2`}
+              } flex flex-col justify-between gap-1.5 sm:gap-2 min-w-0`}
             >
               {[
                 { label: 'ROAS Index', val: '4.8×', sub: '18 Brands' },
@@ -294,7 +298,7 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
               ].map((kpi) => (
                 <div
                   key={kpi.label}
-                  className="flex-1 cv-radius-sm px-2.5 py-1.5 flex items-center justify-between gap-2"
+                  className="flex-1 min-h-0 cv-radius-sm px-2 sm:px-2.5 py-1 sm:py-1.5 flex items-center justify-between gap-1.5"
                   style={{
                     backgroundColor: 'var(--cv-surface-elevated)',
                     border: '1px solid var(--cv-border)',
@@ -302,7 +306,7 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
                 >
                   <div className="min-w-0">
                     <span
-                      className="block font-cv-mono text-[9px] uppercase truncate"
+                      className="block font-cv-mono text-[8.5px] sm:text-[9px] uppercase truncate"
                       style={{ color: 'var(--cv-ink-muted)' }}
                     >
                       {kpi.label}
@@ -317,7 +321,7 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
                     )}
                   </div>
                   <span
-                    className="font-cv-display font-bold text-[12px] sm:text-[14px] cv-tabular shrink-0"
+                    className="font-cv-display font-bold text-[11px] sm:text-[14px] cv-tabular shrink-0"
                     style={{ color: JUD_VIOLET }}
                   >
                     {kpi.val}
@@ -336,7 +340,9 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
             {HR_ROWS.slice(0, isModal ? 3 : 2).map((row, idx) => (
               <div
                 key={row.id}
-                className="cv-search-row cv-radius-sm px-3 py-2 flex items-center justify-between gap-2"
+                className={`cv-search-row cv-radius-sm flex items-center justify-between gap-2 ${
+                  isModal ? 'px-3 py-2' : 'px-2.5 py-1.5'
+                }`}
                 style={{
                   animationDelay: `${idx * 50}ms`,
                   backgroundColor: 'var(--cv-surface-elevated)',
@@ -393,15 +399,17 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
         {activeView.id === 'pipeline' && (
           <div
             key="view-pipeline"
-            className="cv-review-enter flex-1 min-h-0 flex flex-col justify-center gap-2.5"
+            className="cv-review-enter flex-1 min-h-0 flex flex-col justify-center gap-2"
           >
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className={`grid grid-cols-2 sm:grid-cols-4 ${isModal ? 'gap-2' : 'gap-1.5'}`}>
               {PIPELINE_NODES.map((node, nIdx) => {
                 const isLit = reducedMotion || nIdx <= pulseStep;
                 return (
                   <div
                     key={node.code}
-                    className="cv-radius-sm p-2.5 flex flex-col justify-between gap-1.5 transition-opacity duration-200"
+                    className={`cv-radius-sm flex flex-col justify-between gap-1 transition-opacity duration-200 ${
+                      isModal ? 'p-2.5' : 'p-2 sm:p-2.5'
+                    }`}
                     style={{
                       backgroundColor: 'var(--cv-surface-elevated)',
                       border: `1.5px solid ${isLit ? JUD_VIOLET : 'var(--cv-border)'}`,
