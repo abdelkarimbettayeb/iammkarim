@@ -1,4 +1,44 @@
-import { Josefin_Sans, Signika, Padauk } from 'next/font/google';
+import {
+  Josefin_Sans,
+  Signika,
+  Padauk,
+  Bricolage_Grotesque,
+  DM_Sans,
+  JetBrains_Mono,
+} from 'next/font/google';
+
+/**
+ * Primary Display & Headline Font for Redesign: Bricolage Grotesque
+ * Expressive Swiss-industrial grotesque with sculptural character and crisp display rhythm.
+ */
+export const bricolageGrotesque = Bricolage_Grotesque({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-cv-display',
+  weight: ['400', '500', '600', '700', '800'],
+});
+
+/**
+ * Body & UI Sans Font for Redesign: DM Sans
+ * Geometric-humanist neutral sans-serif tuned for screen clarity at 14px–16px.
+ */
+export const dmSans = DM_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-cv-sans',
+  weight: ['400', '500', '600', '700'],
+});
+
+/**
+ * Technical Monospace Font for Redesign: JetBrains Mono
+ * Used for section indices, serial codes, dates, stack metadata, and tabular coordinates.
+ */
+export const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-cv-mono',
+  weight: ['400', '500', '600', '700'],
+});
 
 /**
  * Primary Display & Headline Font: Josefin Sans

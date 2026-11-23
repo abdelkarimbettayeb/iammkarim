@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="10 10 44 44" fill="none">
+  <style>
+    .ink-a { fill: #111113; }
+    .ink-b { fill: #111113; fill-opacity: 0.72; }
+    .prism { fill: #E0441B; }
+    @media (prefers-color-scheme: dark) {
+      .ink-a { fill: #F5F5F7; }
+      .ink-b { fill: #F5F5F7; fill-opacity: 0.72; }
+      .prism { fill: #FF572E; }
+    }
+  </style>
+  <path class="ink-a" d="M11 52L27.5 11H36.5L21 52H11Z" />
+  <path class="ink-b" d="M27.5 11H36.5L53 52H43L27.5 11Z" />
+  <path class="prism" d="M32 27.5L39.56 47.5H24.44L32 27.5Z" />
+</svg>

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { X, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { X, ArrowUpRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useRoomStore, roomStore } from '@/store/useRoomStore';
 import { cartridgeProjects } from '@/data/resumeData';
 import type { CartridgeId } from '@/types/room';
@@ -43,101 +43,158 @@ export function CaseStudyModal() {
   const project = cartridgeProjects[activeCartridge];
   if (!project) return null;
   const index = ORDER.indexOf(activeCartridge);
+  const serial = `PRJ—0${index + 1}`;
 
   return (
-    <div className="hud fixed inset-0 z-40 pointer-events-none flex items-end sm:items-center justify-center sm:justify-end p-3 sm:p-6 md:p-8">
-      {/* Phones get a scrim; on larger screens the room stays visible beside the pane */}
-      <div className="scrim-in fixed inset-0 bg-[rgb(3_7_18/0.45)] sm:hidden pointer-events-auto" onClick={handleClose} />
+    <div className="fixed inset-0 z-40 pointer-events-none flex items-end sm:items-center justify-center sm:justify-end p-3 sm:p-6 md:p-8">
+      <div
+        className="fixed inset-0 backdrop-blur-sm sm:hidden pointer-events-auto"
+        style={{ backgroundColor: 'var(--cv-scrim)' }}
+        onClick={handleClose}
+      />
 
       <section
+        role="dialog"
+        aria-modal="true"
         aria-labelledby="case-title"
-        className="sheet-in pointer-events-auto glass-panel-master w-full sm:w-[440px] max-h-[86vh] sm:max-h-[calc(100vh-180px)] flex flex-col overflow-hidden"
-        style={{ '--a1': project.color, '--a2': '#8b7cff', '--a3': project.color } as React.CSSProperties}
+        className="sheet-in pointer-events-auto cv-modal-sheet w-full sm:w-[460px] max-h-[86vh] sm:max-h-[calc(100vh-140px)] flex flex-col overflow-hidden"
       >
-        <div className="aurora" aria-hidden>
-          <span />
-          <span />
-          <span />
+        {/* Top Metadata Chrome */}
+        <div
+          className="flex items-center justify-between px-5 py-3.5 shrink-0"
+          style={{ borderBottom: '1px solid var(--cv-border)' }}
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className="h-2.5 w-2.5 shrink-0"
+              style={{ borderRadius: '9999px', backgroundColor: project.color }}
+            />
+            <span
+              className="font-cv-mono text-[11px] font-semibold tracking-wider uppercase"
+              style={{ color: 'var(--cv-accent)' }}
+            >
+              {serial}
+            </span>
+            <span style={{ color: 'var(--cv-ink-subtle)' }}>/</span>
+            <span className="text-[12px] truncate" style={{ color: 'var(--cv-ink-muted)' }}>
+              {project.subtitle}
+            </span>
+          </div>
+
+          <button
+            onClick={handleClose}
+            aria-label="Close"
+            className="cv-icon-btn h-8 w-8 flex items-center justify-center shrink-0"
+          >
+            <X size={15} />
+          </button>
         </div>
 
-        {/* Screenshot, framed like a pane in a window */}
-        {project.image && (
-          <div className="relative h-40 sm:h-44 shrink-0 overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={project.id}
-              src={project.image}
-              alt=""
-              className="absolute inset-0 w-full h-full object-cover scale-105 animate-in fade-in zoom-in-105 duration-700"
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(14,23,38,0.15)_0%,rgba(14,23,38,0.55)_45%,rgba(14,23,38,0.96)_85%)]" />
-            <button
-              onClick={handleClose}
-              aria-label="Close"
-              className="absolute top-3 right-3 h-9 w-9 glass-btn-secondary backdrop-blur-md bg-black/25 text-white flex items-center justify-center"
+        {/* Scrollable Content */}
+        <div key={project.id} className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
+          {project.image && (
+            <div className="cv-project-frame h-40 w-full">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={project.image} alt={project.title} className="w-full h-full object-cover" />
+            </div>
+          )}
+
+          <div>
+            <h2
+              id="case-title"
+              className="font-cv-display font-bold text-[24px] sm:text-[26px] leading-[1.1] tracking-[-0.02em]"
+              style={{ color: 'var(--cv-ink)' }}
             >
-              <X size={17} />
-            </button>
+              {project.title}
+            </h2>
+
+            <div
+              className="mt-3 px-3.5 py-2.5 cv-radius-sm"
+              style={{
+                backgroundColor: 'var(--cv-surface)',
+                borderLeft: `3px solid ${project.color}`,
+                borderTop: '1px solid var(--cv-border)',
+                borderRight: '1px solid var(--cv-border)',
+                borderBottom: '1px solid var(--cv-border)',
+              }}
+            >
+              <span
+                className="block font-cv-mono text-[9.5px] uppercase tracking-widest mb-0.5"
+                style={{ color: 'var(--cv-ink-muted)' }}
+              >
+                Impact &amp; Metric
+              </span>
+              <p className="text-[13.5px] font-medium leading-snug" style={{ color: 'var(--cv-ink)' }}>
+                {project.metrics}
+              </p>
+            </div>
           </div>
-        )}
 
-        {!project.image && (
-          <button onClick={handleClose} aria-label="Close" className="absolute top-3 right-3 z-[3] h-9 w-9 glass-btn-secondary text-white flex items-center justify-center">
-            <X size={17} />
-          </button>
-        )}
-
-        <div
-          key={project.id}
-          className={`relative px-5 sm:px-6 pb-5 overflow-y-auto animate-in fade-in slide-in-from-bottom-2 duration-500 ${project.image ? '-mt-10' : 'pt-6'}`}
-        >
-          <p className="text-[12px] text-slate-300 flex items-center gap-2">
-            <span className="h-2 w-2 rounded shrink-0" style={{ background: project.color, boxShadow: `0 0 12px ${project.color}` }} />
-            {project.subtitle}
-          </p>
-          <h2 id="case-title" className="font-primary font-bold text-[26px] leading-[1.1] tracking-[-0.02em] text-white mt-1.5">
-            {project.title}
-          </h2>
-          <p className="mt-3 text-[14px] leading-relaxed text-white/90">{project.metrics}</p>
-
-          <ul className="mt-4 space-y-2.5">
+          <ol className="space-y-2.5">
             {project.description.map((line, i) => (
-              <li key={i} className="flex gap-3 text-[13px] leading-relaxed text-slate-300">
-                <span className="mt-[9px] h-px w-3 shrink-0" style={{ background: project.color }} />
+              <li
+                key={i}
+                className="flex items-start gap-3 text-[13px] leading-[1.6]"
+                style={{ color: 'var(--cv-ink-secondary)' }}
+              >
+                <span
+                  className="font-cv-mono text-[11px] font-semibold mt-0.5 shrink-0 cv-tabular"
+                  style={{ color: 'var(--cv-accent)' }}
+                >
+                  0{i + 1}
+                </span>
                 <span>{line}</span>
               </li>
             ))}
-          </ul>
+          </ol>
 
-          <div className="mt-4 flex flex-wrap gap-1.5" aria-label="Tech stack">
+          <div className="flex flex-wrap gap-1.5" aria-label="Tech stack">
             {project.stack.map((tech) => (
-              <span key={tech} className="px-2.5 py-1 glass-pill text-[11.5px] text-slate-200">
+              <span key={tech} className="cv-chip px-2.5 py-1 font-cv-mono text-[10.5px] uppercase">
                 {tech}
               </span>
             ))}
           </div>
         </div>
 
-        {/* Footer: browse the other projects without leaving the pane */}
-        <div className="relative shrink-0 border-t border-white/10 px-3 sm:px-4 py-3 flex items-center gap-2">
-          <button onClick={() => step(-1)} aria-label="Previous project" className="h-10 w-10 glass-btn-secondary text-slate-200 flex items-center justify-center">
-            <ChevronLeft size={18} />
+        {/* Footer */}
+        <div
+          className="shrink-0 px-4 py-3 flex items-center gap-2"
+          style={{
+            borderTop: '1px solid var(--cv-border)',
+            backgroundColor: 'var(--cv-surface)',
+          }}
+        >
+          <button
+            onClick={() => step(-1)}
+            aria-label="Previous project"
+            className="cv-icon-btn h-9 w-9 flex items-center justify-center"
+          >
+            <ChevronLeft size={16} />
           </button>
-          <span className="text-[12px] text-slate-400 tabular-nums w-10 text-center">
-            {index + 1} of {ORDER.length}
+          <span
+            className="font-cv-mono text-[11.5px] px-2 text-center cv-tabular"
+            style={{ color: 'var(--cv-ink-muted)' }}
+          >
+            0{index + 1} / 0{ORDER.length}
           </span>
-          <button onClick={() => step(1)} aria-label="Next project" className="h-10 w-10 glass-btn-secondary text-slate-200 flex items-center justify-center">
-            <ChevronRight size={18} />
+          <button
+            onClick={() => step(1)}
+            aria-label="Next project"
+            className="cv-icon-btn h-9 w-9 flex items-center justify-center"
+          >
+            <ChevronRight size={16} />
           </button>
+
           {project.url && (
             <a
               href={project.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="ml-auto h-10 px-4 glass-btn-primary text-[13px] font-semibold flex items-center gap-2"
+              className="ml-auto cv-btn-primary h-9 px-4 text-[12.5px] font-semibold flex items-center gap-1.5"
             >
-              Open project
-              <ExternalLink size={14} />
+              <span>Open project</span>
+              <ArrowUpRight size={14} />
             </a>
           )}
         </div>

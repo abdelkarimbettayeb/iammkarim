@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { FoldedPrism3D } from '@/components/cv/FoldedPrism3D';
 
 interface CoffeeTableProps {
   position?: [number, number, number];
@@ -16,13 +17,32 @@ export function CoffeeTable({
   return (
     <group position={position} rotation={rotation} scale={scale}>
       {/* =========================================
-          1. Tabletop (Beveled Soft Rim Disc)
+          1. Tabletop (Beveled Soft Rim Disc + Architectural Prism Inlay)
          ========================================= */}
       <group position={[0, 0.34, 0]}>
         {/* Main Disc Body */}
         <mesh castShadow receiveShadow>
           <cylinderGeometry args={[0.54, 0.52, 0.036, 40]} />
           <meshStandardMaterial color="#F8FAFC" roughness={0.2} metalness={0.05} />
+        </mesh>
+        {/* Flush Folded Prism Tabletop Marquetry Inlay */}
+        <FoldedPrism3D
+          position={[0, 0.0182, 0]}
+          rotation={[-Math.PI / 2, 0, Math.PI * 0.22]}
+          scale={0.48}
+          depth={0.008}
+          bevel={0.0015}
+          primaryColor="#111113"
+          secondaryColor="#475569"
+          accentColor="#E0441B"
+          metalness={0.38}
+          roughness={0.22}
+          accentEmissive={0.14}
+        />
+        {/* Concentric Hairline Brass-Steel Inlay Ring */}
+        <mesh position={[0, 0.018, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <torusGeometry args={[0.34, 0.0028, 10, 64]} />
+          <meshStandardMaterial color="#CBD5E1" metalness={0.5} roughness={0.3} />
         </mesh>
         {/* Soft Rounded Perimeter Bevel (Torus Rim) */}
         <mesh position={[0, 0.016, 0]} rotation={[Math.PI / 2, 0, 0]}>

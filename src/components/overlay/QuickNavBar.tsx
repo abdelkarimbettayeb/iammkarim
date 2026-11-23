@@ -9,8 +9,7 @@ import type { RoomZone } from '@/types/room';
 interface NavItem {
   id: RoomZone;
   label: string;
-  icon: React.ComponentType<{ size?: number; className?: string }>;
-  /** What the button actually does */
+  icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>;
   run: () => void;
 }
 
@@ -36,7 +35,6 @@ const NAV_ITEMS: NavItem[] = [
     id: 'workstation',
     label: 'Projects',
     icon: Monitor,
-    // He walks to the desk, sits down and the case studies open on arrival
     run: () => {
       closePanels();
       roomStore.setActiveStation('workstation');
@@ -78,7 +76,6 @@ export function QuickNavBar() {
   const buttons = React.useRef<Record<string, HTMLButtonElement | null>>({});
   const [lens, setLens] = React.useState<{ left: number; width: number } | null>(null);
 
-  // The amber lens glides to whichever section is active
   React.useLayoutEffect(() => {
     const measure = () => {
       const el = buttons.current[activeZone];
@@ -92,14 +89,18 @@ export function QuickNavBar() {
   return (
     <nav
       aria-label="Sections"
-      className="hud fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto bottom-[max(1rem,env(safe-area-inset-bottom))] sm:bottom-6"
+      className="fixed left-1/2 -translate-x-1/2 z-30 pointer-events-auto bottom-[max(0.75rem,env(safe-area-inset-bottom))] sm:bottom-6"
     >
-      <div className="hud-in glass-panel-master p-1.5 flex items-center gap-1 font-secondary">
+      <div className="cv-hud-pill relative p-1.5 flex items-center gap-1">
         {lens && (
           <span
             aria-hidden
-            className="absolute top-1.5 bottom-1.5 glass-pill-active transition-[left,width] duration-500 ease-[cubic-bezier(0.2,0.9,0.25,1.12)] z-0"
-            style={{ left: lens.left, width: lens.width }}
+            className="absolute top-1.5 bottom-1.5 cv-radius-pill transition-[left,width] duration-300 z-0"
+            style={{
+              left: lens.left,
+              width: lens.width,
+              backgroundColor: 'var(--cv-ink)',
+            }}
           />
         )}
         {NAV_ITEMS.map(({ id, label, icon: Icon, run }) => {
@@ -117,11 +118,16 @@ export function QuickNavBar() {
               title={label}
               aria-label={label}
               aria-current={isActive ? 'page' : undefined}
-              className={`relative z-[3] flex items-center gap-2 h-10 px-3 sm:px-4 rounded text-[13px] font-medium transition-colors duration-300 select-none ${
-                isActive ? 'text-[#1a1206]' : 'text-slate-200 hover:text-white'
-              }`}
+              className="relative z-[3] flex items-center gap-2 h-10 px-3 sm:px-4 cv-radius-pill text-[12.5px] font-medium transition-colors duration-200 select-none"
+              style={{
+                color: isActive ? 'var(--cv-bg)' : 'var(--cv-ink-secondary)',
+              }}
             >
-              <Icon size={16} className="shrink-0" />
+              <Icon
+                size={15}
+                className="shrink-0"
+                style={{ color: isActive ? 'var(--cv-accent)' : 'currentColor' }}
+              />
               <span className="hidden sm:inline">{label}</span>
             </button>
           );

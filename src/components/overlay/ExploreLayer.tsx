@@ -17,7 +17,6 @@ function HoverLabel() {
   const [pos, setPos] = useState({ x: -999, y: -999 });
 
   useEffect(() => {
-    // A finger never "leaves" what it tapped, so on touch the label would stick: hide it
     const onMove = (e: PointerEvent) =>
       setPos(e.pointerType === 'touch' ? { x: -999, y: -999 } : { x: e.clientX, y: e.clientY });
     window.addEventListener('pointermove', onMove);
@@ -28,18 +27,24 @@ function HoverLabel() {
     };
   }, []);
 
-  // Touch screens have no hover; the label would just get stuck
   if (!hover || pos.x < 0) return null;
   const isNew = DISCOVERIES.some((d) => d.title === hover.title && !found.includes(d.id));
   return (
     <div className="hover-label" style={{ left: pos.x, top: pos.y }} key={hover.title}>
-      <div className="glass-panel-master px-2.5 py-1.5 font-secondary max-w-[240px]">
-        <div className="flex items-center gap-1.5 text-[12px] font-semibold text-white leading-tight">
+      <div className="cv-hud-panel px-3 py-2 max-w-[240px]">
+        <div className="flex items-center gap-1.5 text-[12px] font-semibold leading-tight" style={{ color: 'var(--cv-ink)' }}>
           {hover.title}
-          {isNew && <span className="px-1 py-px rounded bg-amber-300/20 text-[10px] text-amber-200 font-medium">New</span>}
+          {isNew && (
+            <span
+              className="px-1.5 py-px cv-radius-sm font-cv-mono text-[9.5px] font-semibold uppercase"
+              style={{ backgroundColor: 'var(--cv-accent-soft)', color: 'var(--cv-accent)' }}
+            >
+              New
+            </span>
+          )}
         </div>
-        <div className="flex items-center gap-1 text-[11px] text-slate-300 leading-tight mt-0.5">
-          <MousePointerClick size={11} className="text-amber-300 shrink-0" />
+        <div className="flex items-center gap-1 text-[11px] leading-tight mt-0.5" style={{ color: 'var(--cv-ink-secondary)' }}>
+          <MousePointerClick size={11} className="shrink-0" style={{ color: 'var(--cv-accent)' }} />
           {hover.action}
         </div>
       </div>
@@ -52,7 +57,6 @@ function DiscoveryToast() {
   const lastFind = useExplore((s) => s.lastFind);
   const count = useExplore((s) => s.discovered.length);
   const [visible, setVisible] = useState(false);
-  /** Swipe-up in progress: where the finger went down and how far up it has gone */
   const [swipe, setSwipe] = useState<{ start: number; y: number } | null>(null);
 
   useEffect(() => {
@@ -67,14 +71,13 @@ function DiscoveryToast() {
   if (!visible || !d) return null;
   const y = swipe?.y ?? 0;
   return (
-    // Outer box owns the entrance animation's transform; the inner one follows the finger
     <div
       key={lastFind?.at}
       role="status"
-      className="toast-in fixed top-3 sm:top-20 left-1/2 z-40 w-[min(92vw,380px)] font-secondary"
+      className="toast-in fixed top-3 sm:top-20 left-1/2 z-40 w-[min(92vw,380px)]"
     >
       <div
-        className="glass-panel-master pl-3 pr-2 py-2.5 sm:pl-4 sm:py-3 flex items-start gap-3 touch-none select-none"
+        className="cv-hud-panel pl-3.5 pr-2.5 py-2.5 sm:pl-4 sm:py-3 flex items-start gap-3 touch-none select-none"
         style={{
           transform: `translateY(${y}px)`,
           opacity: Math.max(0, 1 + y / 100),
@@ -96,35 +99,39 @@ function DiscoveryToast() {
           {d.emoji}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] sm:text-[11.5px] font-medium text-amber-200">
+          <div className="font-cv-mono text-[10.5px] font-semibold uppercase tracking-wider" style={{ color: 'var(--cv-accent)' }}>
             Found {count} of {TOTAL}
           </div>
-          <div className="text-[13px] sm:text-sm font-semibold text-white leading-tight">{d.title}</div>
-          <p className="text-[11.5px] sm:text-xs text-slate-300 leading-snug mt-0.5">{d.fact}</p>
+          <div className="font-cv-display text-[14px] font-bold leading-tight mt-0.5" style={{ color: 'var(--cv-ink)' }}>
+            {d.title}
+          </div>
+          <p className="text-[11.5px] leading-snug mt-0.5" style={{ color: 'var(--cv-ink-secondary)' }}>
+            {d.fact}
+          </p>
         </div>
         <button
           onClick={() => setVisible(false)}
           aria-label="Dismiss"
-          className="shrink-0 text-slate-400 hover:text-white h-8 w-8 -mt-1 flex items-center justify-center"
+          className="cv-icon-btn shrink-0 h-8 w-8 -mt-0.5 flex items-center justify-center"
         >
-          <X size={15} />
+          <X size={14} />
         </button>
       </div>
     </div>
   );
 }
 
-/** A short burst of confetti when the last discovery is found */
+/** Deterministic celebration confetti when all room discoveries are unlocked */
 function Confetti() {
   const pieces = useMemo(
     () =>
-      Array.from({ length: 90 }, (_, i) => ({
-        left: Math.random() * 100,
-        delay: Math.random() * 0.6,
-        duration: 2.2 + Math.random() * 1.8,
-        drift: (Math.random() - 0.5) * 220,
-        spin: (Math.random() - 0.5) * 1440,
-        color: ['#F59E0B', '#0EA5E9', '#10B981', '#F43F5E', '#A855F7', '#FDE68A'][i % 6],
+      Array.from({ length: 72 }, (_, i) => ({
+        left: ((i * 37 + 13) % 100),
+        delay: ((i * 7) % 12) * 0.05,
+        duration: 2.2 + ((i * 11) % 9) * 0.2,
+        drift: (((i * 23) % 100) - 50) * 4.4,
+        spin: (((i * 41) % 100) - 50) * 28,
+        color: ['#E0441B', '#0EA5E9', '#15803D', '#F59E0B', '#8B5CF6', '#111113'][i % 6],
       })),
     []
   );
@@ -150,7 +157,7 @@ function Confetti() {
   );
 }
 
-/** Progress ring + the list of everything to find; every row also takes you there */
+/** Progress ring + discovery tracker popover */
 function DiscoveryPanel() {
   const discovered = useExplore((s) => s.discovered);
   const lastFind = useExplore((s) => s.lastFind);
@@ -160,7 +167,6 @@ function DiscoveryPanel() {
   const count = discovered.length;
   const complete = count >= TOTAL;
 
-  // Celebrate the moment the last one is found (not on every reload)
   useEffect(() => {
     if (!lastFind || !complete) return;
     setCelebrate(true);
@@ -187,22 +193,22 @@ function DiscoveryPanel() {
   const c = 2 * Math.PI * r;
 
   return (
-    <div ref={panelRef} className="hud fixed left-3 sm:left-4 md:left-8 top-[150px] sm:top-[104px] z-30 font-secondary">
+    <div ref={panelRef} className="fixed left-3 sm:left-4 md:left-8 top-[128px] sm:top-[92px] z-30">
       {celebrate && <Confetti />}
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
         key={lastFind?.at}
-        className={`glass-panel-subtle h-11 pl-1.5 pr-3 flex items-center gap-2 text-left hover:border-white/20 transition-colors ${lastFind ? 'find-pulse' : ''}`}
+        className={`cv-hud-pill h-11 pl-1.5 pr-3.5 flex items-center gap-2 text-left transition-transform active:scale-95 ${lastFind ? 'find-pulse' : ''}`}
       >
         <svg width="34" height="34" viewBox="0 0 34 34" aria-hidden className="-rotate-90">
-          <circle cx="17" cy="17" r={r} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="3.5" />
+          <circle cx="17" cy="17" r={r} fill="none" stroke="var(--cv-border-strong)" strokeWidth="3.5" />
           <circle
             cx="17"
             cy="17"
             r={r}
             fill="none"
-            stroke={complete ? '#10B981' : '#F59E0B'}
+            stroke={complete ? 'var(--cv-live)' : 'var(--cv-accent)'}
             strokeWidth="3.5"
             strokeLinecap="round"
             strokeDasharray={c}
@@ -211,31 +217,34 @@ function DiscoveryPanel() {
           />
         </svg>
         <div>
-          <div className="text-[11.5px] text-slate-300 leading-tight">
+          <div className="font-cv-mono text-[10px] uppercase tracking-wider leading-tight" style={{ color: 'var(--cv-ink-muted)' }}>
             {complete ? 'All found' : 'Discoveries'}
           </div>
-          <div className="text-sm text-white font-semibold leading-tight">
+          <div className="font-cv-display text-[13.5px] font-bold leading-tight cv-tabular" style={{ color: 'var(--cv-ink)' }}>
             {count}
-            <span className="text-slate-400 font-normal">/{TOTAL}</span>
+            <span className="font-normal" style={{ color: 'var(--cv-ink-muted)' }}>/{TOTAL}</span>
           </div>
         </div>
       </button>
 
       {open && (
-        <div className="pane-in mt-2 glass-panel-master w-[min(92vw,340px)] max-h-[min(62vh,560px)] flex flex-col">
-          <div className="px-4 pt-3.5 pb-2 flex items-start justify-between gap-3 border-b border-white/[0.08]">
+        <div className="pane-in mt-2 cv-hud-panel w-[min(92vw,340px)] max-h-[min(58vh,520px)] flex flex-col overflow-hidden">
+          <div
+            className="px-4 pt-3.5 pb-2.5 flex items-start justify-between gap-3"
+            style={{ borderBottom: '1px solid var(--cv-border)' }}
+          >
             <div>
-              <div className="text-sm font-semibold text-white flex items-center gap-1.5">
-                <Compass size={15} className="text-amber-300" /> Explore the room
+              <div className="font-cv-display text-[14.5px] font-bold flex items-center gap-1.5" style={{ color: 'var(--cv-ink)' }}>
+                <Compass size={15} style={{ color: 'var(--cv-accent)' }} /> Explore the room
               </div>
-              <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">
+              <p className="text-[11.5px] mt-0.5 leading-snug" style={{ color: 'var(--cv-ink-muted)' }}>
                 {complete
                   ? 'You found everything. Thanks for looking around!'
                   : 'Each find unlocks something about me. Click a row to jump there.'}
               </p>
             </div>
-            <button onClick={() => setOpen(false)} aria-label="Close" className="text-slate-400 hover:text-white p-1 -m-1">
-              <X size={16} />
+            <button onClick={() => setOpen(false)} aria-label="Close" className="cv-icon-btn h-8 w-8 flex items-center justify-center shrink-0">
+              <X size={14} />
             </button>
           </div>
 
@@ -245,9 +254,9 @@ function DiscoveryPanel() {
                 setOpen(false);
                 if (!roomStore.getState().isContactOpen) roomStore.toggleContact();
               }}
-              className="mx-3 mt-3 glass-btn-primary text-white text-xs font-semibold py-2.5 flex items-center justify-center gap-2"
+              className="mx-3 mt-3 cv-btn-primary text-[12px] font-semibold py-2.5 px-3 flex items-center justify-center gap-2"
             >
-              <Send size={14} /> You clearly pay attention to detail. Let&apos;s talk!
+              <Send size={13} /> You clearly pay attention to detail. Let&apos;s talk!
             </button>
           )}
 
@@ -261,16 +270,21 @@ function DiscoveryPanel() {
                       setOpen(false);
                       d.go();
                     }}
-                    className="w-full text-left flex items-start gap-3 px-2.5 py-2 rounded hover:bg-white/[0.07] transition-colors"
+                    className="w-full text-left flex items-start gap-3 px-2.5 py-2 cv-radius-sm transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
                   >
                     <span className={`text-lg leading-none mt-0.5 ${found ? '' : 'grayscale opacity-40'}`} aria-hidden>
                       {d.emoji}
                     </span>
                     <span className="min-w-0">
-                      <span className={`block text-[12.5px] font-semibold ${found ? 'text-white' : 'text-slate-400'}`}>
+                      <span
+                        className="block text-[12.5px] font-semibold"
+                        style={{ color: found ? 'var(--cv-ink)' : 'var(--cv-ink-muted)' }}
+                      >
                         {found ? d.title : '???'}
                       </span>
-                      <span className="block text-[11px] text-slate-400 leading-snug">{found ? d.fact : d.hint}</span>
+                      <span className="block text-[11px] leading-snug" style={{ color: 'var(--cv-ink-muted)' }}>
+                        {found ? d.fact : d.hint}
+                      </span>
                     </span>
                   </button>
                 </li>
@@ -281,7 +295,11 @@ function DiscoveryPanel() {
           {count > 0 && (
             <button
               onClick={() => exploreStore.resetDiscoveries()}
-              className="text-[10.5px] text-slate-500 hover:text-slate-300 py-2 border-t border-white/[0.06] flex items-center justify-center gap-1"
+              className="text-[11px] py-2 flex items-center justify-center gap-1 transition-colors"
+              style={{
+                borderTop: '1px solid var(--cv-border)',
+                color: 'var(--cv-ink-muted)',
+              }}
             >
               <RotateCcw size={11} /> Start over
             </button>
@@ -292,10 +310,10 @@ function DiscoveryPanel() {
   );
 }
 
-function HintRow({ icon: Icon, text }: { icon: React.ComponentType<{ size?: number; className?: string }>; text: string }) {
+function HintRow({ icon: Icon, text }: { icon: React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>; text: string }) {
   return (
     <li className="flex items-center gap-2">
-      <Icon size={14} className="text-amber-300 shrink-0" />
+      <Icon size={14} className="shrink-0" style={{ color: 'var(--cv-accent)' }} />
       {text}
     </li>
   );
@@ -328,17 +346,18 @@ function ControlsHint() {
     }
   };
   if (!show) return null;
-  // Only rendered after mount, so window is safe here
   const touch = window.matchMedia('(pointer: coarse)').matches;
   return (
-    <div className="toast-in fixed bottom-24 left-1/2 z-30 glass-panel-master px-4 py-3 font-secondary w-[min(92vw,340px)]">
+    <div className="toast-in fixed bottom-28 sm:bottom-24 left-1/2 z-30 cv-hud-panel px-4 py-3.5 w-[min(92vw,340px)]">
       <div className="flex items-start justify-between gap-3">
-        <div className="text-sm font-semibold text-white">Welcome in!</div>
-        <button onClick={dismiss} aria-label="Dismiss" className="text-slate-400 hover:text-white p-1 -m-1">
-          <X size={15} />
+        <div className="font-cv-display text-[14px] font-bold" style={{ color: 'var(--cv-ink)' }}>
+          Welcome in!
+        </div>
+        <button onClick={dismiss} aria-label="Dismiss" className="cv-icon-btn h-7 w-7 flex items-center justify-center">
+          <X size={13} />
         </button>
       </div>
-      <ul className="mt-2 space-y-1.5 text-xs text-slate-300">
+      <ul className="mt-2 space-y-1.5 text-[12px]" style={{ color: 'var(--cv-ink-secondary)' }}>
         {touch ? (
           <>
             <HintRow icon={MousePointerClick} text="Tap anything: he walks over and uses it" />
@@ -374,43 +393,11 @@ function StationDiscoveries() {
   return null;
 }
 
-/** Feeds the cursor position to the panes' glint (one light for the whole HUD) */
-function GlassLight() {
-  useEffect(() => {
-    let raf = 0;
-    const root = document.documentElement;
-    const onMove = (e: PointerEvent) => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        root.style.setProperty('--mx', `${e.clientX}px`);
-        root.style.setProperty('--my', `${e.clientY}px`);
-      });
-    };
-    window.addEventListener('pointermove', onMove, { passive: true });
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('pointermove', onMove);
-    };
-  }, []);
-  return null;
-}
-
-/** Open at night if it's night where the visitor is (once per page load) */
-function LocalTimeOfDay() {
-  useEffect(() => {
-    const h = new Date().getHours();
-    if ((h >= 20 || h < 6) && !roomStore.getState().isNightMode) roomStore.toggleNightMode();
-  }, []);
-  return null;
-}
-
 export function ExploreLayer() {
   useEffect(() => exploreStore.hydrate(), []);
   return (
     <>
-      <GlassLight />
       <StationDiscoveries />
-      <LocalTimeOfDay />
       <DiscoveryPanel />
       <DiscoveryToast />
       <HoverLabel />

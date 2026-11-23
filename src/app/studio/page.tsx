@@ -443,7 +443,7 @@ function StudioContent() {
                 if (activeCartridge) {
                   setActiveCartridge(null);
                 } else {
-                  setActiveCartridge('tastytracks');
+                  setActiveCartridge('mouser');
                 }
               }}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold border transition-all flex items-center gap-1.5 ${
@@ -452,7 +452,7 @@ function StudioContent() {
                   : 'bg-slate-800/80 border-slate-700 text-slate-400 hover:text-white'
               }`}
             >
-              <span>💾</span> {activeCartridge ? 'Cartridge Loaded: TastyTracks' : 'Insert Cartridge'}
+              <span>💾</span> {activeCartridge ? 'Cartridge Loaded: Mouser' : 'Insert Cartridge'}
             </button>
           )}
         </div>

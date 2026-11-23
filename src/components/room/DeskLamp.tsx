@@ -19,7 +19,7 @@ export function DeskLamp({ position, rotation }: DeskLampProps) {
   const bulbMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const spotRef = useRef<THREE.SpotLight>(null);
   const toggleNightMode = useRoomStore((state) => state.toggleNightMode);
-  const { theme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme } = useTheme();
 
   // Lamp glow fades in and out together with the day/night blend
   useFrame(() => {
@@ -42,7 +42,7 @@ export function DeskLamp({ position, rotation }: DeskLampProps) {
     exploreStore.discover('lamp');
 
     if (setTheme) {
-      setTheme(theme === 'dark' ? 'light' : 'dark');
+      setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
     }
   };
 

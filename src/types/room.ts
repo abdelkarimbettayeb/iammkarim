@@ -6,7 +6,7 @@ export type CharacterState = 'spawning' | 'walking' | 'waving' | 'idle' | 'inter
 
 export type WeatherState = 'clear' | 'rain' | 'snow';
 
-export type CartridgeId = 'jud' | 'alnurayn' | 'freelance' | 'tastytracks';
+export type CartridgeId = 'jud' | 'alnurayn' | 'freelance' | 'mouser' | 'meuble' | 'algmath';
 
 export interface FlagItem {
   name: string;
@@ -26,6 +26,36 @@ export interface TechSkillItem {
   description?: string;
 }
 
+export type ProjectVisualType =
+  | 'jud-platform'
+  | 'cpp-search'
+  | 'mostaql-reviews'
+  | 'mouser-kvm'
+  | 'meuble-store'
+  | 'alg-math';
+
+export interface ProjectCaseStudyStat {
+  label: string;
+  value: string;
+  detail?: string;
+}
+
+export interface ProjectCaseStudyModule {
+  code: string;
+  title: string;
+  badge?: string;
+  summary: string;
+  bullets: string[];
+}
+
+export interface ProjectCaseStudy {
+  overview: string;
+  problem?: string;
+  solution?: string;
+  stats: ProjectCaseStudyStat[];
+  architecture?: ProjectCaseStudyModule[];
+}
+
 export interface CartridgeProject {
   id: CartridgeId;
   title: string;
@@ -36,6 +66,9 @@ export interface CartridgeProject {
   metrics: string;
   color: string;
   image?: string;
+  isOpenSource?: boolean;
+  visualType?: ProjectVisualType;
+  caseStudy?: ProjectCaseStudy;
 }
 
 export interface WorkExperienceItem {
@@ -87,4 +120,5 @@ export interface RoomState {
   toggleDrawer: () => void;
   toggleContact: () => void;
   toggleNightMode: () => void;
+  setNightMode: (isNight: boolean) => void;
 }

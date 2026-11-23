@@ -1,10 +1,4 @@
-import { TopHeader } from '@/components/overlay/TopHeader';
-import { QuickNavBar } from '@/components/overlay/QuickNavBar';
-import { CaseStudyModal } from '@/components/overlay/CaseStudyModal';
-import { ContactModal } from '@/components/overlay/ContactModal';
-import { ResumeDrawer } from '@/components/overlay/ResumeDrawer';
-import { ExploreLayer } from '@/components/overlay/ExploreLayer';
-import { LazyRoomCanvas } from '@/components/room/LazyRoomCanvas';
+import { HybridCV } from '@/components/cv/HybridCV';
 import { cartridgeProjects, personalInfo, techSkills } from '@/data/resumeData';
 import { SITE_URL } from '@/lib/site';
 
@@ -29,12 +23,11 @@ const jsonLd = {
 
 export default function Home() {
   return (
-    <main className="relative w-screen h-screen overflow-hidden bg-[#0B0F19]">
+    <main className="relative w-screen h-[100dvh] overflow-hidden bg-white dark:bg-[#18181C]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
       />
-      {/* The 3D scene is canvas-only; this gives crawlers and screen readers the same content as text */}
       <section className="sr-only">
         <h2>About {personalInfo.name}</h2>
         <p>{personalInfo.bio}</p>
@@ -52,26 +45,8 @@ export default function Home() {
           ))}
         </ul>
       </section>
-      {/* 1. Master 3D Room Diorama (client-only, loaded after the static shell) */}
-      <LazyRoomCanvas />
 
-      {/* 2. Top Navigation & Status HUD */}
-      <TopHeader />
-
-      {/* 2b. Discoveries, hover labels, toasts, first-visit hint */}
-      <ExploreLayer />
-
-      {/* 3. Bottom Zone Camera Quick-Nav Bar */}
-      <QuickNavBar />
-
-      {/* 4. Active Cartridge Project Case Study Modal */}
-      <CaseStudyModal />
-
-      {/* 5. Direct Contact & Social Modal */}
-      <ContactModal />
-
-      {/* 6. Complete Traditional Resume Slide-Out Sheet */}
-      <ResumeDrawer />
+      <HybridCV />
     </main>
   );
 }

@@ -86,6 +86,7 @@ export const roomStore = {
   toggleDrawer: () => setState((s) => ({ isDrawerOpen: !s.isDrawerOpen })),
   toggleContact: () => setState((s) => ({ isContactOpen: !s.isContactOpen })),
   toggleNightMode: () => setState((s) => ({ isNightMode: !s.isNightMode })),
+  setNightMode: (isNight: boolean) => setState({ isNightMode: isNight }),
 };
 
 export function useRoomStore(): RoomState;
@@ -112,6 +113,7 @@ export function useRoomStore<T>(selector?: (state: RoomState) => T): T | RoomSta
     toggleDrawer: roomStore.toggleDrawer,
     toggleContact: roomStore.toggleContact,
     toggleNightMode: roomStore.toggleNightMode,
+    setNightMode: roomStore.setNightMode,
   };
 
   return selector ? selector(fullState) : fullState;

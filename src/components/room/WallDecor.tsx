@@ -5,6 +5,7 @@ import { Text } from '@react-three/drei';
 import { TournamentDartboard, WallSconce } from './items';
 import { ROOM, WALL_ITEMS } from './layout';
 import { personalInfo } from '@/data/resumeData';
+import { FoldedPrism3D } from '@/components/cv/FoldedPrism3D';
 
 const NAME = personalInfo.name.toUpperCase();
 const ROLE = personalInfo.role.toUpperCase();
@@ -15,9 +16,21 @@ export function WallDecor() {
 
   return (
     <group name="wall-decor">
-      {/* 1. Name lettering above the shelf: dark vinyl letters with a soft drop shadow so
-          they read on the white wall by day and under the lamps at night */}
+      {/* 1. Sculpted Folded Prism emblem + name lettering above the shelf */}
       <group position={[wallX + 0.004, brand.y, brand.z]} rotation={[0, Math.PI / 2, 0]}>
+        <FoldedPrism3D
+          position={[0, 0.24, 0.002]}
+          scale={0.26}
+          depth={0.05}
+          bevel={0.004}
+          primaryColor="#111113"
+          secondaryColor="#475569"
+          accentColor="#E0441B"
+          metalness={0.35}
+          roughness={0.28}
+          accentEmissive={0.22}
+          castShadow
+        />
         <Text
           position={[0.006, -0.008, 0.001]}
           fontSize={brand.fontSize}
@@ -40,16 +53,16 @@ export function WallDecor() {
         >
           {NAME}
         </Text>
-        {/* Amber rule + role underneath */}
+        {/* Signal Vermilion rule + role underneath */}
         <mesh position={[0, -brand.fontSize * 0.78, 0.003]}>
           <planeGeometry args={[0.5, 0.012]} />
-          <meshStandardMaterial color="#F59E0B" roughness={0.4} />
+          <meshStandardMaterial color="#E0441B" roughness={0.35} />
         </mesh>
         <Text
           position={[0, -brand.fontSize * 1.2, 0.004]}
           fontSize={brand.fontSize * 0.36}
           letterSpacing={0.22}
-          color="#B45309"
+          color="#C23714"
           anchorX="center"
           anchorY="middle"
         >

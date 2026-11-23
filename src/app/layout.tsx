@@ -4,7 +4,14 @@ import { personalInfo } from '@/data/resumeData';
 import { SITE_URL } from '@/lib/site';
 import { ThemeProvider } from '@/components/ui/themeProvider';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { josefinSans, signika, padauk } from './helpers/fonts';
+import {
+    josefinSans,
+    signika,
+    padauk,
+    bricolageGrotesque,
+    dmSans,
+    jetbrainsMono,
+} from './helpers/fonts';
 
 const title = `${personalInfo.name} - ${personalInfo.role}`;
 const description =
@@ -18,14 +25,22 @@ export const metadata: Metadata = {
     authors: [{ name: personalInfo.name, url: SITE_URL }],
     creator: personalInfo.name,
     alternates: { canonical: '/' },
-    icons: 'favicon.ico',
+    icons: [
+        { url: '/icon.svg', type: 'image/svg+xml' },
+        { url: '/favicon.ico', sizes: 'any' },
+    ],
     openGraph: { type: 'website', url: '/', siteName: personalInfo.name, title, description, locale: 'en_US' },
     twitter: { card: 'summary_large_image', title, description },
     robots: { index: true, follow: true, googleBot: { 'max-image-preview': 'large', 'max-snippet': -1 } },
     verification: { google: 'nbU0dg4qMqGMY-D2AMLv6hsAxz4ZU9terrFUF8Ba6RM' }
 };
 
-export const viewport: Viewport = { themeColor: '#0B0F19' };
+export const viewport: Viewport = {
+    themeColor: [
+        { media: '(prefers-color-scheme: light)', color: '#FFFFFF' },
+        { media: '(prefers-color-scheme: dark)', color: '#18181C' },
+    ],
+};
 
 export default function RootLayout({
     children,
@@ -36,7 +51,7 @@ export default function RootLayout({
     return (
         <html
             lang="en"
-            className={`${josefinSans.variable} ${signika.variable} ${padauk.variable} font-secondary`}
+            className={`${josefinSans.variable} ${signika.variable} ${padauk.variable} ${bricolageGrotesque.variable} ${dmSans.variable} ${jetbrainsMono.variable} font-secondary`}
             suppressHydrationWarning
         >
             <body id='app' className='h-screen font-secondary antialiased'>
@@ -45,9 +60,9 @@ export default function RootLayout({
                     defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange>
-                    <TooltipProvider>
-                        {/* The room and the studio are full-bleed standalone 3D experiences */}
-                        <div className="w-screen h-screen overflow-hidden p-0 m-0 bg-[#0B0F19]">
+                    <TooltipProvider delayDuration={150} skipDelayDuration={350}>
+                        {/* Full-bleed root wrapper adapting cleanly to light gallery white and dark graphite */}
+                        <div className="w-screen h-screen overflow-hidden p-0 m-0 bg-white dark:bg-[#18181C]">
                             {children}
                         </div>
                     </TooltipProvider>
