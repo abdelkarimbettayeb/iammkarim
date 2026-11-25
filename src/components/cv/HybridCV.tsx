@@ -40,6 +40,7 @@ import {
 } from '@/data/resumeData';
 import { roomStore, useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
+import { setThemeAnimated } from '@/lib/themeTransition';
 import { sendEmail } from '@/app/actions';
 import type { CartridgeId } from '@/types/room';
 import { CVCaseStudyModal } from './CVCaseStudyModal';
@@ -334,7 +335,7 @@ export function HybridCV() {
   }, [cmdOpen, modalProjectId, snapToIndex]);
 
   const handleToggleTheme = () => {
-    setTheme(isDark ? 'light' : 'dark');
+    setThemeAnimated(setTheme, isDark ? 'light' : 'dark');
   };
 
   const handleLoadOn3DMonitor = (id: CartridgeId) => {
@@ -485,7 +486,7 @@ export function HybridCV() {
 
             <div className="cv-theme-switch" role="group" aria-label="Color appearance">
               <button
-                onClick={() => setTheme('light')}
+                onClick={() => setThemeAnimated(setTheme, 'light')}
                 data-active={!isDark ? 'true' : 'false'}
                 aria-label="Light mode"
                 aria-pressed={!isDark}
@@ -495,7 +496,7 @@ export function HybridCV() {
                 <span className="hidden lg:inline">Light</span>
               </button>
               <button
-                onClick={() => setTheme('dark')}
+                onClick={() => setThemeAnimated(setTheme, 'dark')}
                 data-active={isDark ? 'true' : 'false'}
                 aria-label="Dark mode"
                 aria-pressed={isDark}
@@ -923,7 +924,7 @@ export function HybridCV() {
             </div>
 
             {/* RIGHT COLUMN: Borderless Interactive 3D Atelier Stage */}
-            <div className="lg:col-span-7 h-[clamp(250px,36dvh,340px)] sm:h-[420px] lg:h-[min(540px,calc(100dvh-145px))] w-full">
+            <div className="lg:col-span-7 h-[clamp(600px,88dvh,720px)] sm:h-[720px] lg:h-[min(760px,calc(100dvh-90px))] lg:min-h-[660px] w-full">
               <Atelier3DStage
                 isDark={isDark}
                 onToggleTheme={handleToggleTheme}

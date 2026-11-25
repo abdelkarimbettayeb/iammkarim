@@ -6,7 +6,7 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { exploreStore, hoverable, useExplore } from '@/store/exploreStore';
 import { FUN_FACTS } from '@/data/discoveries';
-import { BOY, CharacterBoy, CharacterBoyHandle } from './CharacterBoy';
+import { BOY, CharacterBoy, CharacterBoyHandle, HELD_GUITAR } from './CharacterBoy';
 import { useCharacterBrain, WALK_SPEED, THROW, type ActionPose } from './useCharacterBrain';
 import { sampleGait } from './gait';
 import { playSound } from '@/lib/audioEngine';
@@ -89,6 +89,63 @@ const v = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
 const POLE_DOWN_L = v(-0.6, -1, -0.3);
 const POLE_DOWN_R = v(0.6, -1, -0.3);
 const POLE_FRONT_R = v(0.35, -0.6, 1);
+/** Picking elbow rides up over the guitar's upper rim instead of dropping through the body */
+const POLE_STRUM_R = v(0.55, 0.25, 0.5);
+
+const _fx = new THREE.Vector3();
+const _fy = new THREE.Vector3();
+const _fz = new THREE.Vector3();
+const _basis = new THREE.Matrix4();
+const _fore = new THREE.Quaternion();
+const _want = new THREE.Quaternion();
+
+/**
+ * Turn a hand so the palm faces `palm` and the fingers point along `fingers` (arm frame),
+ * `weight` 0..1 from the relaxed hang. Call after reachFor, which only places the palm.
+ * Hand frame: fingers hang along -y, thumb is +z, the palm faces -side * x.
+ */
+function orientHand(
+  hand: THREE.Group, arm: THREE.Group, elbow: THREE.Group,
+  side: -1 | 1, fingers: THREE.Vector3, palm: THREE.Vector3, weight: number,
+) {
+  _fx.copy(palm).multiplyScalar(-side).normalize();
+  _fore.copy(arm.quaternion).multiply(elbow.quaternion);
+  // Lean the fingers towards the forearm so the wrist bends less than a full right angle
+  _fy.set(0, -1, 0).applyQuaternion(_fore).lerp(fingers, 0.6);
+  _fy.addScaledVector(_fx, -_fy.dot(_fx)).normalize().negate();
+  _fz.crossVectors(_fx, _fy);
+  _want.setFromRotationMatrix(_basis.makeBasis(_fx, _fy, _fz));
+  hand.quaternion.identity().slerp(_fore.invert().multiply(_want), weight);
+}
+
+/**
+ * Hand placement on the guitar (guitar-local units, so metres / guitar scale; +y up the neck,
+ * +x across the strings, +z out of the soundboard). Palm centres sit one palm-half-thickness
+ * (~0.033) clear of the wood. Tweak here if a hand drifts into or off the instrument.
+ */
+const GRIP = {
+  /** Fretting hand: palm behind the neck, fingers wrapping up and over the fingerboard */
+  fret: { x: -0.03, z: -0.009, curl: 1.3 },
+  /** Picking hand: palm hovering over the strings, fingertips just brushing them */
+  strum: { x: 0.08, y: -0.1, z: 0.15, curl: 0.5 },
+  /** Lifting by the neck: palm in front of the fingerboard, fingers wrapping behind it */
+  neck: { z: 0.125, curl: 1.1 },
+};
+
+const GUITAR_SCALE = scaleToNumber(PLACEMENTS.guitar.scale);
+/** The guitar as it rests on the wall stand (matches Bookcase.tsx; 0.56 = local y of its lowest edge) */
+const STAND_MATRIX = new THREE.Matrix4()
+  .compose(v(PLACEMENTS.guitar.x, 0, PLACEMENTS.guitar.z), new THREE.Quaternion().setFromEuler(new THREE.Euler(-GUITAR_LEAN, 0, 0)), v(1, 1, 1))
+  .multiply(new THREE.Matrix4().makeTranslation(0, 0.56 * GUITAR_SCALE, 0));
+const CARRY_POS = v(...HELD_GUITAR.position);
+const CARRY_Q = new THREE.Quaternion().setFromEuler(new THREE.Euler(...HELD_GUITAR.rotation));
+const _sp = new THREE.Vector3();
+const _sq = new THREE.Quaternion();
+const _ss = new THREE.Vector3();
+const _inv = new THREE.Matrix4();
+const _gp = new THREE.Vector3();
+const _gf = new THREE.Vector3();
+const REST_L = v(-0.2, 0.78, 0.08);
 
 // ---------------------------------------------------------------------------
 // Dart throw: palm keyframes in the spine frame (he faces +z, board straight ahead)
@@ -122,12 +179,6 @@ function sampleKeys(keys: Key[], t: number, out: THREE.Vector3) {
 // World targets
 // ---------------------------------------------------------------------------
 
-/** A grip point on the guitar neck while it leans on its wall stand */
-const STAND_GUITAR_NECK = (() => {
-  const s = scaleToNumber(PLACEMENTS.guitar.scale);
-  const up = (0.56 + 0.8) * s;
-  return v(PLACEMENTS.guitar.x, up * Math.cos(GUITAR_LEAN), PLACEMENTS.guitar.z - up * Math.sin(GUITAR_LEAN) + 0.06 * s);
-})();
 /** The blind's bottom rail, where he pulls it */
 const WINDOW_GRIP = v(WINDOW.cx - 0.05, WINDOW.sill + WINDOW.height * 0.5, ROOM.minZ + 0.02);
 const BOARD = v(ROOM.minX + 0.05, WALL_ITEMS.dartboard.y, WALL_ITEMS.dartboard.z);
@@ -175,6 +226,10 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
   const blendFrom = useRef<number[] | null>(null);
   const blendLeft = useRef(0);
   const blendTime = useRef(0.22);
+  const lastHands = useRef<THREE.Quaternion[] | null>(null);
+  const blendHandsFrom = useRef<THREE.Quaternion[] | null>(null);
+  /** Current guitar swap goes stand -> hands (true) or hands -> stand (false) */
+  const swapUp = useRef(true);
   const tmp = useRef({ a: new THREE.Vector3(), b: new THREE.Vector3(), c: new THREE.Vector3() });
 
   useFrame((state, delta) => {
@@ -198,9 +253,11 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
     const {
       root, head, spine, leftArm, rightArm, leftElbow, rightElbow,
       leftLeg, rightLeg, leftKnee, rightKnee, guitar,
+      leftHand, rightHand, leftFingers, rightFingers,
     } = boy;
     if (!root || !head || !spine) return;
     if (!leftArm || !rightArm || !leftElbow || !rightElbow) return;
+    if (!leftHand || !rightHand || !leftFingers || !rightFingers) return;
     if (!leftLeg || !rightLeg || !leftKnee || !rightKnee) return;
     const armFrame = rightArm.parent;
     if (!armFrame) return;
@@ -220,10 +277,17 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
     rightLeg.rotation.set(0, 0, 0);
     leftKnee.rotation.set(0, 0, 0);
     rightKnee.rotation.set(0, 0, 0);
+    leftHand.quaternion.identity();
+    rightHand.quaternion.identity();
+    leftFingers.rotation.z = 0.32;
+    rightFingers.rotation.z = -0.32;
+    const hands = [leftHand, rightHand];
 
     const joints = [spine, head, leftArm, rightArm, leftElbow, rightElbow, leftLeg, rightLeg, leftKnee, rightKnee];
 
+    if (w.pose === 'reaching' && lastPose.current !== 'reaching') swapUp.current = !f.guitar;
     if (lastPose.current !== null && lastPose.current !== w.pose && lastJoints.current) {
+      blendHandsFrom.current = lastHands.current;
       blendFrom.current = lastJoints.current;
       blendTime.current = w.blend;
       blendLeft.current = w.blend;
@@ -241,12 +305,39 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
       guitar.updateMatrix();
       return out.set(x, y, z).applyMatrix4(guitar.matrix);
     };
+    /** The held guitar sits at its carry pose, unless a swap below moves it */
+    const placeGuitar = (k: number) => {
+      if (!guitar) return;
+      if (k >= 1) {
+        guitar.position.copy(CARRY_POS);
+        guitar.quaternion.copy(CARRY_Q);
+        return;
+      }
+      // Stand pose in the arm frame, eased into the carry pose with a little lift in between
+      root.updateMatrixWorld(true);
+      _inv.copy(armFrame.matrixWorld).invert().multiply(STAND_MATRIX).decompose(_sp, _sq, _ss);
+      guitar.position.lerpVectors(_sp, CARRY_POS, k);
+      guitar.position.y += Math.sin(k * Math.PI) * 0.05;
+      guitar.quaternion.slerpQuaternions(_sq, CARRY_Q, k);
+    };
+    /** Palm faces the guitar's `palmZ` side (+1 front, -1 back), fingers along its `fingerX` (+1/-1) */
+    const gripHand = (side: -1 | 1, palmZ: number, fingerX: number, curl: number, weight: number) => {
+      if (!guitar) return;
+      const [hand, arm, elbow, fingers] =
+        side < 0 ? [leftHand, leftArm, leftElbow, leftFingers] : [rightHand, rightArm, rightElbow, rightFingers];
+      orientHand(hand, arm, elbow, side, _gf.set(fingerX, 0, 0).applyQuaternion(guitar.quaternion),
+        _gp.set(0, 0, palmZ).applyQuaternion(guitar.quaternion), weight);
+      fingers.rotation.z = -side * (0.32 + (curl - 0.32) * weight);
+    };
     /** Both hands on the guitar: fretting hand on the neck, picking hand over the sound hole */
     const holdGuitar = (strum: number) => {
       const chord = Math.floor(t / 2) % 2 === 0 ? 0.88 : 0.97;
-      reachFor(leftArm, leftElbow, onGuitar(-0.02, chord, 0.02, ta), POLE_DOWN_L);
-      reachFor(rightArm, rightElbow, onGuitar(strum, 0.0, 0.17, tb), POLE_DOWN_R);
+      reachFor(leftArm, leftElbow, onGuitar(GRIP.fret.x, chord, GRIP.fret.z, ta), POLE_DOWN_L);
+      gripHand(-1, 1, 1, GRIP.fret.curl, 1);
+      reachFor(rightArm, rightElbow, onGuitar(GRIP.strum.x + strum, GRIP.strum.y, GRIP.strum.z, tb), POLE_STRUM_R);
+      gripHand(1, -1, -1, GRIP.strum.curl, 1);
     };
+    placeGuitar(1);
 
     switch (w.pose) {
       case 'walking': {
@@ -352,15 +443,31 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
       }
 
       case 'reaching': {
-        // Lean towards the wall stand and grab the guitar by the neck
-        spine.rotation.x = 0.28;
-        root.position.y = -0.03;
-        leftKnee.rotation.x = 0.15;
-        rightKnee.rotation.x = 0.15;
-        leftLeg.rotation.x = -0.08;
-        rightLeg.rotation.x = -0.08;
-        reachFor(rightArm, rightElbow, toArmFrame(STAND_GUITAR_NECK, ta), POLE_DOWN_R);
-        head.rotation.set(0.3, 0, 0);
+        // Lean in, take the neck, and carry the guitar between the stand and his body.
+        // Timings match guitarSwap in the brain, which flips the guitar flag mid-way.
+        const p = w.poseTime;
+        const up = swapUp.current;
+        const k = up ? smooth(0.55, 1.45, p) : 1 - smooth(0.4, 1.3, p); // 0 on the stand, 1 in his arms
+        const picking = up ? smooth(1.3, 1.75, p) : 1 - smooth(0, 0.4, p); // right hand: neck -> strum spot
+        const fretting = up ? smooth(0.9, 1.5, p) : 1 - smooth(0.2, 0.7, p); // left hand: rest -> neck
+        placeGuitar(k);
+
+        spine.rotation.x = 0.28 * (1 - k) + 0.06 * k;
+        root.position.y = -0.03 * (1 - k);
+        leftKnee.rotation.x = rightKnee.rotation.x = 0.15 * (1 - k);
+        leftLeg.rotation.x = rightLeg.rotation.x = -0.08 * (1 - k);
+        head.rotation.set(0.3 - 0.1 * k, 0, 0);
+
+        // Right hand holds the neck (sliding down it towards his body as it comes in, so it stays in reach)
+        onGuitar(0, 0.78 - 0.33 * k, GRIP.neck.z, ta);
+        ta.lerp(onGuitar(GRIP.strum.x, GRIP.strum.y, GRIP.strum.z, tb), picking);
+        reachFor(rightArm, rightElbow, ta, tc.lerpVectors(POLE_DOWN_R, POLE_STRUM_R, picking));
+        gripHand(1, -1, -1, GRIP.neck.curl + (GRIP.strum.curl - GRIP.neck.curl) * picking, 1);
+
+        // Left hand comes up to fret
+        onGuitar(GRIP.fret.x, 0.88, GRIP.fret.z, tb);
+        reachFor(leftArm, leftElbow, ta.lerpVectors(REST_L, tb, fretting), POLE_DOWN_L);
+        gripHand(-1, 1, 1, GRIP.fret.curl, fretting);
         break;
       }
 
@@ -528,7 +635,9 @@ export function CharacterManager({ onStationArrival }: CharacterManagerProps) {
         j.rotation.z += (from[i * 3 + 2] - j.rotation.z) * weight;
       });
       root.position.y += (from[joints.length * 3] - root.position.y) * weight;
+      blendHandsFrom.current?.forEach((q, i) => hands[i].quaternion.slerp(q, weight));
     }
+    lastHands.current = hands.map((h) => h.quaternion.clone());
     lastJoints.current = [
       ...joints.flatMap((j) => [j.rotation.x, j.rotation.y, j.rotation.z]),
       root.position.y,

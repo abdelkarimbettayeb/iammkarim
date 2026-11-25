@@ -245,10 +245,14 @@ export function useCharacterBrain(onStationArrival?: (station: ActiveStation) =>
     }
   };
 
-  /** Walk to the wall stand and lift the guitar off it (or put it back) */
+  /**
+   * Walk to the wall stand and lift the guitar off it (or put it back). The flag flips
+   * once he has hold of the neck (pick up) / set it down on the stand (put back);
+   * CharacterManager animates the guitar travelling in between (keep in sync with its 'reaching' timings).
+   */
   const guitarSwap = (pickUp: boolean): Step[] => [
     { kind: 'go', stop: 'guitar' },
-    { kind: 'do', pose: 'reaching', duration: 0.75, at: 0.4, act: () => setFlags({ guitar: pickUp }) },
+    { kind: 'do', pose: 'reaching', duration: 1.8, at: pickUp ? 0.5 : 1.3, act: () => setFlags({ guitar: pickUp }) },
   ];
 
   const setQueue = useCallback((steps: Step[], routine = false) => {

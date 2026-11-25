@@ -63,11 +63,11 @@ export function AcousticGuitar({ isLeaning = false, interactive = true, ...props
   // 4. Classic Teardrop Tortoiseshell Pickguard
   const pickguardGeometry = useMemo(() => {
     const p = new THREE.Shape();
-    p.moveTo(0.06, 0.14);
-    p.bezierCurveTo(0.14, 0.12, 0.18, 0.04, 0.17, -0.06);
-    p.bezierCurveTo(0.16, -0.14, 0.08, -0.18, 0.02, -0.17);
-    p.bezierCurveTo(0.04, -0.08, 0.03, 0.02, -0.01, 0.08);
-    p.bezierCurveTo(0.01, 0.12, 0.03, 0.14, 0.06, 0.14);
+    // Sits beside and below the soundhole (rosette edge is r=0.086 around y=0.08), never over it
+    p.moveTo(0.105, 0.09);
+    p.bezierCurveTo(0.17, 0.1, 0.205, 0.02, 0.19, -0.06);
+    p.bezierCurveTo(0.175, -0.13, 0.1, -0.17, 0.04, -0.15);
+    p.bezierCurveTo(0.07, -0.09, 0.07, -0.01, 0.105, 0.09);
     return new THREE.ShapeGeometry(p);
   }, []);
 
@@ -108,24 +108,24 @@ export function AcousticGuitar({ isLeaning = false, interactive = true, ...props
       </mesh>
 
       {/* Dark Acoustic Soundhole Interior */}
-      <mesh position={[0, 0.08, 0.074]}>
-        <circleGeometry args={[0.068, 32]} />
-        <meshStandardMaterial color="#140C07" roughness={0.9} />
+      <mesh position={[0, 0.08, 0.0745]}>
+        <circleGeometry args={[0.068, 48]} />
+        <meshStandardMaterial color="#0A0604" roughness={1} />
       </mesh>
 
-      {/* Decorative Ivory & Abalone Rosette Rings */}
-      <mesh position={[0, 0.08, 0.0742]}>
-        <ringGeometry args={[0.070, 0.086, 32]} />
+      {/* Decorative Ivory & Dark Rosette Rings */}
+      <mesh position={[0, 0.08, 0.0755]}>
+        <ringGeometry args={[0.068, 0.086, 48]} />
+        <meshStandardMaterial color="#3A1A08" roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 0.08, 0.0765]}>
+        <ringGeometry args={[0.072, 0.077, 48]} />
         <meshStandardMaterial color="#FAF5EE" roughness={0.3} />
       </mesh>
-      <mesh position={[0, 0.08, 0.0744]}>
-        <ringGeometry args={[0.074, 0.081, 32]} />
-        <meshStandardMaterial color="#78350F" roughness={0.4} />
-      </mesh>
 
-      {/* Tortoiseshell Teardrop Pickguard */}
-      <mesh geometry={pickguardGeometry} position={[0, 0, 0.075]}>
-        <meshStandardMaterial color="#2B1005" roughness={0.25} />
+      {/* Tortoiseshell Teardrop Pickguard (lighter amber so it reads against the dark hole) */}
+      <mesh geometry={pickguardGeometry} position={[0, 0, 0.0755]}>
+        <meshStandardMaterial color="#6B3410" roughness={0.25} />
       </mesh>
 
       {/* Rosewood Belly Bridge */}

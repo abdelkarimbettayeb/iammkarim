@@ -22,10 +22,15 @@ export const metadata: Metadata = {
     authors: [{ name: personalInfo.name, url: SITE_URL }],
     creator: personalInfo.name,
     alternates: { canonical: '/' },
-    icons: [
-        { url: '/icon.svg', type: 'image/svg+xml' },
-        { url: '/favicon.ico', sizes: 'any' },
-    ],
+    icons: {
+        icon: [
+            { url: '/icon.svg', type: 'image/svg+xml' },
+            { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+            { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+            { url: '/favicon.ico', sizes: 'any' },
+        ],
+        apple: { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    },
     openGraph: { type: 'website', url: '/', siteName: personalInfo.name, title, description, locale: 'en_US' },
     twitter: { card: 'summary_large_image', title, description },
     robots: { index: true, follow: true, googleBot: { 'max-image-preview': 'large', 'max-snippet': -1 } },

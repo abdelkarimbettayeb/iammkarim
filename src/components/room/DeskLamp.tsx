@@ -7,6 +7,7 @@ import { dayNight, lerp } from '@/store/dayNight';
 import { useTheme } from 'next-themes';
 import { useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
+import { setThemeAnimated } from '@/lib/themeTransition';
 import { exploreStore } from '@/store/exploreStore';
 
 interface DeskLampProps {
@@ -41,9 +42,7 @@ export function DeskLamp({ position, rotation }: DeskLampProps) {
     toggleNightMode();
     exploreStore.discover('lamp');
 
-    if (setTheme) {
-      setTheme(resolvedTheme === 'dark' ? 'light' : 'dark');
-    }
+    setThemeAnimated(setTheme, resolvedTheme === 'dark' ? 'light' : 'dark');
   };
 
   return (

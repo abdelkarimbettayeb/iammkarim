@@ -2,12 +2,13 @@
 
 import React, { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { ContactShadows, Float } from '@react-three/drei';
+import { ContactShadows, Float, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { cartridgeProjects, personalInfo } from '@/data/resumeData';
 import { playSound } from '@/lib/audioEngine';
 import type { CartridgeId, CartridgeProject } from '@/types/room';
 import { FoldedPrism3D } from './FoldedPrism3D';
+import { HeroTooltip } from './HeroTooltip';
 
 const subscribeCoarsePointer = (cb: () => void) => {
   if (typeof window === 'undefined' || !window.matchMedia) return () => {};
@@ -51,11 +52,39 @@ const PROJECT_SHORT_LABELS: Record<CartridgeId, string> = {
   algmath: PROJECT_CARD_META.algmath.name,
 };
 
+/** Renders **bold** and **bold|tooltip** segments; the tooltip variant gets a dotted underline + hover/tap tooltip. */
+function RichText({ text }: { text: string }) {
+  return (
+    <>
+      {text.split(/(\*\*[^*]+\*\*)/g).map((part, i) => {
+        if (!part.startsWith('**')) return part;
+        const [term, tip] = part.slice(2, -2).split('|');
+        if (!tip) return <strong key={i} style={{ color: 'var(--cv-ink)' }}>{term}</strong>;
+        return (
+          <HeroTooltip key={i} label={term} description={tip}>
+            <strong
+              tabIndex={0}
+              className="cursor-help underline decoration-dotted decoration-[var(--cv-ink-subtle)] underline-offset-[3px]"
+              style={{ color: 'var(--cv-ink)' }}
+            >
+              {term}
+            </strong>
+          </HeroTooltip>
+        );
+      })}
+    </>
+  );
+}
+
 interface StackLayerSpec {
   code: string;
   shortLabel: string;
   title: string;
   stack: string;
+  blurb: string;
+  highlights: string[];
+  techNotes: Record<string, string>;
+  keywords: string[];
   color: string;
   yBase: number;
   width: number;
@@ -68,8 +97,21 @@ const STACK_LAYERS: StackLayerSpec[] = [
     shortLabel: 'Infra',
     title: 'Infrastructure',
     stack: 'PostgreSQL · Redis · Docker · Caddy CI/CD',
+    blurb: 'Data and delivery foundation: **relational storage|PostgreSQL powers Jud, Alnurayn, Meuble and the Dentist System.**, caching, containers and **automated deployments|GitHub Actions deploying through Docker Compose behind Caddy HTTPS.**.',
+    highlights: [
+      '**Docker Compose + Caddy|Caddy provides automatic HTTPS in front of the deployed services.** deployments driven by GitHub Actions',
+      '**Nightly encrypted backups|Restic backups on the Dentist System.** on the Dentist System',
+      '**500 MB in-memory cache|Thread-safe L1 LRU in the C++ search engine, backed by a Redis L2 page cache.** in front of Redis for search pages',
+    ],
+    techNotes: {
+      'PostgreSQL': 'Primary database on Jud, Alnurayn, Meuble and the Dentist System. pgvector adds semantic search.',
+      'Redis': 'L2 page cache behind Alnurayn\'s C++ search, and the queue backend for BullMQ jobs at Care360.',
+      'Docker': 'Docker Compose deployments with Caddy HTTPS for the Dentist System.',
+      'Caddy CI/CD': 'GitHub Actions pipelines that deploy via Docker Compose behind Caddy, with nightly Restic backups.',
+    },
+    keywords: ['postgresql', 'redis', 'docker', 'ci/cd'],
     color: '#F59E0B',
-    yBase: -0.52,
+    yBase: -0.72,
     width: 1.92,
     depth: 1.48,
   },
@@ -78,8 +120,21 @@ const STACK_LAYERS: StackLayerSpec[] = [
     shortLabel: 'Systems',
     title: 'Systems & Native',
     stack: 'C++ N-API · C# .NET 8 · AES-GCM · RSA',
+    blurb: 'Native performance and security: a **C++ search engine|@bahmardi/search-native, a compiled Node N-API addon with libpqxx pooling.** plus **encrypted C# / .NET apps|Mouser KVM, a desktop POS and WordPuppeteer.**.',
+    highlights: [
+      '**10–50× faster|Full-text search over Arabic archives, using zero-regex UTF-32 matching.** full-text search on Arabic archives',
+      '**Zero-trust LAN pairing|Ephemeral ECDH P-256 key exchange plus a 6-digit Short Authentication String check.** with AES-256-GCM transport in Mouser KVM',
+      '**Offline RSA licensing|Public-key signature verification that works offline.** for the desktop POS',
+    ],
+    techNotes: {
+      'C++ N-API': '@bahmardi/search-native: native Node addon with libpqxx connection pooling and UTF-32 Arabic/Persian normalisation.',
+      'C# .NET 8': 'Mouser KVM (Avalonia), the WordPuppeteer WPF automation tool and an offline-first desktop POS.',
+      'AES-GCM': 'AES-256-GCM authenticated encryption for Mouser\'s LAN traffic, clipboard history and file streaming.',
+      'RSA': 'RSA-signed licences verified offline by the enterprise desktop POS.',
+    },
+    keywords: ['c++', 'c#', '.net', 'aes', 'sqlcipher'],
     color: '#E0441B',
-    yBase: -0.26,
+    yBase: -0.36,
     width: 1.72,
     depth: 1.32,
   },
@@ -88,6 +143,19 @@ const STACK_LAYERS: StackLayerSpec[] = [
     shortLabel: 'Backend',
     title: 'Backend & AI',
     stack: 'Node.js · NestJS · BullMQ · pgvector RAG',
+    blurb: 'The service layer: **NestJS APIs|NestJS 11 at Jud with RBAC, cron automation and WebSockets.**, background job queues and **pgvector-powered AI search|Hybrid RAG agent with automatic page-level citations.**.',
+    highlights: [
+      '**15-module HR suite|Geo-attendance, shifts, leave refunds, violation matrices, payroll pre-processing and RBAC.** built on NestJS 11 at Jud',
+      '**Hybrid RAG agent|Semantic similarity plus Arabic root and stop-word normalisation, using Gemini, Cohere and LangChain.** with automatic citations',
+      '**10-step idempotent provisioning|Meuble SaaS store creation that can be retried safely at any step.** for self-service SaaS stores',
+    ],
+    techNotes: {
+      'Node.js': 'Runtime for the Alnurayn API, scrapers and bots, and host of the native C++ addon.',
+      'NestJS': 'NestJS 11 modular APIs with RBAC, cron jobs and WebSockets at Jud; NestJS services at Care360.',
+      'BullMQ': 'Redis-backed queues for appointment reminders, billing events and background jobs at Care360.',
+      'pgvector RAG': 'Semantic search on PostgreSQL with pgvector, feeding a Gemini/Cohere/LangChain research agent.',
+    },
+    keywords: ['nestjs', 'nodejs', 'bullmq', 'pgvector'],
     color: '#22C55E',
     yBase: 0.0,
     width: 1.54,
@@ -98,8 +166,21 @@ const STACK_LAYERS: StackLayerSpec[] = [
     shortLabel: 'API',
     title: 'API & Realtime',
     stack: 'GraphQL · Prisma · REST · Socket.IO',
+    blurb: 'Typed contracts between server and clients, with **GraphQL, REST|Apollo GraphQL on the Dentist System; REST + Swagger on Jud\'s API.** and **live Socket.IO updates|Pushes real-time changes into Jud\'s dashboards.**.',
+    highlights: [
+      '**Strict end-to-end typing|DTOs, Prisma and GraphQL schemas shared across clients and servers.** across clients and servers',
+      '**Real-time dashboards|Socket.IO pushes into ECharts dashboards, with automated Slack alerts.** with automated Slack alerts',
+      '**RBAC + tenant isolation|Granular roles plus BrandUserGuard scoping across Employee, Team Leader and HR Admin.** across Jud role surfaces',
+    ],
+    techNotes: {
+      'GraphQL': 'Apollo Server API for the Dentist System, with GraphQL codegen feeding the Expo app.',
+      'Prisma': 'Prisma 7 as the typed data layer across Jud, Meuble and the Dentist System.',
+      'REST': 'REST endpoints with Swagger docs and throttled security middleware in Jud\'s NestJS API.',
+      'Socket.IO': 'Real-time operations and analytics updates pushed to Jud\'s dashboards.',
+    },
+    keywords: ['graphql', 'prisma', 'socket.io'],
     color: '#A855F7',
-    yBase: 0.26,
+    yBase: 0.36,
     width: 1.36,
     depth: 1.04,
   },
@@ -108,8 +189,21 @@ const STACK_LAYERS: StackLayerSpec[] = [
     shortLabel: 'Frontend',
     title: 'Web & Mobile',
     stack: 'React 19 · Next.js 16 · TypeScript · Expo',
+    blurb: 'What users actually touch: **React / Next.js web apps|Jud\'s RTL/LTR admin UI, the Meuble storefront and the BAC Maths PWA.** and **Expo mobile apps|React Native patient and staff app with Fastlane release automation.**.',
+    highlights: [
+      '**Offline-first PWA|BAC 3AS Maths works offline in Arabic, French and English, with a Web Worker CAS.** teaching maths in AR / FR / EN',
+      '**RTL + LTR interfaces|Arabic and English UIs, including RTL PDF exports.** including RTL PDF exports',
+      '**Web + mobile|Next.js, React 19 and Expo from a single TypeScript skill set.** from one TypeScript codebase style',
+    ],
+    techNotes: {
+      'React 19': 'Jud\'s enterprise UI (React 19 + Refine, RTL/LTR), the Alnurayn reader app and the Meuble storefront.',
+      'Next.js 16': 'Meuble storefront, the BAC 3AS Maths PWA, and this portfolio.',
+      'TypeScript': 'Strict typing end to end: clients, API contracts and shared monorepo packages.',
+      'Expo': 'React Native patient/staff mobile app for the Dentist System, shipped with Fastlane.',
+    },
+    keywords: ['react', 'nextjs', 'expo'],
     color: '#0EA5E9',
-    yBase: 0.52,
+    yBase: 0.72,
     width: 1.18,
     depth: 0.9,
   },
@@ -1061,6 +1155,201 @@ function AtelierWorkstation({
   );
 }
 
+/** Slow idle rotation for small decorative props. */
+function Spin({ speed = 0.6, position, children }: { speed?: number; position?: [number, number, number]; children: React.ReactNode }) {
+  const ref = useRef<THREE.Group>(null);
+  useFrame((_, delta) => {
+    if (ref.current) ref.current.rotation.y += delta * speed;
+  });
+  return (
+    <group ref={ref} position={position}>
+      {children}
+    </group>
+  );
+}
+
+/** Thin cylinder connecting two points (graph edge). */
+function Link({ a, b, color }: { a: [number, number, number]; b: [number, number, number]; color: string }) {
+  const { pos, quat, len } = useMemo(() => {
+    const va = new THREE.Vector3(...a);
+    const d = new THREE.Vector3(...b).sub(va);
+    const length = d.length();
+    return {
+      pos: va.clone().addScaledVector(d, 0.5),
+      quat: new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), d.normalize()),
+      len: length,
+    };
+  }, [a, b]);
+  return (
+    <mesh position={pos} quaternion={quat}>
+      <cylinderGeometry args={[0.007, 0.007, len, 8]} />
+      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.6} />
+    </mesh>
+  );
+}
+
+const API_NODES: [number, number, number][] = [
+  [-0.36, 0.09, -0.1],
+  [0, 0.17, 0.14],
+  [0.36, 0.09, -0.1],
+  [0, 0.07, -0.26],
+];
+const API_EDGES: [number, number][] = [[0, 1], [1, 2], [2, 3], [3, 0], [1, 3]];
+
+const PROP_BODY = '#64748B';
+
+/** Small 3D icon-object per stack layer (all <= ~0.3 tall so slabs never collide). */
+function LayerProp({ idx, color, lit }: { idx: number; color: string; lit: boolean }) {
+  const glow = lit ? 1.3 : 0.45;
+  const accent = <meshStandardMaterial color={color} emissive={color} emissiveIntensity={glow} roughness={0.25} />;
+  const body = <meshStandardMaterial color={PROP_BODY} metalness={0.45} roughness={0.4} />;
+
+  return (
+    <group position={[0, 0.044, 0]}>
+      {idx === 0 && (
+        <>
+          {/* Database: three stacked discs with glowing seams */}
+          <group position={[-0.42, 0, 0]}>
+            {[0, 1, 2].map((i) => (
+              <group key={i} position={[0, 0.03 + i * 0.06, 0]}>
+                <mesh>
+                  <cylinderGeometry args={[0.17, 0.17, 0.045, 28]} />
+                  {body}
+                </mesh>
+                <mesh position={[0, 0.026, 0]}>
+                  <cylinderGeometry args={[0.172, 0.172, 0.006, 28]} />
+                  {accent}
+                </mesh>
+              </group>
+            ))}
+          </group>
+          {/* Containers: crate with three cubes on top */}
+          <mesh position={[0.32, 0.05, 0]}>
+            <boxGeometry args={[0.6, 0.09, 0.3]} />
+            {body}
+          </mesh>
+          {[-0.17, 0, 0.17].map((x) => (
+            <mesh key={x} position={[0.32 + x, 0.135, 0]}>
+              <boxGeometry args={[0.14, 0.08, 0.2]} />
+              {accent}
+            </mesh>
+          ))}
+        </>
+      )}
+
+      {idx === 1 && (
+        <>
+          {/* CPU chip with pins */}
+          <mesh position={[-0.38, 0.025, 0]}>
+            <boxGeometry args={[0.46, 0.04, 0.46]} />
+            {body}
+          </mesh>
+          <mesh position={[-0.38, 0.055, 0]}>
+            <boxGeometry args={[0.26, 0.025, 0.26]} />
+            {accent}
+          </mesh>
+          {[-0.18, -0.09, 0, 0.09, 0.18].flatMap((o) => [
+            [-0.38 + o, 0.02, 0.255],
+            [-0.38 + o, 0.02, -0.255],
+            [-0.38 - 0.255, 0.02, o],
+            [-0.38 + 0.255, 0.02, o],
+          ]).map(([x, y, z], i) => (
+            <mesh key={i} position={[x, y, z]}>
+              <boxGeometry args={[0.04, 0.016, 0.04]} />
+              <meshStandardMaterial color="#CBD5E1" metalness={0.9} roughness={0.25} />
+            </mesh>
+          ))}
+          {/* Gear */}
+          <Spin position={[0.4, 0.04, 0]} speed={0.8}>
+            <mesh>
+              <cylinderGeometry args={[0.15, 0.15, 0.07, 24]} />
+              {body}
+            </mesh>
+            {Array.from({ length: 8 }, (_, i) => (
+              <mesh key={i} rotation={[0, (i * Math.PI) / 4, 0]} position={[Math.cos((i * Math.PI) / 4) * 0.18, 0, -Math.sin((i * Math.PI) / 4) * 0.18]}>
+                <boxGeometry args={[0.07, 0.07, 0.07]} />
+                {body}
+              </mesh>
+            ))}
+            <mesh position={[0, 0.04, 0]}>
+              <cylinderGeometry args={[0.05, 0.05, 0.02, 16]} />
+              {accent}
+            </mesh>
+          </Spin>
+        </>
+      )}
+
+      {idx === 2 && (
+        <>
+          {/* Two server racks with LEDs */}
+          {[-0.42, 0.14].map((x) => (
+            <group key={x} position={[x, 0.09, 0]}>
+              <mesh>
+                <boxGeometry args={[0.34, 0.18, 0.26]} />
+                {body}
+              </mesh>
+              {[-0.06, 0, 0.06].map((y) => (
+                <mesh key={y} position={[0, y, 0.132]}>
+                  <boxGeometry args={[0.26, 0.016, 0.006]} />
+                  {accent}
+                </mesh>
+              ))}
+            </group>
+          ))}
+          {/* AI core */}
+          <Spin position={[0.5, 0.15, 0]} speed={1}>
+            <mesh>
+              <icosahedronGeometry args={[0.1, 0]} />
+              <meshStandardMaterial color={color} emissive={color} emissiveIntensity={glow} wireframe={false} metalness={0.4} roughness={0.2} />
+            </mesh>
+          </Spin>
+        </>
+      )}
+
+      {idx === 3 && (
+        <Spin speed={0.35}>
+          {API_EDGES.map(([i, j]) => (
+            <Link key={`${i}-${j}`} a={API_NODES[i]} b={API_NODES[j]} color={color} />
+          ))}
+          {API_NODES.map((p, i) => (
+            <mesh key={i} position={p}>
+              <sphereGeometry args={[0.055, 16, 16]} />
+              {accent}
+            </mesh>
+          ))}
+        </Spin>
+      )}
+
+      {idx === 4 && (
+        <>
+          {/* Monitor */}
+          <group position={[-0.28, 0.17, -0.2]} rotation={[-0.12, 0, 0]}>
+            <mesh>
+              <boxGeometry args={[0.44, 0.28, 0.02]} />
+              {body}
+            </mesh>
+            <mesh position={[0, 0, 0.012]}>
+              <planeGeometry args={[0.4, 0.24]} />
+              {accent}
+            </mesh>
+          </group>
+          {/* Phone */}
+          <group position={[0.32, 0.1, -0.12]} rotation={[-0.12, -0.3, 0]}>
+            <mesh>
+              <boxGeometry args={[0.12, 0.2, 0.016]} />
+              {body}
+            </mesh>
+            <mesh position={[0, 0, 0.01]}>
+              <planeGeometry args={[0.1, 0.17]} />
+              {accent}
+            </mesh>
+          </group>
+        </>
+      )}
+    </group>
+  );
+}
+
 /**
  * Mode 2: Exploded Stack Core ("Kinetic Architecture Stack")
  */
@@ -1068,6 +1357,7 @@ function ExplodedStackCore({
   isDark,
   themeBlendRef,
   exploded,
+  burstRef,
   selectedLayer,
   onSelectLayer,
   onToggleExplode,
@@ -1076,6 +1366,7 @@ function ExplodedStackCore({
   isDark: boolean;
   themeBlendRef: React.MutableRefObject<number>;
   exploded: boolean;
+  burstRef: React.MutableRefObject<number>;
   selectedLayer: number;
   onSelectLayer: (idx: number) => void;
   onToggleExplode: () => void;
@@ -1088,6 +1379,10 @@ function ExplodedStackCore({
   const ringMatRef = useRef<THREE.MeshStandardMaterial>(null);
   const slabMatsRef = useRef<Array<THREE.MeshStandardMaterial | null>>([]);
   const slabGroupsRef = useRef<Array<THREE.Group | null>>([]);
+  const spindleRef = useRef<THREE.Mesh>(null);
+  // Expand sequence: rings spin up -> rings burst outward (burst 0..1) -> slabs spread + camera pulls back.
+  const spinRef = useRef(1);
+  const latchedRef = useRef(false);
 
   const slabGeometries = useMemo(
     () => STACK_LAYERS.map((layer) => createRoundedSlabGeometry(layer.width, layer.depth, 0.085, 0.11, 0.012)),
@@ -1108,16 +1403,26 @@ function ExplodedStackCore({
       ringMatRef.current.color.lerpColors(PALETTE.ringLight, PALETTE.ringDark, b);
     }
 
+    if (!exploded) latchedRef.current = false;
+    else if (spinRef.current > 5) latchedRef.current = true;
+    const spinTarget = !exploded ? 1 : latchedRef.current && burstRef.current > 0.9 ? 1.8 : 7;
+    spinRef.current = THREE.MathUtils.damp(spinRef.current, spinTarget, 1.6, delta);
+    burstRef.current = THREE.MathUtils.damp(burstRef.current, latchedRef.current ? 1 : 0, 3, delta);
+    const burst = burstRef.current;
+
     if (outerRingRef.current) {
-      outerRingRef.current.rotation.y += delta * 0.28;
+      outerRingRef.current.rotation.y += delta * 0.28 * spinRef.current;
       outerRingRef.current.rotation.x = Math.sin(t * 0.35) * 0.22;
+      outerRingRef.current.scale.setScalar(1 + 0.3 * burst);
     }
     if (innerRingRef.current) {
-      innerRingRef.current.rotation.y -= delta * 0.42;
+      innerRingRef.current.rotation.y -= delta * 0.42 * spinRef.current;
       innerRingRef.current.rotation.z = Math.cos(t * 0.45) * 0.26;
+      innerRingRef.current.scale.setScalar(1 + 0.3 * burst);
     }
+    if (spindleRef.current) spindleRef.current.scale.y = 1 + 0.69 * burst;
 
-    const spread = exploded ? 1.72 : 1.0;
+    const spread = 1 + 0.55 * burst;
 
     STACK_LAYERS.forEach((layer, idx) => {
       const grp = slabGroupsRef.current[idx];
@@ -1144,6 +1449,7 @@ function ExplodedStackCore({
   return (
     <group position={[0, 0.24, 0]}>
       <mesh
+        ref={spindleRef}
         onClick={(e) => {
           e.stopPropagation();
           playSound('chime');
@@ -1159,7 +1465,7 @@ function ExplodedStackCore({
           onHoverHint(null);
         }}
       >
-        <cylinderGeometry args={[0.048, 0.048, exploded ? 2.15 : 1.38, 24]} />
+        <cylinderGeometry args={[0.048, 0.048, 1.6, 24]} />
         <meshStandardMaterial
           color="#E0441B"
           emissive="#E0441B"
@@ -1170,11 +1476,11 @@ function ExplodedStackCore({
       </mesh>
 
       <mesh ref={outerRingRef}>
-        <torusGeometry args={[1.48, 0.016, 16, 96]} />
+        <torusGeometry args={[1.7, 0.016, 16, 96]} />
         <meshStandardMaterial ref={ringMatRef} color="#CBD5E1" metalness={0.85} roughness={0.22} />
       </mesh>
       <mesh ref={innerRingRef}>
-        <torusGeometry args={[1.26, 0.012, 16, 80]} />
+        <torusGeometry args={[1.45, 0.012, 16, 80]} />
         <meshStandardMaterial
           color="#E0441B"
           emissive="#E0441B"
@@ -1248,6 +1554,26 @@ function ExplodedStackCore({
               </mesh>
             ))}
 
+            <LayerProp idx={idx} color={layer.color} lit={isSelected || isHov} />
+
+            <Html
+              position={[layer.width / 2 + 0.06, 0.06, layer.depth * 0.25]}
+              zIndexRange={[5, 0]}
+              style={{ pointerEvents: 'none' }}
+            >
+              <div
+                className="font-cv-mono text-[10px] font-semibold leading-none whitespace-nowrap px-2 py-1 cv-radius-pill"
+                style={{
+                  transform: 'translate(0, -50%)',
+                  backgroundColor: 'var(--cv-surface-elevated)',
+                  border: `1px solid ${isSelected ? 'var(--cv-ink-subtle)' : 'var(--cv-border)'}`,
+                  color: isSelected ? 'var(--cv-ink)' : 'var(--cv-ink-muted)',
+                }}
+              >
+                {layer.code} {layer.shortLabel}
+              </div>
+            </Html>
+
             {idx === STACK_LAYERS.length - 1 && (
               <FoldedPrism3D
                 position={[0, 0.044, 0.22]}
@@ -1311,16 +1637,39 @@ function StageController({
   const ambientRef = useRef<THREE.AmbientLight>(null);
   const keyLightRef = useRef<THREE.DirectionalLight>(null);
   const themeBlendRef = useRef(isDark ? 1 : 0);
+  const burstRef = useRef(0);
+  const shadowRef = useRef<THREE.Group>(null);
 
   useFrame((state, delta) => {
     const targetBlend = isDark ? 1 : 0;
     themeBlendRef.current = THREE.MathUtils.damp(themeBlendRef.current, targetBlend, 6, delta);
     const b = themeBlendRef.current;
+    if (mode !== 'core') burstRef.current = 0;
 
     // Responsive camera pull-back on narrow viewports so full desk never clips horizontally
     const aspect = state.size.width / Math.max(state.size.height, 1);
     const desiredZ = Math.max(4.45, Math.min(7.2, 6.82 / Math.max(aspect, 0.78)));
-    state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, desiredZ, 8, delta);
+    // Core mode: back the camera off along its fixed view axis until the biggest thing on stage
+    // (the spinning rings, or the slab labels) fits the frame in BOTH directions, so nothing touches an edge.
+    let camX = 0.15;
+    let camY = 1.38;
+    let camZ = desiredZ;
+    if (mode === 'core') {
+      const vHalf = THREE.MathUtils.degToRad((state.camera as THREE.PerspectiveCamera).fov / 2);
+      const hHalf = Math.atan(Math.tan(vHalf) * aspect);
+      const ring = 1.7 * (1 + 0.3 * burstRef.current);
+      const radius = Math.max(ring + 0.1, 1.95) * 1.1; // ring or label reach, +10% margin
+      const dist = radius / Math.sin(Math.min(vHalf, hHalf));
+      // Unit view axis of the initial camera (0.15,1.38,4.45 -> origin), aimed at the stack centre (0, 0.24, 0).
+      camX = 0.032 * dist;
+      camY = 0.24 + 0.2955 * dist;
+      camZ = 0.953 * dist;
+    }
+    state.camera.position.x = THREE.MathUtils.damp(state.camera.position.x, camX, 5, delta);
+    state.camera.position.y = THREE.MathUtils.damp(state.camera.position.y, camY, 5, delta);
+    state.camera.position.z = THREE.MathUtils.damp(state.camera.position.z, camZ, 5, delta);
+    // Sink the contact shadow so spread-out slabs never dip below it.
+    if (shadowRef.current) shadowRef.current.position.y = -0.2 * burstRef.current;
 
     if (ambientRef.current) {
       ambientRef.current.intensity = THREE.MathUtils.lerp(1.45, 0.65, b);
@@ -1388,6 +1737,7 @@ function StageController({
             isDark={isDark}
             themeBlendRef={themeBlendRef}
             exploded={exploded}
+            burstRef={burstRef}
             selectedLayer={selectedLayer}
             onSelectLayer={onSelectLayer}
             onToggleExplode={onToggleExplode}
@@ -1396,14 +1746,16 @@ function StageController({
         )}
       </group>
 
-      <ContactShadows
-        position={[0, mode === 'atelier' ? -0.725 : -0.82, 0]}
-        opacity={isDark ? 0.65 : 0.24}
-        scale={6.4}
-        blur={2.4}
-        far={2.6}
-        color={isDark ? '#000000' : '#475569'}
-      />
+      <group ref={shadowRef}>
+        <ContactShadows
+          position={[0, mode === 'atelier' ? -0.725 : -0.82, 0]}
+          opacity={isDark ? 0.65 : 0.24}
+          scale={6.4}
+          blur={2.4}
+          far={2.6}
+          color={isDark ? '#000000' : '#475569'}
+        />
+      </group>
     </>
   );
 }
@@ -1461,6 +1813,10 @@ export function Atelier3DStage({
   };
 
   const activeLayerSpec = STACK_LAYERS[selectedLayer];
+  const layerProjects = PROJECT_ORDER.filter((id) => {
+    const stack = cartridgeProjects[id].stack.join(' ').toLowerCase();
+    return activeLayerSpec.keywords.some((k) => stack.includes(k));
+  });
 
   return (
     <div
@@ -1490,7 +1846,7 @@ export function Atelier3DStage({
       </div>
 
       {/* Borderless 3D Canvas Floating Directly Over Background */}
-      <div className="relative w-full flex-1 min-h-[250px] sm:min-h-[340px] lg:min-h-[400px]">
+      <div className="relative w-full flex-1 min-h-[300px] sm:min-h-[380px] lg:min-h-[420px]">
         <Canvas
           shadows
           dpr={[1, 2]}
@@ -1692,24 +2048,16 @@ export function Atelier3DStage({
                         playSound('cartridge');
                         setSelectedLayer(idx);
                       }}
-                      className="cv-deck-card relative overflow-hidden pt-2 pb-1.5 px-1.5 cv-radius-sm text-center"
+                      className="cv-deck-card py-2 px-1.5 cv-radius-sm text-center"
                       style={{
                         backgroundColor: isSel ? 'var(--cv-surface-elevated)' : 'var(--cv-surface)',
-                        border: isSel ? `1px solid ${layer.color}` : '1px solid var(--cv-border)',
-                        boxShadow: isSel ? `0 4px 12px -4px ${layer.color}33` : 'none',
+                        border: `1px solid ${isSel ? 'var(--cv-border-strong)' : 'var(--cv-border)'}`,
+                        boxShadow: isSel ? 'var(--cv-shadow-card)' : 'none',
                       }}
                     >
                       <span
-                        aria-hidden
-                        className="absolute top-0 inset-x-0 h-[2.5px] transition-opacity duration-150"
-                        style={{
-                          backgroundColor: layer.color,
-                          opacity: isSel ? 1 : 0.25,
-                        }}
-                      />
-                      <span
                         className="block font-cv-mono text-[10.5px] font-bold leading-none"
-                        style={{ color: isSel ? layer.color : 'var(--cv-ink-muted)' }}
+                        style={{ color: isSel ? 'var(--cv-ink)' : 'var(--cv-ink-muted)' }}
                       >
                         {layer.code}
                       </span>
@@ -1724,19 +2072,62 @@ export function Atelier3DStage({
                 })}
               </div>
               <div
-                className="px-3 py-2 cv-radius-sm flex items-center justify-between gap-2 text-[11.5px]"
+                className="px-3 py-2.5 cv-radius-sm space-y-2"
                 style={{
                   backgroundColor: 'var(--cv-surface)',
                   border: '1px solid var(--cv-border)',
-                  borderLeft: `3px solid ${activeLayerSpec.color}`,
                 }}
               >
-                <span className="font-semibold shrink-0" style={{ color: activeLayerSpec.color }}>
-                  {activeLayerSpec.code} · {activeLayerSpec.title}
-                </span>
-                <span className="font-cv-mono text-[11px] truncate" style={{ color: 'var(--cv-ink-secondary)' }}>
-                  {activeLayerSpec.stack}
-                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="font-cv-mono text-[11px] font-bold shrink-0" style={{ color: 'var(--cv-ink-muted)' }}>
+                    {activeLayerSpec.code}
+                  </span>
+                  <span className="text-[14px] font-bold" style={{ color: 'var(--cv-ink)' }}>
+                    {activeLayerSpec.title}
+                  </span>
+                </div>
+                <p className="text-[12px] leading-snug" style={{ color: 'var(--cv-ink-secondary)' }}>
+                  <RichText text={activeLayerSpec.blurb} />
+                </p>
+                <ul className="space-y-1">
+                  {activeLayerSpec.highlights.map((h) => (
+                    <li key={h} className="flex items-start gap-2 text-[11.5px] leading-snug" style={{ color: 'var(--cv-ink-muted)' }}>
+                      <span aria-hidden className="mt-[6px] h-1 w-1 shrink-0 rounded-full" style={{ backgroundColor: 'var(--cv-ink-subtle)' }} />
+                      <span>
+                        <RichText text={h} />
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                <div className="flex flex-wrap gap-1">
+                  {activeLayerSpec.stack.split(' · ').map((tech) => (
+                    <HeroTooltip key={tech} label={tech} description={activeLayerSpec.techNotes[tech] ?? ''}>
+                      <button type="button" className="cv-chip px-2 py-0.5 font-cv-mono text-[10px] font-semibold cursor-help">
+                        {tech}
+                      </button>
+                    </HeroTooltip>
+                  ))}
+                </div>
+                {layerProjects.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                    <span className="font-cv-mono text-[9.5px] uppercase tracking-wider" style={{ color: 'var(--cv-ink-muted)' }}>
+                      Used in
+                    </span>
+                    {layerProjects.map((id) => (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          playSound('cartridge');
+                          onSelectProject(id);
+                          onOpenCaseStudy(id);
+                        }}
+                        className="cv-btn-secondary px-2 py-0.5 text-[10.5px] font-medium"
+                      >
+                        {PROJECT_CARD_META[id].name} ↗
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

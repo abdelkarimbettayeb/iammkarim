@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes';
 import { Volume2, VolumeX, Sun, Moon, FileText, CloudSun, CloudRain, Snowflake } from 'lucide-react';
 import { roomStore, useRoomStore } from '@/store/useRoomStore';
 import { playSound } from '@/lib/audioEngine';
+import { setThemeAnimated } from '@/lib/themeTransition';
 import type { WeatherState } from '@/types/room';
 import { personalInfo } from '@/data/resumeData';
 import { exploreStore } from '@/store/exploreStore';
@@ -74,7 +75,7 @@ export function TopHeader() {
   const handleSelectTheme = (next: 'light' | 'dark') => {
     playSound('lamp');
     roomStore.setNightMode(next === 'dark');
-    setTheme?.(next);
+    setThemeAnimated(setTheme, next);
   };
 
   return (

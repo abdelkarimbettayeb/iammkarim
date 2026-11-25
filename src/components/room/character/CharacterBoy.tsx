@@ -13,7 +13,8 @@ import { PLACEMENTS, scaleToNumber } from '../layout';
  * scale as the one on the wall stand, so picking it up doesn't swap guitars.
  */
 export const HELD_GUITAR = {
-  position: [0.07, 0.93, 0.2] as [number, number, number],
+  // Slung low against the belly so the picking forearm can rest over the upper rim
+  position: [0.06, 0.8, 0.17] as [number, number, number],
   rotation: [-0.12, 0.18, 1.15] as [number, number, number],
   scale: scaleToNumber(PLACEMENTS.guitar.scale),
 };
@@ -46,6 +47,11 @@ export interface CharacterBoyHandle {
   rightLeg: THREE.Group | null;
   leftKnee: THREE.Group | null;
   rightKnee: THREE.Group | null;
+  /** Hands (wrist origin) and their finger groups, so the pose code can orient and curl them */
+  leftHand: THREE.Group | null;
+  rightHand: THREE.Group | null;
+  leftFingers: THREE.Group | null;
+  rightFingers: THREE.Group | null;
   /** Held guitar (in the spine frame, same parent as the arms) */
   guitar: THREE.Group | null;
   setChillyBreath: (active: boolean) => void;
@@ -98,7 +104,17 @@ function Tube({
 }
 
 /** Relaxed hand: palm, curled fingers and a thumb. Origin sits at the wrist, hanging down. */
-function Hand({ side, children }: { side: -1 | 1; children?: React.ReactNode }) {
+function Hand({
+  side,
+  handRef,
+  fingersRef,
+  children,
+}: {
+  side: -1 | 1;
+  handRef: React.RefObject<THREE.Group | null>;
+  fingersRef: React.RefObject<THREE.Group | null>;
+  children?: React.ReactNode;
+}) {
   const fingers: [number, number][] = [
     [-0.027, 0.03],
     [-0.009, 0.038],
@@ -106,7 +122,7 @@ function Hand({ side, children }: { side: -1 | 1; children?: React.ReactNode }) 
     [0.027, 0.037],
   ];
   return (
-    <group>
+    <group ref={handRef}>
       {/* Wrist */}
       <mesh castShadow>
         <cylinderGeometry args={[0.027, 0.03, 0.045, 14]} />
@@ -116,8 +132,8 @@ function Hand({ side, children }: { side: -1 | 1; children?: React.ReactNode }) 
       <RoundedBox args={[0.034, 0.08, 0.078]} radius={0.012} smoothness={3} position={[0, -0.05, 0]} castShadow>
         <Skin />
       </RoundedBox>
-      {/* Fingers curl gently towards the palm */}
-      <group position={[0, -0.088, 0]} rotation={[-0.32, 0, 0]}>
+      {/* Fingers curl towards the palm side (inwards when hanging); the pose code grips by raising this */}
+      <group ref={fingersRef} position={[0, -0.088, 0]} rotation={[0, 0, -side * 0.32]}>
         {fingers.map(([z, len]) => (
           <mesh key={z} position={[0, -(len / 2 + 0.008), z]} castShadow>
             <capsuleGeometry args={[0.0088, len, 4, 8]} />
@@ -140,11 +156,15 @@ function Arm({
   side,
   armRef,
   elbowRef,
+  handRef,
+  fingersRef,
   children,
 }: {
   side: -1 | 1;
   armRef: React.RefObject<THREE.Group | null>;
   elbowRef: React.RefObject<THREE.Group | null>;
+  handRef: React.RefObject<THREE.Group | null>;
+  fingersRef: React.RefObject<THREE.Group | null>;
   children?: React.ReactNode;
 }) {
   const { upperArm, forearm } = BOY;
@@ -176,7 +196,9 @@ function Arm({
           <meshStandardMaterial color={HOODIE_DARK} roughness={0.85} />
         </mesh>
         <group position={[0, -forearm + 0.014, 0]}>
-          <Hand side={side}>{children}</Hand>
+          <Hand side={side} handRef={handRef} fingersRef={fingersRef}>
+            {children}
+          </Hand>
         </group>
       </group>
     </group>
@@ -488,6 +510,10 @@ export const CharacterBoy = forwardRef<CharacterBoyHandle, CharacterBoyProps>(
     const rightLegRef = useRef<THREE.Group>(null);
     const leftKneeRef = useRef<THREE.Group>(null);
     const rightKneeRef = useRef<THREE.Group>(null);
+    const leftHandRef = useRef<THREE.Group>(null);
+    const rightHandRef = useRef<THREE.Group>(null);
+    const leftFingersRef = useRef<THREE.Group>(null);
+    const rightFingersRef = useRef<THREE.Group>(null);
     const guitarHolderRef = useRef<THREE.Group>(null);
     const dartHolderRef = useRef<THREE.Group>(null);
     const backpackRef = useRef<THREE.Group>(null);
@@ -505,6 +531,10 @@ export const CharacterBoy = forwardRef<CharacterBoyHandle, CharacterBoyProps>(
       rightLeg: rightLegRef.current,
       leftKnee: leftKneeRef.current,
       rightKnee: rightKneeRef.current,
+      leftHand: leftHandRef.current,
+      rightHand: rightHandRef.current,
+      leftFingers: leftFingersRef.current,
+      rightFingers: rightFingersRef.current,
       guitar: guitarHolderRef.current,
       setChillyBreath: (active: boolean) => setIsChilly(active),
       setGuitarVisible: (visible: boolean) => {
@@ -646,8 +676,8 @@ export const CharacterBoy = forwardRef<CharacterBoyHandle, CharacterBoyProps>(
             </group>
 
             {/* Arms (named by stage side: right = +x) */}
-            <Arm side={-1} armRef={leftArmRef} elbowRef={leftElbowRef} />
-            <Arm side={1} armRef={rightArmRef} elbowRef={rightElbowRef}>
+            <Arm side={-1} armRef={leftArmRef} elbowRef={leftElbowRef} handRef={leftHandRef} fingersRef={leftFingersRef} />
+            <Arm side={1} armRef={rightArmRef} elbowRef={rightElbowRef} handRef={rightHandRef} fingersRef={rightFingersRef}>
               {/* Dart socket in the right hand */}
               <group ref={dartHolderRef} position={[0, -0.06, 0.04]} visible={false}>
                 <mesh rotation={[Math.PI / 2, 0, 0]}>
