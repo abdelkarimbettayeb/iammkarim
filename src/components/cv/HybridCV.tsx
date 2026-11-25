@@ -46,6 +46,7 @@ import type { CartridgeId } from '@/types/room';
 import { CVCaseStudyModal } from './CVCaseStudyModal';
 import { JudPlatformPreview } from './JudPlatformPreview';
 import { CppSearchPreview } from './CppSearchPreview';
+import { DentistSystemPreview } from './DentistSystemPreview';
 import { MostaqlReviewsPreview } from './MostaqlReviewsPreview';
 import { MouserKvmPreview } from './MouserKvmPreview';
 import { MeubleStorePreview } from './MeubleStorePreview';
@@ -91,11 +92,12 @@ const SECTIONS: { id: SectionId; label: string; number: string }[] = [
   { id: 'contact', label: 'Contact', number: '05' },
 ];
 
-const PROJECT_ORDER: CartridgeId[] = ['jud', 'alnurayn', 'freelance', 'mouser', 'meuble', 'algmath'];
+const PROJECT_ORDER: CartridgeId[] = ['jud', 'alnurayn', 'dentist', 'freelance', 'mouser', 'meuble', 'algmath'];
 
 const PROJECT_SHORT_LABELS: Record<CartridgeId, string> = {
   jud: 'Jud',
   alnurayn: 'Alnurayn',
+  dentist: 'Dental',
   freelance: 'Mostaql',
   mouser: 'Mouser',
   meuble: 'Meuble',
@@ -725,7 +727,7 @@ export function HybridCV() {
                 <HeroTooltip
                   label="Interactive UI"
                   accent="#0EA5E9"
-                  description="Next.js App Router, Refine.dev admin consoles, React Native / Expo mobile apps, and 3D WebGL experiences."
+                  description="Next.js App Router, Refine 5 & Ant Design clinical portals, React Native / Expo mobile apps, Astro 7 static sites, and 3D WebGL experiences."
                 >
                   <button type="button" className="cv-inline-term">
                     React
@@ -735,7 +737,7 @@ export function HybridCV() {
                 <HeroTooltip
                   label="Backend Runtime"
                   accent="#10B981"
-                  description="NestJS services, Apollo GraphQL & REST APIs, BullMQ queues, and low-latency event-driven architectures."
+                  description="NestJS & Express services, Apollo GraphQL 5 & REST APIs, BullMQ & pg-boss outbox workers, and low-latency event-driven architectures."
                 >
                   <button type="button" className="cv-inline-term">
                     Node.js
@@ -1349,6 +1351,10 @@ export function HybridCV() {
                     <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <CppSearchPreview key={spotlightProject.id} variant="spotlight" />
                     </div>
+                  ) : spotlightProject.visualType === 'dentist-system' ? (
+                    <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
+                      <DentistSystemPreview key={spotlightProject.id} variant="spotlight" />
+                    </div>
                   ) : spotlightProject.visualType === 'mostaql-reviews' ? (
                     <div className="cv-project-frame h-[208px] sm:h-56 lg:h-64 w-full">
                       <MostaqlReviewsPreview key={spotlightProject.id} variant="spotlight" />
@@ -1415,7 +1421,7 @@ export function HybridCV() {
                       style={{
                         backgroundColor: 'var(--cv-surface)',
                         color: 'var(--cv-ink)',
-                        borderLeft: `3px solid ${spotlightProject.color}`,
+                        border: '1px solid var(--cv-border)',
                       }}
                     >
                       {spotlightProject.metrics}

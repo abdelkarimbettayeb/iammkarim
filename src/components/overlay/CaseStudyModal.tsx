@@ -112,10 +112,7 @@ export function CaseStudyModal() {
               className="mt-3 px-3.5 py-2.5 cv-radius-sm"
               style={{
                 backgroundColor: 'var(--cv-surface)',
-                borderLeft: `3px solid ${project.color}`,
-                borderTop: '1px solid var(--cv-border)',
-                borderRight: '1px solid var(--cv-border)',
-                borderBottom: '1px solid var(--cv-border)',
+                border: '1px solid var(--cv-border)',
               }}
             >
               <span

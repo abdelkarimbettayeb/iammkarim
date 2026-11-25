@@ -32,11 +32,12 @@ export interface Atelier3DStageProps {
   onOpenCaseStudy: (id: CartridgeId) => void;
 }
 
-const PROJECT_ORDER: CartridgeId[] = ['jud', 'alnurayn', 'freelance', 'mouser', 'meuble', 'algmath'];
+const PROJECT_ORDER: CartridgeId[] = ['jud', 'alnurayn', 'dentist', 'freelance', 'mouser', 'meuble', 'algmath'];
 
 const PROJECT_CARD_META: Record<CartridgeId, { name: string; tag: string }> = {
   jud: { name: 'Jud Enterprise', tag: 'Lead · NestJS' },
   alnurayn: { name: 'Alnurayn Library', tag: 'C++ Search · RAG' },
+  dentist: { name: 'Bahmardi Dental', tag: '4 Apps · GraphQL' },
   freelance: { name: 'Mostaql · 32 Apps', tag: '5.0★ · 30 Reviews' },
   mouser: { name: 'Mouser KVM', tag: 'Open Source · LAN' },
   meuble: { name: 'Meuble SaaS', tag: 'Commerce · 10-Step' },
@@ -46,6 +47,7 @@ const PROJECT_CARD_META: Record<CartridgeId, { name: string; tag: string }> = {
 const PROJECT_SHORT_LABELS: Record<CartridgeId, string> = {
   jud: PROJECT_CARD_META.jud.name,
   alnurayn: PROJECT_CARD_META.alnurayn.name,
+  dentist: PROJECT_CARD_META.dentist.name,
   freelance: PROJECT_CARD_META.freelance.name,
   mouser: PROJECT_CARD_META.mouser.name,
   meuble: PROJECT_CARD_META.meuble.name,
@@ -104,12 +106,12 @@ const STACK_LAYERS: StackLayerSpec[] = [
       '**500 MB in-memory cache|Thread-safe L1 LRU in the C++ search engine, backed by a Redis L2 page cache.** in front of Redis for search pages',
     ],
     techNotes: {
-      'PostgreSQL': 'Primary database on Jud, Alnurayn, Meuble and the Dentist System. pgvector adds semantic search.',
+      'PostgreSQL': 'Primary database on Jud, Alnurayn, Meuble and the 191-model Bahmardi Dental schema. pgvector adds semantic search.',
       'Redis': 'L2 page cache behind Alnurayn\'s C++ search, and the queue backend for BullMQ jobs at Care360.',
-      'Docker': 'Docker Compose deployments with Caddy HTTPS for the Dentist System.',
-      'Caddy CI/CD': 'GitHub Actions pipelines that deploy via Docker Compose behind Caddy, with nightly Restic backups.',
+      'Docker': 'Docker Compose deployments with Caddy HTTPS and SeaweedFS S3 object storage for Bahmardi Dental.',
+      'Caddy CI/CD': 'GitHub Actions pipelines deploying via Docker Compose behind Caddy auto-HTTPS, with nightly Restic encrypted backups.',
     },
-    keywords: ['postgresql', 'redis', 'docker', 'ci/cd'],
+    keywords: ['postgresql', 'redis', 'docker', 'ci/cd', 'caddy', 'seaweedfs'],
     color: '#F59E0B',
     yBase: -0.72,
     width: 1.92,
@@ -142,20 +144,20 @@ const STACK_LAYERS: StackLayerSpec[] = [
     code: 'L3',
     shortLabel: 'Backend',
     title: 'Backend & AI',
-    stack: 'Node.js · NestJS · BullMQ · pgvector RAG',
-    blurb: 'The service layer: **NestJS APIs|NestJS 11 at Jud with RBAC, cron automation and WebSockets.**, background job queues and **pgvector-powered AI search|Hybrid RAG agent with automatic page-level citations.**.',
+    stack: 'Node.js · NestJS · pg-boss · pgvector RAG',
+    blurb: 'The service layer: **NestJS & Express APIs|NestJS 11 at Jud; Express 5 + Apollo 5 + pg-boss outbox worker on Bahmardi Dental.**, background job queues and **pgvector-powered AI search|Hybrid RAG agent with automatic page-level citations.**.',
     highlights: [
       '**15-module HR suite|Geo-attendance, shifts, leave refunds, violation matrices, payroll pre-processing and RBAC.** built on NestJS 11 at Jud',
+      '**pg-boss transactional outbox|Polls outbox_events (FOR UPDATE SKIP LOCKED) for idempotent pushes, reminders & PDFs in Bahmardi Dental.** with Stripe payments',
       '**Hybrid RAG agent|Semantic similarity plus Arabic root and stop-word normalisation, using Gemini, Cohere and LangChain.** with automatic citations',
-      '**10-step idempotent provisioning|Meuble SaaS store creation that can be retried safely at any step.** for self-service SaaS stores',
     ],
     techNotes: {
-      'Node.js': 'Runtime for the Alnurayn API, scrapers and bots, and host of the native C++ addon.',
+      'Node.js': 'Runtime for Express 5 / Bahmardi Dental worker, the Alnurayn API, and host of the native C++ addon.',
       'NestJS': 'NestJS 11 modular APIs with RBAC, cron jobs and WebSockets at Jud; NestJS services at Care360.',
-      'BullMQ': 'Redis-backed queues for appointment reminders, billing events and background jobs at Care360.',
+      'pg-boss': 'PostgreSQL transactional outbox & BullMQ queues driving reminders, waitlist offers, S3 verification, and Stripe webhooks.',
       'pgvector RAG': 'Semantic search on PostgreSQL with pgvector, feeding a Gemini/Cohere/LangChain research agent.',
     },
-    keywords: ['nestjs', 'nodejs', 'bullmq', 'pgvector'],
+    keywords: ['nestjs', 'nodejs', 'bullmq', 'pg-boss', 'pgvector', 'stripe'],
     color: '#22C55E',
     yBase: 0.0,
     width: 1.54,
@@ -173,12 +175,12 @@ const STACK_LAYERS: StackLayerSpec[] = [
       '**RBAC + tenant isolation|Granular roles plus BrandUserGuard scoping across Employee, Team Leader and HR Admin.** across Jud role surfaces',
     ],
     techNotes: {
-      'GraphQL': 'Apollo Server API for the Dentist System, with GraphQL codegen feeding the Expo app.',
-      'Prisma': 'Prisma 7 as the typed data layer across Jud, Meuble and the Dentist System.',
+      'GraphQL': 'Apollo Server 5, GraphQL Armor & Codegen powering the 31-module Bahmardi Dental API & Expo app.',
+      'Prisma': 'Prisma 7 typed data layer across Jud, Meuble, and 191 models in Bahmardi Dental.',
       'REST': 'REST endpoints with Swagger docs and throttled security middleware in Jud\'s NestJS API.',
       'Socket.IO': 'Real-time operations and analytics updates pushed to Jud\'s dashboards.',
     },
-    keywords: ['graphql', 'prisma', 'socket.io'],
+    keywords: ['graphql', 'apollo', 'prisma', 'socket.io'],
     color: '#A855F7',
     yBase: 0.36,
     width: 1.36,
@@ -188,20 +190,20 @@ const STACK_LAYERS: StackLayerSpec[] = [
     code: 'L5',
     shortLabel: 'Frontend',
     title: 'Web & Mobile',
-    stack: 'React 19 · Next.js 16 · TypeScript · Expo',
-    blurb: 'What users actually touch: **React / Next.js web apps|Jud\'s RTL/LTR admin UI, the Meuble storefront and the BAC Maths PWA.** and **Expo mobile apps|React Native patient and staff app with Fastlane release automation.**.',
+    stack: 'React 19 · Next.js 16 · Astro 7 · Expo',
+    blurb: 'What users actually touch: **React / Next.js / Astro web apps|Jud\'s RTL/LTR admin UI, Refine 5 + Ant Design clinical portals, Meuble storefront, Astro 7 docs site, and BAC Maths PWA.** and **Expo mobile apps|Expo SDK 57 patient/staff app with biometric unlock, Stripe RN & Fastlane automation.**.',
     highlights: [
       '**Offline-first PWA|BAC 3AS Maths works offline in Arabic, French and English, with a Web Worker CAS.** teaching maths in AR / FR / EN',
-      '**RTL + LTR interfaces|Arabic and English UIs, including RTL PDF exports.** including RTL PDF exports',
-      '**Web + mobile|Next.js, React 19 and Expo from a single TypeScript skill set.** from one TypeScript codebase style',
+      '**Refine 5 + Astro 7|Multi-role clinical portal paired with a zero-JS static public site & 34+ synced guides.** on Bahmardi Dental',
+      '**Web + mobile|Next.js, React 19, Astro 7 and Expo SDK 57 from one TypeScript codebase style.** across desktop and mobile',
     ],
     techNotes: {
-      'React 19': 'Jud\'s enterprise UI (React 19 + Refine, RTL/LTR), the Alnurayn reader app and the Meuble storefront.',
+      'React 19': 'Jud\'s enterprise UI, Refine 5 + Ant Design 5 on Bahmardi Dental, Alnurayn reader, and Meuble storefront.',
       'Next.js 16': 'Meuble storefront, the BAC 3AS Maths PWA, and this portfolio.',
-      'TypeScript': 'Strict typing end to end: clients, API contracts and shared monorepo packages.',
-      'Expo': 'React Native patient/staff mobile app for the Dentist System, shipped with Fastlane.',
+      'Astro 7': 'Zero-JS static site for Bahmardi Dental with strict CSP and synced /docs user guides.',
+      'Expo': 'Expo SDK 57 patient mobile app for Bahmardi Dental with biometric lock, Stripe RN, and Fastlane.',
     },
-    keywords: ['react', 'nextjs', 'expo'],
+    keywords: ['react', 'nextjs', 'expo', 'astro', 'refine'],
     color: '#0EA5E9',
     yBase: 0.72,
     width: 1.18,
@@ -648,7 +650,7 @@ function AtelierWorkstation({
   const deskSlabGeo = useMemo(() => createRoundedSlabGeometry(3.45, 1.44, 0.085, 0.14, 0.014), []);
   const trimSlabGeo = useMemo(() => createRoundedSlabGeometry(3.22, 1.24, 0.032, 0.11, 0.008), []);
   const keyboardChassisGeo = useMemo(() => createRoundedSlabGeometry(0.92, 0.34, 0.032, 0.04, 0.006), []);
-  const bladeDockGeo = useMemo(() => createRoundedSlabGeometry(0.68, 0.42, 0.055, 0.04, 0.008), []);
+  const bladeDockGeo = useMemo(() => createRoundedSlabGeometry(0.76, 0.42, 0.055, 0.04, 0.008), []);
   const bladeBodyGeo = useMemo(() => createRoundedSlabGeometry(0.065, 0.28, 0.28, 0.015, 0.006), []);
 
   useEffect(() => {
@@ -963,7 +965,7 @@ function AtelierWorkstation({
             const proj = cartridgeProjects[id];
             const isSelected = activeProjectId === id;
             const isHov = hoveredBlade === id;
-            const spacing = PROJECT_ORDER.length > 5 ? 0.104 : 0.125;
+            const spacing = PROJECT_ORDER.length > 6 ? 0.096 : PROJECT_ORDER.length > 5 ? 0.104 : 0.125;
             const bx = (idx - (PROJECT_ORDER.length - 1) / 2) * spacing;
 
             return (
@@ -1874,7 +1876,7 @@ export function Atelier3DStage({
       </div>
 
       {/* Bottom Merged UI Bridge Control Dock */}
-      <div className="relative z-10 mx-auto w-full max-w-[580px] px-1 pt-1">
+      <div className="relative z-10 mx-auto w-full max-w-[600px] px-1 pt-1">
         <div
           className="cv-radius-md p-2.5 sm:p-3 flex flex-col gap-2.5"
           style={{
@@ -1954,7 +1956,7 @@ export function Atelier3DStage({
           </div>
 
           {mode === 'atelier' ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               {PROJECT_ORDER.map((id, idx) => {
                 const proj = cartridgeProjects[id];
                 const meta = PROJECT_CARD_META[id];
@@ -1976,7 +1978,6 @@ export function Atelier3DStage({
                     style={{
                       backgroundColor: isSelected ? 'var(--cv-surface-elevated)' : 'var(--cv-surface)',
                       border: `1px solid ${isSelected ? proj.color : 'var(--cv-border)'}`,
-                      borderLeft: isSelected ? `3px solid ${proj.color}` : '1px solid var(--cv-border)',
                       boxShadow: isSelected ? `0 4px 14px -4px ${proj.color}33` : 'none',
                     }}
                   >

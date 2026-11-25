@@ -322,7 +322,6 @@ export function MostaqlReviewsPreview({ variant = 'modal' }: MostaqlReviewsPrevi
               style={{
                 backgroundColor: 'var(--cv-surface-elevated)',
                 border: '1px solid var(--cv-border)',
-                borderLeft: `3px solid ${MOSTAQL_BLUE}`,
               }}
             >
               <div className="space-y-1.5">
@@ -480,7 +479,6 @@ export function MostaqlReviewsPreview({ variant = 'modal' }: MostaqlReviewsPrevi
             style={{
               backgroundColor: 'var(--cv-surface-elevated)',
               border: '1px solid var(--cv-border)',
-              borderLeft: `3px solid ${MOSTAQL_BLUE}`,
             }}
           >
             <div className="flex items-center justify-between gap-2">

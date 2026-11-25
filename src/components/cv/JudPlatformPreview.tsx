@@ -347,7 +347,6 @@ export function JudPlatformPreview({ variant = 'modal' }: JudPlatformPreviewProp
                   animationDelay: `${idx * 50}ms`,
                   backgroundColor: 'var(--cv-surface-elevated)',
                   border: '1px solid var(--cv-border)',
-                  borderLeft: `3px solid ${JUD_VIOLET}`,
                 }}
               >
                 <div className="flex items-center gap-2 min-w-0">

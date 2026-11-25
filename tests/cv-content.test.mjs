@@ -20,9 +20,19 @@ test('CV.md content sync verification across website', () => {
 
   // 4. Specific project highlights from CV
   assert.ok(resumeData.includes('Dentist System'), 'Includes Dentist System');
+  assert.ok(resumeData.includes('Bahmardi Dental'), 'Includes Bahmardi Dental');
+  assert.ok(resumeData.includes('dentist-system'), 'Includes dentist-system visualType');
+  assert.ok(resumeData.includes('pg-boss'), 'Includes pg-boss outbox worker');
+  assert.ok(resumeData.includes('Astro'), 'Includes Astro');
+  assert.ok(resumeData.includes('SeaweedFS'), 'Includes SeaweedFS');
   assert.ok(resumeData.includes('Care360'), 'Includes Care360 telehealth');
   assert.ok(resumeData.includes('RSA cryptographic licensing'), 'Includes RSA cryptographic licensing');
   assert.ok(resumeData.includes('C++ search addon') || resumeData.includes('C++'), 'Includes C++ search addon');
+
+  // 4b. CV.md includes Bahmardi Dental / Dentist System & stack
+  assert.ok(cvMd.includes('Bahmardi Dental') && cvMd.includes('Dentist System'), 'CV.md references Bahmardi Dental (Dentist System)');
+  assert.ok(cvMd.includes('pg-boss') && cvMd.includes('Astro'), 'CV.md includes pg-boss and Astro in stack');
+  assert.ok(cvMd.includes('8,800+'), 'CV.md includes 8,800+ tests metric');
 
   // 5. Education matches
   assert.ok(resumeData.includes('Ahmad Zabana University'), 'Includes Ahmad Zabana University');

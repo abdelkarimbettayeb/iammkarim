@@ -17,6 +17,7 @@ import { cartridgeProjects } from "@/data/resumeData";
 import type { CartridgeId } from "@/types/room";
 import { JudPlatformPreview } from "./JudPlatformPreview";
 import { CppSearchPreview } from "./CppSearchPreview";
+import { DentistSystemPreview } from "./DentistSystemPreview";
 import { MostaqlReviewsPreview } from "./MostaqlReviewsPreview";
 import { MouserKvmPreview } from "./MouserKvmPreview";
 import { MeubleStorePreview } from "./MeubleStorePreview";
@@ -232,6 +233,10 @@ export function CVCaseStudyModal({
             <div className="cv-project-frame w-full min-h-[300px] sm:min-h-[330px]">
               <CppSearchPreview key={project.id} variant="modal" />
             </div>
+          ) : project.visualType === "dentist-system" ? (
+            <div className="cv-project-frame w-full min-h-[300px] sm:min-h-[330px]">
+              <DentistSystemPreview key={project.id} variant="modal" />
+            </div>
           ) : project.visualType === "mostaql-reviews" ? (
             <div className="cv-project-frame w-full min-h-[300px] sm:min-h-[320px]">
               <MostaqlReviewsPreview key={project.id} variant="modal" />
@@ -318,10 +323,7 @@ export function CVCaseStudyModal({
                 className="mt-3.5 px-4 py-3 cv-radius-sm"
                 style={{
                   backgroundColor: "var(--cv-surface)",
-                  borderLeft: `3px solid ${project.color}`,
-                  borderTop: "1px solid var(--cv-border)",
-                  borderRight: "1px solid var(--cv-border)",
-                  borderBottom: "1px solid var(--cv-border)",
+                  border: "1px solid var(--cv-border)",
                 }}
               >
                 <span
@@ -426,10 +428,7 @@ export function CVCaseStudyModal({
                               className="p-3.5 cv-radius-sm"
                               style={{
                                 backgroundColor: "var(--cv-surface)",
-                                borderLeft: `3px solid ${project.color}`,
-                                borderTop: "1px solid var(--cv-border)",
-                                borderRight: "1px solid var(--cv-border)",
-                                borderBottom: "1px solid var(--cv-border)",
+                                border: `1px solid ${project.color}40`,
                               }}
                             >
                               <span

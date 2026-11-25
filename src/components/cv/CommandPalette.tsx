@@ -43,7 +43,7 @@ interface CommandPaletteProps {
   onEnterRoom: () => void;
 }
 
-const PROJECT_ORDER: CartridgeId[] = ['jud', 'alnurayn', 'freelance', 'mouser', 'meuble', 'algmath'];
+const PROJECT_ORDER: CartridgeId[] = ['jud', 'alnurayn', 'dentist', 'freelance', 'mouser', 'meuble', 'algmath'];
 
 export function CommandPalette({
   open,

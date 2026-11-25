@@ -6,7 +6,7 @@ export type CharacterState = 'spawning' | 'walking' | 'waving' | 'idle' | 'inter
 
 export type WeatherState = 'clear' | 'rain' | 'snow';
 
-export type CartridgeId = 'jud' | 'alnurayn' | 'freelance' | 'mouser' | 'meuble' | 'algmath';
+export type CartridgeId = 'jud' | 'alnurayn' | 'dentist' | 'freelance' | 'mouser' | 'meuble' | 'algmath';
 
 export interface FlagItem {
   name: string;
@@ -29,6 +29,7 @@ export interface TechSkillItem {
 export type ProjectVisualType =
   | 'jud-platform'
   | 'cpp-search'
+  | 'dentist-system'
   | 'mostaql-reviews'
   | 'mouser-kvm'
   | 'meuble-store'

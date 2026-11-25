@@ -81,7 +81,7 @@ export const workExperience: WorkExperienceItem[] = [
     type: 'Commercial Contracts',
     highlights: [
       'Completed 30+ commercial software solutions with a 100% completion rate and a 5.0/5.0 client review record across international clients.',
-      'Dentist System: Architected a clinical management monorepo with GraphQL (Apollo Server), Prisma, PostgreSQL, Refine.dev, and Expo mobile.',
+      'Dentist System (Bahmardi Dental): Architected a 4-app multi-clinic clinical monorepo (31 modules, 191 Prisma models, 8,800+ tests) with Apollo GraphQL, pg-boss outbox worker, SeaweedFS S3, Refine 5, Expo mobile, Astro 7, and Docker/Caddy/Restic CI/CD.',
       'Care360: Built a multi-tenant telehealth ecosystem featuring NestJS, BullMQ queues, Radix UI, and video consultation integrations.',
       'Enterprise POS: Developed an offline-first desktop POS in C# / .NET (WPF) with an asymmetric RSA cryptographic licensing engine.',
       'Implemented 10+ payment gateway integrations, 8+ automated web scrapers, and custom automation bots (WhatsApp, Telegram).',
@@ -115,12 +115,12 @@ export const techSkills: TechSkillItem[] = [
     description: 'SSR, ISR, App Router, responsive design systems, and rich client state.',
   },
   {
-    name: 'Node.js & NestJS',
-    level: 92,
+    name: 'Node.js, Express & NestJS',
+    level: 93,
     color: '#339933',
     iconPath: '/skills/nodejs.png',
     category: 'backend',
-    description: 'Enterprise backend services, modular microservices, and asynchronous runtimes.',
+    description: 'Enterprise REST & GraphQL backends, Express 5, NestJS 11, Stripe webhooks, and TOTP MFA.',
   },
   {
     name: 'PostgreSQL & MySQL',
@@ -148,27 +148,27 @@ export const techSkills: TechSkillItem[] = [
   },
   {
     name: 'GraphQL & Apollo',
-    level: 88,
+    level: 92,
     color: '#E10098',
     iconPath: '/skills/graphql.svg',
     category: 'backend',
-    description: 'Unified schema architecture, resolvers, mutations, and subgraphs.',
+    description: 'Apollo Server 5, GraphQL Codegen, DataLoaders, GraphQL Armor, and typed client operations.',
   },
   {
     name: 'React Native (Expo)',
-    level: 88,
+    level: 90,
     color: '#61DAFB',
     iconPath: '/skills/react-native.svg',
     category: 'frontend',
-    description: 'Cross-platform mobile applications for iOS & Android.',
+    description: 'Expo SDK 57, Expo Router, biometric auth, FCM/APNs push, Stripe RN, and Fastlane releases.',
   },
   {
-    name: 'Refine.dev & Radix UI',
-    level: 92,
+    name: 'Refine.dev, Ant Design & Radix',
+    level: 93,
     color: '#1E40AF',
     iconPath: '/skills/refine.png',
     category: 'frontend',
-    description: 'Enterprise internal administration tools, headless UI primitives, and data grids.',
+    description: 'Multi-role clinical & admin portals, Ant Design 5, Radix UI primitives, and dnd-kit.',
   },
   {
     name: 'Tailwind CSS',
@@ -179,12 +179,28 @@ export const techSkills: TechSkillItem[] = [
     description: 'Responsive, accessible design systems, fluid layouts, and dark mode theming.',
   },
   {
-    name: 'Redis & BullMQ',
-    level: 87,
+    name: 'Astro & Static Web',
+    level: 86,
+    color: '#FF5D01',
+    iconPath: '/skills/astro.svg',
+    category: 'frontend',
+    description: 'Zero-JS static sites, strict CSP compliance, synced documentation pipelines, and SEO delivery.',
+  },
+  {
+    name: 'Prisma ORM',
+    level: 94,
+    color: '#5A67D8',
+    iconPath: '/skills/prisma.svg',
+    category: 'database',
+    description: 'Type-safe PostgreSQL schemas (191+ models), migrations, driver adapters, and transactional outboxes.',
+  },
+  {
+    name: 'Redis, BullMQ & pg-boss',
+    level: 89,
     color: '#DC382D',
     iconPath: '/skills/redis.svg',
     category: 'database',
-    description: 'Distributed background job processing queues, rate-limiting, and caching.',
+    description: 'Distributed job queues, PostgreSQL transactional outbox workers, rate-limiting, and caching.',
   },
   {
     name: 'AI-Assisted Workflows',
@@ -195,12 +211,20 @@ export const techSkills: TechSkillItem[] = [
     description: 'Agentic coding, synthesis, and rapid prototype-to-production engineering pipelines.',
   },
   {
-    name: 'Docker & CI/CD',
-    level: 88,
+    name: 'Docker, Caddy & CI/CD',
+    level: 90,
     color: '#2496ED',
     iconPath: '/skills/docker.svg',
     category: 'tools',
-    description: 'Containerization, Linux administration, automated pipelines, and TDD.',
+    description: 'Docker Compose, Caddy auto-HTTPS, SeaweedFS S3, Restic encrypted backups, and GitHub Actions.',
+  },
+  {
+    name: 'Vitest, Jest & Playwright',
+    level: 91,
+    color: '#6E9F18',
+    iconPath: '/skills/vitest.svg',
+    category: 'tools',
+    description: 'Large-scale automated testing (8,800+ unit, integration, contract, and E2E suites) with TDD.',
   },
 ];
 
@@ -439,6 +463,115 @@ export const cartridgeProjects: Record<CartridgeId, CartridgeProject> = {
       ],
     },
   },
+  dentist: {
+    id: 'dentist',
+    title: 'Bahmardi Dental — Dentist System',
+    subtitle: 'Multi-Clinic Clinical Monorepo • GraphQL, Refine 5, Expo & Astro',
+    description: [
+      'Architected a 4-app clinical practice monorepo unifying an Apollo Server 5 + Express 5 + Prisma 7 backend/worker, a Refine 5 + Ant Design 5 staff admin portal, an Expo SDK 57 patient mobile app, and an Astro 7 public site.',
+      'Designed 31 backend domain modules and 191 PostgreSQL 17 models backed by a pg-boss transactional outbox worker (FOR UPDATE SKIP LOCKED) and SeaweedFS S3 presigned uploads with SHA-256 verification and quarantine.',
+      'Delivered end-to-end clinical workflows: odontogram tooth charting, periodontal gum charting, frozen-fee treatment plans with e-signing, automated 15m waitlist chair recovery, split-payment checkout & blind cash drawer with dual-manager MFA approvals, imaging annotations, sterilization loads, and lot recalls.',
+      'Engineered HIPAA-oriented security with Argon2id + mandatory TOTP MFA, AES-256-GCM secret sealing, GraphQL Armor, hash-chained append-only audit logs, break-glass emergency access reporting, and Stripe online payments (card, Apple Pay, Google Pay).',
+      'Backed by 8,800+ automated tests across 880 suites (Vitest + Jest), 34+ synced user guides, GitHub Actions CI/CD deploying Docker Compose + Caddy auto-HTTPS + nightly Restic encrypted backups, and Fastlane/R8 mobile release automation.',
+    ],
+    stack: [
+      'typescript',
+      'graphql',
+      'apollo 5',
+      'prisma 7',
+      'postgresql 17',
+      'pg-boss',
+      'refine 5',
+      'ant design',
+      'expo',
+      'astro 7',
+      'stripe',
+      'seaweedfs',
+      'docker',
+      'caddy',
+    ],
+    url: '',
+    metrics: '4-app clinical monorepo (31 modules, 191 Prisma models, 8,800+ tests) unifying web, mobile & ops',
+    color: '#0d9488',
+    visualType: 'dentist-system',
+    caseStudy: {
+      overview:
+        'A production-grade multi-clinic dental practice management system (Bahmardi Dental) uniting four independent applications — a GraphQL API & outbox worker, a multi-role staff admin portal, a patient mobile app, and a zero-JS static public site — around one shared patient record from online booking and QR/GPS check-in to chairside charting, checkout, and post-op care.',
+      problem:
+        'Dental groups struggle with fragmented tools where patient intake, scheduling, clinical odontogram charting, sterilization compliance, billing, and follow-ups live in disconnected silos — causing missed medical alerts, unbooked accepted treatment plans, lost chair hours from late cancellations, and weak audit controls.',
+      solution:
+        'Built a tightly typed 4-app monorepo anchored by 31 GraphQL domain modules and 191 Prisma 7 models, a transactional pg-boss outbox worker, presigned SeaweedFS S3 object storage, 7-role RBAC with mandatory TOTP MFA, hash-chained audit logs, and automated Docker/Caddy/Restic and Fastlane delivery pipelines.',
+      stats: [
+        {
+          value: '4 Apps',
+          label: 'Clinical Monorepo',
+          detail: 'API/Worker, Admin, Expo, Astro',
+        },
+        {
+          value: '31 · 191',
+          label: 'Modules · Models',
+          detail: 'Apollo 5 + Prisma 7 + pg-boss',
+        },
+        {
+          value: '8,800+',
+          label: 'Auto Tests',
+          detail: 'Vitest + Jest across 880 suites',
+        },
+        {
+          value: '7 Roles',
+          label: 'Clinic RBAC + MFA',
+          detail: 'Hash-chained HIPAA audit trail',
+        },
+      ],
+      architecture: [
+        {
+          code: '01',
+          title: 'GraphQL API, Transactional Outbox & Object Storage',
+          badge: 'Apollo 5 · Prisma 7 · pg-boss · SeaweedFS S3',
+          summary:
+            'One codebase running both the HTTP GraphQL server and a background worker across 31 clinical and operational modules.',
+          bullets: [
+            'Apollo Server 5 + Express 5 guarded by GraphQL Armor (depth, cost, alias & token limits), per-request DataLoaders, and Zod 4 validation.',
+            'pg-boss outbox dispatcher polling outbox_events (FOR UPDATE SKIP LOCKED) for idempotent reminders, waitlist offers, pushes, and pdfmake PDFs (invoices, receipts, consents, prescriptions, perio & sterilization reports).',
+            'Direct-to-SeaweedFS S3 presigned uploads verified via worker SHA-256 re-hashing and automated quarantine.',
+          ],
+        },
+        {
+          code: '02',
+          title: 'Multi-Role Clinical & Operations Admin Portal',
+          badge: 'Refine 5 · React 19 · Ant Design 5 · dnd-kit',
+          summary:
+            '54 milestones across 7 roles (Super Admin, Clinic Manager, Dentist, Hygienist, Assistant, Receptionist) sharing one Periwinkle design system.',
+          bullets: [
+            'Interactive odontogram tooth charting, rapid keyboard periodontal gum charting, frozen-fee treatment plans, imaging viewer with versioned drawing annotations & ZIP export, and drug/allergy-checked prescriptions.',
+            'Day/week drag-to-resize scheduler, live waiting-room display, split-payment checkout, blind cash drawer counts, dual-manager step-up approvals, inventory lot recall ("Who had it"), sterilization spore tracking, and CSV data import.',
+          ],
+        },
+        {
+          code: '03',
+          title: 'Patient Mobile App & Automated Store Release Pipeline',
+          badge: 'Expo SDK 57 · Apollo Client 4 · Stripe RN · Fastlane',
+          summary:
+            'Cross-platform patient app sharing GraphQL types directly from backend SDL via codegen, plus family/guardian linking.',
+          bullets: [
+            'Slot-held appointment booking with red-flag triage, automated 15-minute waitlist chair-fill offers, QR/GPS/6-digit check-in, digital plan acceptance, post-op pain checks, and NPS surveys.',
+            'Stripe payment sheet (Card, Apple Pay, Google Pay), biometric unlock (expo-local-authentication), Apple & Google Sign-In, direct FCM/APNs pushes, and Fastlane + R8/ProGuard release automation.',
+          ],
+        },
+        {
+          code: '04',
+          title: 'HIPAA-Oriented Security, Static Site & Zero-Downtime Ops',
+          badge: 'TOTP MFA · Astro 7 · Docker · Caddy · Restic',
+          summary:
+            'Defense-in-depth access control, tamper-evident auditing, zero-third-party public website, and automated encrypted server operations.',
+          bullets: [
+            'Argon2id hashing, mandatory staff TOTP MFA + AES-256-GCM secret sealing, break-glass emergency chart access, patient "Who viewed your record", and an append-only hash-chained audit log.',
+            'Astro 7 public site with strict script-src self CSP and 34+ synced how-to guides (/docs), deployed via GitHub Actions to Docker Compose + Caddy HTTPS with nightly pg_dump + Restic encrypted off-server backups.',
+          ],
+        },
+      ],
+    },
+  },
   freelance: {
     id: 'freelance',
     title: '30+ Commercial Platforms',
@@ -499,13 +632,13 @@ export const cartridgeProjects: Record<CartridgeId, CartridgeProject> = {
       architecture: [
         {
           code: '01',
-          title: 'Dentist System — Clinical Monorepo',
-          badge: 'GraphQL · Prisma · Refine · Expo · Astro',
+          title: 'Dentist System (Bahmardi Dental) — Clinical Monorepo',
+          badge: 'Apollo 5 · Prisma 7 · Refine 5 · Expo · Astro 7',
           summary:
-            'Multi-app clinical management suite unifying backend scheduling, web administration, mobile patient/staff workflows, and automated deployment.',
+            '4-app multi-clinic clinical suite (31 modules, 191 Prisma models, 8,800+ tests) unifying scheduling, chairside charting, mobile patient care, and automated ops.',
           bullets: [
-            'Apollo GraphQL API + Prisma + PostgreSQL with a dedicated background worker and Refine.dev administrative web portal.',
-            'React Native (Expo) patient/staff mobile app with GraphQL codegen and Fastlane release automation, paired with an Astro public site.',
+            'Apollo GraphQL 5 + Prisma 7 + PostgreSQL 17 with a pg-boss transactional outbox worker, SeaweedFS S3 storage, and a Refine 5 + Ant Design 5 staff portal.',
+            'Expo SDK 57 patient mobile app with GraphQL codegen, Stripe payments, biometric unlock, and Fastlane release automation, paired with an Astro 7 public site.',
             'Automated GitHub Actions CI/CD deploying via Docker Compose, Caddy HTTPS, and nightly Restic encrypted backups.',
           ],
         },
